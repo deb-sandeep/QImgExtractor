@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="5 seconds">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                <!--%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{15}.%M - %msg%n-->
+                %d{dd-MM HH:mm:ss} %-5level %-3.3L %-30.30logger{0} - %M - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework"  level="WARN"></logger>
+    <logger name="_org.springframework" level="WARN"></logger>
+    <logger name="org.apache"           level="WARN"></logger>
+    <logger name="org.hibernate"        level="WARN"></logger>
+    <logger name="org.jboss"            level="WARN"></logger>
+    <logger name="com.zaxxer"           level="WARN"></logger>
+    <logger name="SQL dialect"          level="WARN"></logger>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

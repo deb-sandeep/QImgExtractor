@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home
+
+cd `dirname $0`
+SCRIPTDIR=`pwd`
+cd -
+
+CP="$SCRIPTDIR/config:$SCRIPTDIR/lib/*"
+
+java -classpath $CP com.sandy.jnmaker.JoveNotesMaker -w ABRACADABRA "$@"
+
