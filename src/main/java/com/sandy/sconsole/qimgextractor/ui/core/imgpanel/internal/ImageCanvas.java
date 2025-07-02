@@ -1,5 +1,6 @@
-package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
+package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
 
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImageExtractorPanel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,15 +15,15 @@ import java.awt.image.BufferedImage;
 @Slf4j
 public class ImageCanvas extends JLabel {
     
-    private final ImagePanel parent ;
-    private final RegionSelector regionSelector;
+    private final ImageExtractorPanel parent ;
+    private final RegionSelector      regionSelector;
     
     private BufferedImage originalImage = null ;
     private BufferedImage scaledImg = null ;
     
     @Getter private double scaleFactor = 1.0f ;
 
-    public ImageCanvas( ImagePanel parent ) {
+    public ImageCanvas( ImageExtractorPanel parent ) {
         
         this.parent = parent ;
         
@@ -37,24 +38,28 @@ public class ImageCanvas extends JLabel {
     private void addEventListeners() {
         super.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
-                if( e.getKeyCode() == KeyEvent.VK_ESCAPE ) {
-                    regionSelector.clear() ;
-                }
+            if( e.getKeyCode() == KeyEvent.VK_ESCAPE ) {
+                regionSelector.clearActiveSelection() ;
+            }
             }
         } ) ;
     }
     
     public void setOriginalImage( BufferedImage img ) {
-        this.originalImage = img ;
-        this.scaledImg = img ;
-        this.scaleFactor = 1.0f ;
-        this.regionSelector.clear() ;
+        originalImage = img ;
+        scaledImg = img ;
+        scaleFactor = 1.0f ;
+        regionSelector.clearActiveSelection() ;
     }
     
-    public void scaleImage( double scaleFactor ) {
-        this.scaleFactor = scaleFactor ;
-        this.scaledImg = getScaledImage() ;
-        this.regionSelector.clear() ;
+    public void scaleImage( double factor ) {
+        
+        double regionScaleFactor = factor/scaleFactor ;
+        regionSelector.scaleSelectedRegions( regionScaleFactor ) ;
+        
+        scaleFactor = factor ;
+        scaledImg = getScaledImage() ;
+        
         super.setPreferredSize( new Dimension( scaledImg.getWidth(),
                                                scaledImg.getHeight() ) ) ;
         super.repaint() ;
@@ -64,13 +69,13 @@ public class ImageCanvas extends JLabel {
         
         super.paintComponent( g ) ;
         g.drawImage( this.scaledImg, 0, 0, null ) ;
-        regionSelector.paintSelectedRegion( (Graphics2D)g ) ;
+        regionSelector.paintSelectedRegions( (Graphics2D)g ) ;
     }
     
     private BufferedImage getScaledImage() {
         
-        if( this.scaleFactor == 1.0f ) {
-            return this.originalImage ;
+        if( scaleFactor == 1.0f ) {
+            return originalImage ;
         }
         
         BufferedImage scaledImg ;
@@ -81,7 +86,7 @@ public class ImageCanvas extends JLabel {
         scaledImg = new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB ) ;
         
         AffineTransform at = new AffineTransform() ;
-        at.scale( this.scaleFactor, this.scaleFactor ) ;
+        at.scale( scaleFactor, scaleFactor ) ;
         
         AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BICUBIC ) ;
         scaledImg = scaleOp.filter( originalImage, scaledImg ) ;
@@ -89,7 +94,7 @@ public class ImageCanvas extends JLabel {
         return scaledImg ;
     }
     
-    public void subImageSelected( Rectangle viewRect, int selectionFlag ) {
+    String subImageSelected( Rectangle viewRect, int selectionFlag ) {
         
         Rectangle modelRect = new Rectangle( viewRect ) ;
         modelRect.x      = (int)( viewRect.x / scaleFactor ) ;
@@ -100,14 +105,14 @@ public class ImageCanvas extends JLabel {
         BufferedImage subImg = originalImage.getSubimage( modelRect.x, modelRect.y,
                                                           modelRect.width, modelRect.height ) ;
         
-        parent.subImageSelected( subImg, selectionFlag ) ;
+        return parent.subImageSelected( subImg, selectionFlag ) ;
     }
     
     public void destroy() {
-        if( this.originalImage != null ) {
-            this.originalImage.flush() ;
-            if( this.scaledImg != this.originalImage ) {
-                this.scaledImg.flush() ;
+        if( originalImage != null ) {
+            originalImage.flush() ;
+            if( scaledImg != originalImage ) {
+                scaledImg.flush() ;
             }
         }
     }

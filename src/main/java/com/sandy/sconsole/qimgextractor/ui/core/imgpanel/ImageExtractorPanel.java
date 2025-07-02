@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
 
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal.ImageCanvas;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -10,24 +11,24 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 @Slf4j
-public class ImagePanel extends JPanel implements ChangeListener {
+public class ImageExtractorPanel extends JPanel implements ChangeListener {
     
     private static final double MAX_SCALE = 2.5 ;
     
     private ImageCanvas imgCanvas;
-    private JSlider imgScaleSlider = null ;
+    private JSlider     imgScaleSlider = null ;
     private JScrollPane imgScrollPane = null ;
     
     private File curImgFile = null ;
     
-    private final ArrayList<ImagePanelListener> listeners = new ArrayList<>() ;
-
-    public ImagePanel() {
+    private ExtractedImageListener listener = null ;
+    
+    public ImageExtractorPanel( ExtractedImageListener listener ) {
         super( new BorderLayout() ) ;
         setUpUI() ;
+        this.listener = listener ;
     }
     
     private void setUpUI() {
@@ -106,21 +107,13 @@ public class ImagePanel extends JPanel implements ChangeListener {
         this.imgCanvas.destroy() ;
     }
     
-    public void addListener( ImagePanelListener listener ) {
-        listeners.add( listener ) ;
-    }
-    
-    public void removeListener( ImagePanelListener listener ) {
-        listeners.remove( listener ) ;
-    }
-    
-    void subImageSelected( BufferedImage subImg, int selectionModifier ) {
-        try {
-            ImageIO.write( subImg, "png", new File( "/Users/sandeep/temp/subimg.png" ) ) ;
+    public String subImageSelected( BufferedImage subImg, int selectionFlag ) {
+        if( listener != null ) {
+            return listener.subImageSelected( subImg, selectionFlag ) ;
         }
-        catch( IOException e ) {
-            log.error( "Error writing subimg." , e ) ;
+        else {
+            log.warn( "No extracted image listener available." ) ;
         }
+        return null ;
     }
-    
 }

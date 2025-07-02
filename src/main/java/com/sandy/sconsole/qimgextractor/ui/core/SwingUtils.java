@@ -15,8 +15,6 @@ import java.net.URL;
 @Slf4j
 public class SwingUtils {
     
-    public static final Color EDITOR_BG_COLOR = new Color( 57, 56, 46 ) ;
-
     private static URL getResource( String path ) {
         return SwingUtils.class.getResource( path ) ;
     }
@@ -150,5 +148,21 @@ public class SwingUtils {
         
         comp.putClientProperty( "Nimbus.Overrides", uid ) ;
         comp.putClientProperty( "Nimbus.Overrides.InheritDefaults", true ) ;
+    }
+    
+    public static int scale( int ordinate, double scaleFactor ) {
+        return (int)( ordinate * scaleFactor ) ;
+    }
+    
+    public static Point scale( Point p, double scaleFactor ) {
+        return new Point( scale( p.x, scaleFactor ),
+                scale( p.y, scaleFactor ) ) ;
+    }
+    
+    public static Rectangle scale( Rectangle r, double scaleFactor ) {
+        return new Rectangle( scale( r.x, scaleFactor ),
+                scale( r.y, scaleFactor ),
+                scale( r.width, scaleFactor ),
+                scale( r.height, scaleFactor ) ) ;
     }
 }
