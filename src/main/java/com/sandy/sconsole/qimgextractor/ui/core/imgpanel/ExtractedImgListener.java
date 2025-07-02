@@ -23,4 +23,10 @@ public interface ExtractedImgListener {
      * a new selected region is successfully processed.
      */
     void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo );
+    
+    /**
+     * If the image extractor canvas is in COMMAND mode and a key other than
+     * Escape is pressed, it is propagated to the listener as command key.
+     */
+    void processCommandKey( int keyCode ) ;
 }

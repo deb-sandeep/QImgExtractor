@@ -1,6 +1,8 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
 
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal.ImageCanvas;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -18,9 +20,15 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     private static final double MAX_SCALE = 2.5 ;
     
-    private ImageCanvas imgCanvas;
+    private ImageCanvas imgCanvas ;
     private JSlider     imgScaleSlider = null ;
     private JScrollPane imgScrollPane = null ;
+    private StatusBar   statusBar  = null ;
+    
+    private MessageStatusComponent modeStatus = null ;
+    private MessageStatusComponent regionSizeStatus = null ;
+    private MessageStatusComponent fileNameStatus = null ;
+    private MessageStatusComponent mousePosStatus = null ;
     
     private File curImgFile = null ;
     
@@ -52,8 +60,33 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         imgScaleSlider.addChangeListener( this ) ;
         imgScaleSlider.setSnapToTicks( true ) ;
         
+        initStatusBar() ;
+        
         add( imgScaleSlider, BorderLayout.WEST ) ;
         add( imgScrollPane, BorderLayout.CENTER ) ;
+        add( statusBar, BorderLayout.SOUTH ) ;
+    }
+    
+    private void initStatusBar() {
+        statusBar = new StatusBar() ;
+        
+        modeStatus = new MessageStatusComponent() ;
+        modeStatus.log( "EDITOR MODE" ) ;
+        
+        fileNameStatus = new MessageStatusComponent() ;
+        fileNameStatus.setForeground( Color.GRAY ) ;
+        
+        regionSizeStatus = new MessageStatusComponent() ;
+        setSelectedRegionSize( 0, 0 ) ;
+        
+        mousePosStatus = new MessageStatusComponent() ;
+        logMousePosition( 0, 0 ) ;
+        
+        statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( mousePosStatus, StatusBar.Direction.EAST ) ;
+        statusBar.addStatusBarComponent( regionSizeStatus, StatusBar.Direction.EAST ) ;
+        statusBar.initialize() ;
     }
     
     public void setImage( File pngFile, List<ExtractedImgInfo> imgInfoList ) {
@@ -66,6 +99,8 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
             double sf = ( double )imgCanvas.getWidth() / img.getWidth() ;
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
             this.imgScaleSlider.setValue( sliderVal ) ;
+            
+            fileNameStatus.log( curImgFile.getAbsolutePath() );
         }
         catch( IOException e ) {
             log.error( "Error setting image." , e ) ;
@@ -120,5 +155,21 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
         listener.selectedRegionsUpdated( selectedRegionsInfo ) ;
+    }
+    
+    public void setModeStatus( String mode) {
+        modeStatus.log( mode ) ;
+    }
+    
+    public void setSelectedRegionSize( int width, int height ) {
+        regionSizeStatus.log( width + " x " + height ) ;
+    }
+    
+    public void logMousePosition( int x, int y ) {
+        mousePosStatus.log( x + ", " + y ) ;
+    }
+    
+    public void emitCommandKey( int keyCode ) {
+        listener.processCommandKey( keyCode ) ;
     }
 }

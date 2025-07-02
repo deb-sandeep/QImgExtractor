@@ -17,11 +17,15 @@ import java.util.List;
 @Slf4j
 public class ImageCanvas extends JLabel {
     
+    public enum OpMode { EDITOR, COMMAND }
+    
     private final ImgExtractorPanel parent ;
-    private final RegionSelector    regionSelector;
+    private final RegionSelector regionSelector;
     
     private BufferedImage originalImage = null ;
     private BufferedImage scaledImg = null ;
+    
+    private OpMode opMode = OpMode.EDITOR ;
     
     @Getter private double scaleFactor = 1.0f ;
 
@@ -35,16 +39,35 @@ public class ImageCanvas extends JLabel {
         addMouseListener( regionSelector ) ;
         addMouseMotionListener( regionSelector ) ;
         addEventListeners() ;
+        parent.requestFocus() ;
     }
     
     private void addEventListeners() {
         super.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
-            if( e.getKeyCode() == KeyEvent.VK_ESCAPE ) {
-                regionSelector.clearActiveSelection() ;
-            }
+                int keyCode = e.getKeyCode() ;
+                if( opMode == OpMode.EDITOR ) {
+                    switch ( keyCode ) {
+                        case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.COMMAND ) ;
+                        case KeyEvent.VK_BACK_SPACE -> regionSelector.clearActiveSelection() ;
+                        case KeyEvent.VK_C -> regionSelector.clearSelectedRegions() ;
+                    }
+                }
+                else if( opMode == OpMode.COMMAND ) {
+                    if( keyCode == KeyEvent.VK_ESCAPE ) {
+                        setOpMode( OpMode.EDITOR ) ;
+                    }
+                    else {
+                        parent.emitCommandKey( keyCode ) ;
+                    }
+                }
             }
         } ) ;
+    }
+    
+    private void setOpMode( OpMode opMode ) {
+        this.opMode = opMode ;
+        parent.setModeStatus( opMode.toString() + " MODE" ) ;
     }
     
     public void setOriginalImage( BufferedImage img, List<ExtractedImgInfo> imgInfoList  ) {
@@ -99,10 +122,11 @@ public class ImageCanvas extends JLabel {
     
     String subImageSelected( Rectangle viewRect, int selectionFlag ) {
         
+        // Reverse scale the view bounds to model bounds.
         Rectangle modelRect = new Rectangle( viewRect ) ;
-        modelRect.x      = (int)( viewRect.x / scaleFactor ) ;
-        modelRect.y      = (int)( viewRect.y / scaleFactor ) ;
-        modelRect.width  = (int)( viewRect.width / scaleFactor ) ;
+        modelRect.x = (int)( viewRect.x / scaleFactor ) ;
+        modelRect.y = (int)( viewRect.y / scaleFactor ) ;
+        modelRect.width = (int)( viewRect.width / scaleFactor ) ;
         modelRect.height = (int)( viewRect.height / scaleFactor ) ;
         
         BufferedImage subImg = originalImage.getSubimage( modelRect.x, modelRect.y,
@@ -121,6 +145,25 @@ public class ImageCanvas extends JLabel {
     }
     
     public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
+        // The region info returned is in the image coordinates of the view. The view
+        // is/might be scaled. So before returning information which is relative to original
+        // image coordinates, we have to apply a reverse scaling factor.
+        selectedRegionsInfo.forEach( info -> info.scale( 1/scaleFactor ) ) ;
         parent.selectedRegionsUpdated( selectedRegionsInfo ) ;
+    }
+    
+    public void logActiveRegionSize( Rectangle regionBounds ) {
+        if( regionBounds != null ) {
+            parent.setSelectedRegionSize( (int)(regionBounds.width/scaleFactor),
+                                          (int)(regionBounds.height/scaleFactor) ) ;
+        }
+        else {
+            parent.setSelectedRegionSize( 0, 0 ) ;
+        }
+    }
+    
+    public void logMousePosition( Point point ) {
+        parent.logMousePosition( (int)(point.x/scaleFactor),
+                                 (int)(point.y/scaleFactor) ) ;
     }
 }
