@@ -11,9 +11,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
-public class ImageExtractorPanel extends JPanel implements ChangeListener {
+public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     private static final double MAX_SCALE = 2.5 ;
     
@@ -23,9 +24,9 @@ public class ImageExtractorPanel extends JPanel implements ChangeListener {
     
     private File curImgFile = null ;
     
-    private ExtractedImageListener listener = null ;
+    private ExtractedImgListener listener = null ;
     
-    public ImageExtractorPanel( ExtractedImageListener listener ) {
+    public ImgExtractorPanel( ExtractedImgListener listener ) {
         super( new BorderLayout() ) ;
         setUpUI() ;
         this.listener = listener ;
@@ -55,12 +56,12 @@ public class ImageExtractorPanel extends JPanel implements ChangeListener {
         add( imgScrollPane, BorderLayout.CENTER ) ;
     }
     
-    public void setImage( File pngFile ) {
+    public void setImage( File pngFile, List<ExtractedImgInfo> imgInfoList ) {
         
         try {
             BufferedImage img = ImageIO.read( pngFile ) ;
             curImgFile = pngFile ;
-            imgCanvas.setOriginalImage( img ) ;
+            imgCanvas.setOriginalImage( img, imgInfoList ) ;
             
             double sf = ( double )imgCanvas.getWidth() / img.getWidth() ;
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
@@ -107,13 +108,17 @@ public class ImageExtractorPanel extends JPanel implements ChangeListener {
         this.imgCanvas.destroy() ;
     }
     
-    public String subImageSelected( BufferedImage subImg, int selectionFlag ) {
+    public String subImageSelected( BufferedImage subImg, Rectangle subImgBounds, int selectionFlag ) {
         if( listener != null ) {
-            return listener.subImageSelected( subImg, selectionFlag ) ;
+            return listener.subImageSelected( subImg, subImgBounds, selectionFlag ) ;
         }
         else {
             log.warn( "No extracted image listener available." ) ;
         }
         return null ;
+    }
+    
+    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
+        listener.selectedRegionsUpdated( selectedRegionsInfo ) ;
     }
 }

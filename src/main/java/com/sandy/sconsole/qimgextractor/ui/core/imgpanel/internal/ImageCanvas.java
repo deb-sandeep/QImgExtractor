@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImageExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,19 +12,20 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 @Slf4j
 public class ImageCanvas extends JLabel {
     
-    private final ImageExtractorPanel parent ;
-    private final RegionSelector      regionSelector;
+    private final ImgExtractorPanel parent ;
+    private final RegionSelector    regionSelector;
     
     private BufferedImage originalImage = null ;
     private BufferedImage scaledImg = null ;
     
     @Getter private double scaleFactor = 1.0f ;
 
-    public ImageCanvas( ImageExtractorPanel parent ) {
+    public ImageCanvas( ImgExtractorPanel parent ) {
         
         this.parent = parent ;
         
@@ -45,11 +47,12 @@ public class ImageCanvas extends JLabel {
         } ) ;
     }
     
-    public void setOriginalImage( BufferedImage img ) {
+    public void setOriginalImage( BufferedImage img, List<ExtractedImgInfo> imgInfoList  ) {
         originalImage = img ;
         scaledImg = img ;
         scaleFactor = 1.0f ;
         regionSelector.clearActiveSelection() ;
+        regionSelector.setSelectedRegionsInfo( imgInfoList ) ;
     }
     
     public void scaleImage( double factor ) {
@@ -105,7 +108,7 @@ public class ImageCanvas extends JLabel {
         BufferedImage subImg = originalImage.getSubimage( modelRect.x, modelRect.y,
                                                           modelRect.width, modelRect.height ) ;
         
-        return parent.subImageSelected( subImg, selectionFlag ) ;
+        return parent.subImageSelected( subImg, modelRect, selectionFlag ) ;
     }
     
     public void destroy() {
@@ -115,5 +118,9 @@ public class ImageCanvas extends JLabel {
                 scaledImg.flush() ;
             }
         }
+    }
+    
+    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
+        parent.selectedRegionsUpdated( selectedRegionsInfo ) ;
     }
 }

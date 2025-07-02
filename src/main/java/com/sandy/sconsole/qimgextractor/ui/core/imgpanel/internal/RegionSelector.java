@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
 
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
@@ -55,10 +56,13 @@ class RegionSelector
         
         try {
             if( activeRegion != null ) {
-                String tag = canvas.subImageSelected( activeRegion.getRegionBounds(), event.getButton() ) ;
+                int selectionFlag = event.getButton() ;
+                String tag = canvas.subImageSelected( activeRegion.getRegionBounds(), selectionFlag ) ;
                 if( tag != null ) {
+                    activeRegion.setSelectionFlag( selectionFlag ) ;
                     activeRegion.setTag( tag ) ;
                     oldRegions.add( activeRegion ) ;
+                    canvas.selectedRegionsUpdated( getSelectedRegionsInfo() ) ;
                 }
                 clearActiveSelection() ;
             }
@@ -88,6 +92,19 @@ class RegionSelector
         if( activeRegion != null ) {
             canvas.repaint( activeRegion.getRepaintBounds() ) ;
             activeRegion = null ;
+        }
+    }
+    
+    public List<ExtractedImgInfo> getSelectedRegionsInfo() {
+        List<ExtractedImgInfo> infoList = new ArrayList<>() ;
+        oldRegions.forEach( r -> infoList.add( r.getRegionInfo() ) ) ;
+        return infoList ;
+    }
+    
+    public void setSelectedRegionsInfo( List<ExtractedImgInfo> infoList ) {
+        oldRegions.clear() ;
+        if( infoList != null ) {
+            infoList.forEach( info -> oldRegions.add( new SelectedRegion( info ) ) ) ;
         }
     }
 }
