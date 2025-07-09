@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class CloseableTabbedPane extends HighlightableTabbedPane {
 
-    /** Pixels added to each tab for accommodating close image */
+    // Pixels added to each tab for accommodating close image
     private static final int TAB_WIDTH_EXTENSION = 50 ;
 
     public static final int TAB_CLOSING = 1 ;
