@@ -35,7 +35,7 @@ public class CloseableTabbedPane extends HighlightableTabbedPane {
             }
         }) ;
         addCtrlWListenerForTabClose() ;
-        super.setForeground( Color.WHITE ) ;
+        super.setForeground( Color.DARK_GRAY ) ;
     }
     
     private void addCtrlWListenerForTabClose() {
@@ -51,7 +51,7 @@ public class CloseableTabbedPane extends HighlightableTabbedPane {
                     boolean okToCloseTab = true ;
                     Component comp = getComponentAt( selIndex ) ;
                     if( comp instanceof CloseableTab tab ) {
-                        if( !tab.isOkToCloseTab() ) {
+                        if( !tab.isTabClosable() ) {
                             okToCloseTab = false ;
                         }
                     }

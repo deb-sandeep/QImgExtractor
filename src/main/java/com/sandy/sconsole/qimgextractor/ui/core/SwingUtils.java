@@ -48,8 +48,8 @@ public class SwingUtils {
         return new ImageIcon( image ) ;
     }
     
-    public static BufferedImage getIconImage( Class<?> mainClass, String iconName ) {
-        BufferedImage img = null ;
+    public static BufferedImage getIconImage(  String iconName ) {
+        BufferedImage img ;
         try {
             URL url = getResource( "/icons/" + iconName + ".png" ) ;
             img = ImageIO.read( url ) ;

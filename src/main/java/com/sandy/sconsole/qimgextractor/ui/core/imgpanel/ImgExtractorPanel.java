@@ -55,7 +55,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         imgScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED ) ;
         
         imgScaleSlider = new JSlider( JSlider.VERTICAL ) ;
-        imgScaleSlider.setMinorTickSpacing( 5 ) ;
+        imgScaleSlider.setMinorTickSpacing( 1 ) ;
         imgScaleSlider.setPaintTicks( true ) ;
         imgScaleSlider.addChangeListener( this ) ;
         imgScaleSlider.setSnapToTicks( true ) ;
@@ -89,14 +89,15 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         statusBar.initialize() ;
     }
     
-    public void setImage( File pngFile, List<ExtractedImgInfo> imgInfoList ) {
+    public void setImage( File pngFile, List<ExtractedImgInfo> imgInfoList,
+                          int preferredImgWidth ) {
         
         try {
             BufferedImage img = ImageIO.read( pngFile ) ;
             curImgFile = pngFile ;
             imgCanvas.setOriginalImage( img, imgInfoList ) ;
             
-            double sf = ( double )imgCanvas.getWidth() / img.getWidth() ;
+            double sf = ( double )preferredImgWidth / img.getWidth() ;
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
             this.imgScaleSlider.setValue( sliderVal ) ;
             
@@ -154,7 +155,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     }
     
     public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
-        listener.selectedRegionsUpdated( selectedRegionsInfo ) ;
+        listener.selectedRegionsUpdated( selectedRegionsInfo, curImgFile ) ;
     }
     
     public void setModeStatus( String mode) {

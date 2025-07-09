@@ -1,9 +1,10 @@
-package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
+package com.sandy;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgListener;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -11,20 +12,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 public class ImgPanelTest extends JFrame implements ExtractedImgListener {
     
-    private static final File imgFile = new File( "/Users/sandeep/Documents/StudyNotes/question-bank/FIITJEE/AITS-A/AITS-13-A-FT1P1/pages/AITS-13-A-FT1P1-09.png" ) ;
+    private static final File imgDir = new File( "/Users/sandeep/temp/imgs" ) ;
+    private static final File stateDir = new File( "/Users/sandeep/temp/imgstate" ) ;
     
     public static void main(String[] args) {
         ImgPanelTest app = new ImgPanelTest() ;
         app.setVisible( true ) ;
-        app.setImage( imgFile, app.getImgState() ) ;
+        app.setImages() ;
     }
     
-    private ImgExtractorPanel imgExtractorPanel;
+    private CloseableTabbedPane tabbedPane ;
     
     public ImgPanelTest() {
         setUpUI() ;
@@ -35,12 +39,23 @@ public class ImgPanelTest extends JFrame implements ExtractedImgListener {
         super.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE ) ;
         setLayout( new BorderLayout() ) ;
         
-        imgExtractorPanel = new ImgExtractorPanel( this ) ;
-        add( imgExtractorPanel, BorderLayout.CENTER ) ;
+        tabbedPane = new CloseableTabbedPane() ;
+        add( tabbedPane, BorderLayout.CENTER ) ;
+    }
+    
+    public void setImages() {
+        Arrays.stream( imgDir.listFiles( f -> f.getName().endsWith(".png") ) ).toList().forEach( file -> {
+            File stateFile = new File( stateDir, file.getName() + ".state" ) ;
+            List<ExtractedImgInfo> infos = getImgState( stateFile ) ;
+            setImage( file, infos ) ;
+        }) ;
     }
     
     public void setImage( File file, List<ExtractedImgInfo> imgInfoList ) {
-        imgExtractorPanel.setImage( file, imgInfoList ) ;
+        ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
+        imgPanel.setImage( file, imgInfoList, tabbedPane.getWidth() - 50 ) ;
+        tabbedPane.addTab( file.getName(), imgPanel ) ;
+        tabbedPane.raiseAlert( imgPanel );
     }
     
     private int nextTagNumber = 1 ;
@@ -56,9 +71,9 @@ public class ImgPanelTest extends JFrame implements ExtractedImgListener {
     }
     
     @Override
-    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
+    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo, File imgFile ) {
         try {
-            File stateFile = new File( "/Users/sandeep/temp/subimg.state" ) ;
+            File stateFile = new File( stateDir, imgFile.getName() + ".state" ) ;
             ObjectOutputStream oos = new ObjectOutputStream( new FileOutputStream( stateFile ) ) ;
             oos.writeObject( selectedRegionsInfo ) ;
             oos.close() ;
@@ -72,13 +87,17 @@ public class ImgPanelTest extends JFrame implements ExtractedImgListener {
     public void processCommandKey( int keyCode ) {
     }
     
-    public List<ExtractedImgInfo> getImgState() {
+    public List<ExtractedImgInfo> getImgState( File stateFile ) {
         List<ExtractedImgInfo> state = null ;
         try {
-            File stateFile = new File( "/Users/sandeep/temp/subimg.state" ) ;
-            ObjectInputStream ois = new ObjectInputStream( new FileInputStream( stateFile ) ) ;
-            state = ( List<ExtractedImgInfo> )ois.readObject() ;
-            ois.close() ;
+            if( stateFile.exists() ) {
+                ObjectInputStream ois = new ObjectInputStream( new FileInputStream( stateFile ) ) ;
+                state = ( List<ExtractedImgInfo> )ois.readObject() ;
+                ois.close() ;
+            }
+            else {
+                state = new ArrayList<ExtractedImgInfo>() ;
+            }
         }
         catch( Exception e ) {
             log.error( "Error reading state." , e ) ;

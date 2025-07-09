@@ -51,8 +51,8 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
         this.parent.addMouseMotionListener( this );
         this.parent.addMouseListener( this );
         try {
-            greyClose = SwingUtils.getIconImage( this.getClass(), "close_grey" ) ;
-            redClose  = SwingUtils.getIconImage( this.getClass(), "close_red" ) ;
+            greyClose = SwingUtils.getIconImage( "close_grey" ) ;
+            redClose  = SwingUtils.getIconImage( "close_red" ) ;
             
         } catch ( Exception e ) {
             log.error( "Error while loading close images for tab", e ) ;
@@ -103,7 +103,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
             Component comp = parent.getComponentAt( tabIndex ) ;
             if( comp instanceof CloseableTab ) {
                 CloseableTab tab = ( CloseableTab )comp ;
-                if( !tab.isOkToCloseTab() ) {
+                if( !tab.isTabClosable() ) {
                     okToCloseTab = false ;
                 }
             }
