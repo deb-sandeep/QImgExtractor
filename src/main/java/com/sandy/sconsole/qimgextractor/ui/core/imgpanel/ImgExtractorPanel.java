@@ -22,16 +22,15 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     private static final double MAX_SCALE = 2.5 ;
     
     private ImageCanvas imgCanvas ;
-    private JSlider     imgScaleSlider = null ;
-    private JLabel      sliderValueLabel = null ;
+    private JSlider imgScaleSlider = null ;
+    private JLabel sliderValueLabel = null ;
     private JScrollPane imgScrollPane = null ;
-    private StatusBar   statusBar  = null ;
+    private StatusBar statusBar = null ;
     
     private MessageStatusComponent modeStatus = null ;
     private MessageStatusComponent regionSizeStatus = null ;
     private MessageStatusComponent fileNameStatus = null ;
     private MessageStatusComponent mousePosStatus = null ;
-    private CustomWidgetStatusComponent zoomStatusWidget = null ;
     
     private File curImgFile = null ;
     
@@ -92,7 +91,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         mousePosStatus = new MessageStatusComponent() ;
         logMousePosition( 0, 0 ) ;
         
-        zoomStatusWidget = new CustomWidgetStatusComponent( getSliderWidget() ) ;
+        CustomWidgetStatusComponent zoomStatusWidget = new CustomWidgetStatusComponent( getSliderWidget() );
         
         statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
