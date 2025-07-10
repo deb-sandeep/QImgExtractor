@@ -9,12 +9,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
-import static com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane.TAB_CLOSING;
-
 /**
  * This is an inner private class that does two primary functions:
  * <p>
- * 1. Paints the close image (grey or red) as necessary<br>
+ * 1. Paints the close image (gray or red) as necessary<br>
  * 2. Handle various mouse events for repainting and closing tabs
  */
 @Slf4j
@@ -26,7 +24,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
     private static final int SPACING = 5 ;
     
     /** Handle to the parent Tabbed Pane */
-    private CloseableTabbedPane parent ;
+    private final CloseableTabbedPane parent ;
     
     /** Buffered images for close buttons */
     private BufferedImage greyClose ;
@@ -42,7 +40,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
     
     /**
      * Constructor with a handle to it's parent TabbedPane. This adds the
-     * mouse handlers to it's parent and buffers up the images.
+     * mouse handlers to its parent and buffers up the images.
      *
      * @param parent The instance of {@link CloseableTabbedPane}
      */
@@ -83,41 +81,30 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
     /**
      * This mouse released method is used for capturing the event of a mouse
      * release over a close button. If the mouse release is over a close
-     * button then the tab is closed.
-     *
-     * This method removes the utility tab if an only if the utility
+     * button, then the tab is closed.
+     * <p>
+     * This method removes the utility tab if and only if the utility
      * assures that it is ok for it to be removed.
      * <p>
      * See {@link MouseListener#mouseReleased(MouseEvent)}
      */
     public void mouseReleased( MouseEvent e ) {
         
-        boolean okToCloseTab = true ;
-        
         mX = e.getX() ;
         mY = e.getY() ;
-        //check if mouse if released over close image
+        
+        //check if mouse is released over close image
         if ( getMouseOverTabIndex() != -1  && isMouseOnClose() ) {
             int tabIndex = getMouseOverTabIndex() ;
             
-            Component comp = parent.getComponentAt( tabIndex ) ;
-            if( comp instanceof CloseableTab ) {
-                CloseableTab tab = ( CloseableTab )comp ;
-                if( !tab.isTabClosable() ) {
-                    okToCloseTab = false ;
-                }
-            }
-            
-            if( okToCloseTab ) {
-                parent.notifyListeners( tabIndex, TAB_CLOSING ) ;
-                parent.remove( tabIndex ) ;
-            }
+            parent.notifyTabCloseListeners( tabIndex ) ;
+            parent.remove( tabIndex ) ;
         }
     }
     
     /**
-     * This method is used for tracking the mouse movement and if the state
-     * is changed then repaint the tabs.
+     * This method is used for tracking the mouse movement, and if the state
+     * is changed, then repaint the tabs.
      */
     public void mouseMoved( MouseEvent e ) {
         mX = e.getX() ;
@@ -188,7 +175,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
      *
      * @param g - Graphic context
      * @param index - Index of tab on which image is to be drawn
-     * @param red - If a red image is to be drawn or grey
+     * @param red - If a red image is to be drawn or gray
      */
     private void drawCloseImage( Graphics g, int index, boolean red ) {
         if ( index != -1 && index < parent.getTabCount() ) {

@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
 
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal.ImageCanvas;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.CustomWidgetStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     private ImageCanvas imgCanvas ;
     private JSlider     imgScaleSlider = null ;
+    private JLabel      sliderValueLabel = null ;
     private JScrollPane imgScrollPane = null ;
     private StatusBar   statusBar  = null ;
     
@@ -29,6 +31,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     private MessageStatusComponent regionSizeStatus = null ;
     private MessageStatusComponent fileNameStatus = null ;
     private MessageStatusComponent mousePosStatus = null ;
+    private CustomWidgetStatusComponent zoomStatusWidget = null ;
     
     private File curImgFile = null ;
     
@@ -54,15 +57,22 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         imgScrollPane.getHorizontalScrollBar().setUnitIncrement( 10 ) ;
         imgScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED ) ;
         
-        imgScaleSlider = new JSlider( JSlider.VERTICAL ) ;
+        imgScaleSlider = new JSlider( JSlider.HORIZONTAL ) ;
         imgScaleSlider.setMinorTickSpacing( 1 ) ;
-        imgScaleSlider.setPaintTicks( true ) ;
+        imgScaleSlider.setPaintTicks( false ) ;
         imgScaleSlider.addChangeListener( this ) ;
         imgScaleSlider.setSnapToTicks( true ) ;
+        imgScaleSlider.setPreferredSize( new Dimension( 150, 10 ) ) ;
+        imgScaleSlider.setMaximumSize( new Dimension( 150, 10 ) ) ;
+        
+        sliderValueLabel = new JLabel( "" ) ;
+        sliderValueLabel.setHorizontalAlignment( SwingConstants.CENTER ) ;
+        sliderValueLabel.setFont( new Font( Font.MONOSPACED, Font.PLAIN, 10 ) ) ;
+        sliderValueLabel.setForeground( Color.DARK_GRAY ) ;
         
         initStatusBar() ;
         
-        add( imgScaleSlider, BorderLayout.WEST ) ;
+        //add( imgScaleSlider, BorderLayout.EAST ) ;
         add( imgScrollPane, BorderLayout.CENTER ) ;
         add( statusBar, BorderLayout.SOUTH ) ;
     }
@@ -82,11 +92,21 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         mousePosStatus = new MessageStatusComponent() ;
         logMousePosition( 0, 0 ) ;
         
+        zoomStatusWidget = new CustomWidgetStatusComponent( getSliderWidget() ) ;
+        
         statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( mousePosStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( regionSizeStatus, StatusBar.Direction.EAST ) ;
+        statusBar.addStatusBarComponent( zoomStatusWidget, StatusBar.Direction.EAST ) ;
         statusBar.initialize() ;
+    }
+    
+    private JPanel getSliderWidget() {
+        JPanel panel = new JPanel( new BorderLayout() ) ;
+        panel.add( imgScaleSlider, BorderLayout.CENTER ) ;
+        panel.add( sliderValueLabel, BorderLayout.EAST ) ;
+        return panel ;
     }
     
     public void setImage( File pngFile, List<ExtractedImgInfo> imgInfoList,
@@ -115,6 +135,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
             double scaleFactor = convertSliderValueToScaleFactor( this.imgScaleSlider.getValue() ) ;
             this.imgCanvas.scaleImage( scaleFactor ) ;
             this.imgScrollPane.setViewportView( imgCanvas ) ;
+            this.sliderValueLabel.setText( String.format( "%.0f%%", scaleFactor*100 ) ) ;
         }
     }
     
