@@ -1,13 +1,17 @@
 package com.sandy.sconsole.qimgextractor;
 
+import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import javax.swing.*;
 
 @Slf4j
 @SpringBootApplication
@@ -27,6 +31,9 @@ public class QImgExtractor
     
     // ---------------- Instance methods start ---------------------------------
     
+    @Autowired
+    private MainFrame mainFrame ;
+    
     public QImgExtractor() {
         APP = this;
     }
@@ -42,7 +49,9 @@ public class QImgExtractor
         log.debug( "## Initializing QImgExtractor app. >" ) ;
         
         log.debug( "- Initializing MainFrame" ) ;
-        //SwingUtilities.invokeLater( () -> ) ;
+        SwingUtilities.invokeLater( () -> {
+            mainFrame.setVisible( true ) ;
+        }) ;
         
         log.debug( "<< ## QImgExtractor initialization complete" ) ;
     }

@@ -3,13 +3,13 @@ package com.sandy.sconsole.qimgextractor.util;
 import java.io.File ;
 
 import lombok.Data ;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Data
+@Component
 public class AppConfig {
 
-    private File joveNotesMediaDir = null ;
-    private File workspaceDir = null;
-    private File jnmpDir = null ;
-    private File jeeImageNameSaveFile = null ;
-    private String imagePanelType = null ;
+    @Value( "${sourceBaseDir}" )
+    private File sourceBaseDir ;
 }
