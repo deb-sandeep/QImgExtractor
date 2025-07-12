@@ -1,6 +1,8 @@
 package com.sandy.sconsole.qimgextractor.ui;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import jakarta.annotation.PostConstruct;
@@ -21,9 +23,12 @@ public class MainFrame extends JFrame {
     @Autowired
     private AppConfig appConfig ;
     
-    JFileChooser projectDirChooser ;
-    ProjectPanel currentProjectPanel ;
-
+    private JFileChooser projectDirChooser ;
+    private ProjectPanel currentProjectPanel ;
+    
+    private MessageStatusComponent projectNameSBComponent ;
+    private MessageStatusComponent messageSBComponent ;
+    
     public MainFrame() {
         addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
@@ -36,8 +41,11 @@ public class MainFrame extends JFrame {
     public void init() {
         SwingUtils.setMaximized( this ) ;
         setJMenuBar( createMenuBar() ) ;
-        getContentPane().setLayout( new BorderLayout() );
         setUpProjectDirChooser() ;
+        
+        Container contentPane = getContentPane() ;
+        contentPane.setLayout( new BorderLayout() ) ;
+        contentPane.add( createStatusBar(), BorderLayout.NORTH ) ;
     }
     
     private void setUpProjectDirChooser() {
@@ -46,6 +54,23 @@ public class MainFrame extends JFrame {
         projectDirChooser.setCurrentDirectory( appConfig.getSourceBaseDir() ) ;
         projectDirChooser.setAcceptAllFileFilterUsed( false ) ;
         projectDirChooser.setMultiSelectionEnabled( false ) ;
+    }
+    
+    private StatusBar createStatusBar() {
+        
+        projectNameSBComponent = new MessageStatusComponent() ;
+        projectNameSBComponent.setForeground( Color.BLUE ) ;
+        projectNameSBComponent.log( "Choose project directory" ) ;
+        
+        messageSBComponent = new MessageStatusComponent() ;
+        messageSBComponent.setForeground( Color.DARK_GRAY ) ;
+        messageSBComponent.setBorder( null );
+        
+        StatusBar statusBar = new StatusBar() ;
+        statusBar.addStatusBarComponent( projectNameSBComponent, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( messageSBComponent, StatusBar.Direction.EAST ) ;
+        statusBar.initialize() ;
+        return statusBar ;
     }
     
     private JMenuBar createMenuBar() {
@@ -78,9 +103,11 @@ public class MainFrame extends JFrame {
                         getContentPane().remove( currentProjectPanel ) ;
                         currentProjectPanel.destroy() ;
                     }
-                    currentProjectPanel = new ProjectPanel( projectDir ) ;
+                    currentProjectPanel = new ProjectPanel( this, projectDir ) ;
                     getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
                     getContentPane().revalidate() ;
+                    
+                    projectNameSBComponent.log( projectDir.getAbsolutePath() ) ;
                 }
                 else {
                     JOptionPane.showMessageDialog( this,
@@ -100,5 +127,13 @@ public class MainFrame extends JFrame {
             return null != files && files.length > 0 ;
         }
         return false ;
+    }
+    
+    public void logStausMsg( String message ) {
+        messageSBComponent.log( message ) ;
+    }
+    
+    public void clearStatusMsg() {
+        messageSBComponent.clear() ;
     }
 }

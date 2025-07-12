@@ -1,9 +1,12 @@
 package com.sandy.sconsole.qimgextractor.ui.project;
 
+import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgListener;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
+import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,12 +20,14 @@ import java.util.List;
 @Slf4j
 public class ProjectPanel extends JPanel implements ExtractedImgListener {
     
+    private final MainFrame mainFrame;
     private final File projectDir ;
     private final File pagesDir ;
     
     private CloseableTabbedPane tabbedPane ;
     
-    public ProjectPanel( File projectDir ) {
+    public ProjectPanel( MainFrame mainFrame, File projectDir ) {
+        this.mainFrame = mainFrame ;
         this.projectDir = projectDir ;
         this.pagesDir = new File( projectDir, "pages" ) ;
         setUpUI() ;
@@ -38,27 +43,34 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private void loadPageImages() {
         File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
         assert files != null;
-        for( File file : files ) {
+        for( int i=0; i<files.length; i++ ) {
+            File file = files[i] ;
+            mainFrame.logStausMsg( "Loading (" + i + "/" + files.length + ") " + file.getName() + "..." ) ;
             List<ExtractedImgInfo> imgInfoList = getExtractedImgInfoList( file ) ;
             ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
             
             imgPanel.setImage( file, imgInfoList, SwingUtils.getScreenWidth() - 50 ) ;
             SwingUtilities.invokeLater( () -> tabbedPane.addTab( file.getName(), imgPanel ) ) ;
         }
+        mainFrame.clearStatusMsg() ;
     }
     
     private List<ExtractedImgInfo> getExtractedImgInfoList( File imgFile ) {
-        List<ExtractedImgInfo> imgInfoList = new ArrayList<ExtractedImgInfo>() ;
+        List<ExtractedImgInfo> imgInfoList = new ArrayList<>() ;
         return imgInfoList ;
     }
     
     public void destroy() {
-        int numberOfTabs = tabbedPane.getTabCount() ;
-        for( int i=numberOfTabs-1; i>=0; i-- ) {
-            ImgExtractorPanel panel = ( ImgExtractorPanel )tabbedPane.getTabComponentAt( i ) ;
-            panel.destroy() ;
-            tabbedPane.removeTabAt( i ) ;
-        }
+        SwingUtilities.invokeLater( () -> {
+            int numberOfTabs = tabbedPane.getTabCount() ;
+            for( int i=numberOfTabs-1; i>=0; i-- ) {
+                ImgExtractorPanel panel = ( ImgExtractorPanel )tabbedPane.getTabComponentAt( i ) ;
+                if( panel != null ) {
+                    panel.destroy() ;
+                    tabbedPane.removeTabAt( i ) ;
+                }
+            }
+        } ) ;
     }
     
     @Override
