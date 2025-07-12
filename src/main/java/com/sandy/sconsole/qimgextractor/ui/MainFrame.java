@@ -5,12 +5,14 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
+import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -59,11 +61,14 @@ public class MainFrame extends JFrame {
     private StatusBar createStatusBar() {
         
         projectNameSBComponent = new MessageStatusComponent() ;
+        projectNameSBComponent.setBorder( BorderFactory.createBevelBorder( BevelBorder.RAISED ) );
         projectNameSBComponent.setForeground( Color.BLUE ) ;
+        projectNameSBComponent.setFont( UITheme.STATUS_FONT );
         projectNameSBComponent.log( "Choose project directory" ) ;
         
         messageSBComponent = new MessageStatusComponent() ;
         messageSBComponent.setForeground( Color.DARK_GRAY ) ;
+        messageSBComponent.setFont( UITheme.STATUS_FONT ) ;
         messageSBComponent.setBorder( null );
         
         StatusBar statusBar = new StatusBar() ;
@@ -83,8 +88,17 @@ public class MainFrame extends JFrame {
         JMenuItem openMenuItem = new JMenuItem( "Open..." ) ;
         openMenuItem.addActionListener( e -> openProject() ) ;
         
+        JMenuItem closeMenuItem = new JMenuItem( "Close..." ) ;
+        closeMenuItem.addActionListener( e -> closeCurrentProject() ) ;
+        
+        JMenuItem exitMenuItem = new JMenuItem( "Exit" ) ;
+        exitMenuItem.addActionListener( e -> processWindowClosing() ) ;
+        
         JMenu fileMenu = new JMenu( "File" ) ;
         fileMenu.add( openMenuItem ) ;
+        fileMenu.add( closeMenuItem ) ;
+        fileMenu.addSeparator() ;
+        fileMenu.add( exitMenuItem ) ;
         return fileMenu ;
     }
     
@@ -99,13 +113,11 @@ public class MainFrame extends JFrame {
             File projectDir = projectDirChooser.getSelectedFile() ;
             if( projectDir != null ) {
                 if( isValidProjectDir( projectDir ) ) {
-                    if( currentProjectPanel != null ) {
-                        getContentPane().remove( currentProjectPanel ) ;
-                        currentProjectPanel.destroy() ;
-                    }
+                    closeCurrentProject() ;
                     currentProjectPanel = new ProjectPanel( this, projectDir ) ;
                     getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
-                    getContentPane().revalidate() ;
+                    revalidate() ;
+                    repaint() ;
                     
                     projectNameSBComponent.log( projectDir.getAbsolutePath() ) ;
                 }
@@ -117,6 +129,17 @@ public class MainFrame extends JFrame {
                         "Error", JOptionPane.ERROR_MESSAGE ) ;
                 }
             }
+        }
+    }
+    
+    private void closeCurrentProject() {
+        if( currentProjectPanel != null ) {
+            getContentPane().remove( currentProjectPanel ) ;
+            currentProjectPanel.destroy() ;
+            currentProjectPanel = null ;
+            projectNameSBComponent.log( "Choose project directory" ) ;
+            revalidate() ;
+            repaint() ;
         }
     }
     

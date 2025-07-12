@@ -5,8 +5,6 @@ import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgListener;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
-import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
-import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import lombok.extern.slf4j.Slf4j;
 
