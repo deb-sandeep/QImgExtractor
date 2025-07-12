@@ -65,15 +65,17 @@ public class HighlightableTabbedPane extends JTabbedPane implements ChangeListen
     
     @Override
     public void stateChanged( ChangeEvent e ) {
-        int selectedIndex = getSelectedIndex() ;
-        Component[] children = getComponents() ;
-        for( int i=0; i<children.length; i++ ) {
-            if( i == selectedIndex ) {
-                setBackgroundAt( i, Color.YELLOW ) ;
+        SwingUtilities.invokeLater( ()->{
+            int selectedIndex = getSelectedIndex() ;
+            Component[] children = getComponents() ;
+            for( int i=0; i<children.length; i++ ) {
+                if( i == selectedIndex ) {
+                    setBackgroundAt( i, Color.YELLOW ) ;
+                }
+                else {
+                    setBackgroundAt( i, null ) ;
+                }
             }
-            else {
-                setBackgroundAt( i, null ) ;
-            }
-        }
+        }) ;
     }
 }

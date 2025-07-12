@@ -63,7 +63,9 @@ public class MainFrame extends JFrame {
         return fileMenu ;
     }
     
-    private void processWindowClosing() {}
+    private void processWindowClosing() {
+        System.exit( 0 ) ;
+    }
     
     private void openProject() {
     
@@ -78,6 +80,7 @@ public class MainFrame extends JFrame {
                     }
                     currentProjectPanel = new ProjectPanel( projectDir ) ;
                     getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
+                    getContentPane().revalidate() ;
                 }
                 else {
                     JOptionPane.showMessageDialog( this,
@@ -92,6 +95,10 @@ public class MainFrame extends JFrame {
     
     private boolean isValidProjectDir( File projectDir ) {
         File pagesDir = new File( projectDir, "pages" ) ;
-        return pagesDir.exists() && pagesDir.isDirectory() ;
+        if( pagesDir.exists() ) {
+            File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
+            return null != files && files.length > 0 ;
+        }
+        return false ;
     }
 }
