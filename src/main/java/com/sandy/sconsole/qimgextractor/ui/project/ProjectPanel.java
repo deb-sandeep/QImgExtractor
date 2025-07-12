@@ -10,4 +10,7 @@ public class ProjectPanel extends JPanel {
     
     public ProjectPanel( File projectDir ) {
     }
+    
+    public void destroy() {
+    }
 }

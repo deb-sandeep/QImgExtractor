@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -22,7 +21,8 @@ public class MainFrame extends JFrame {
     @Autowired
     private AppConfig appConfig ;
     
-    JFileChooser projectDirChooser;
+    JFileChooser projectDirChooser ;
+    ProjectPanel currentProjectPanel ;
 
     public MainFrame() {
         addWindowListener( new WindowAdapter() {
@@ -36,6 +36,7 @@ public class MainFrame extends JFrame {
     public void init() {
         SwingUtils.setMaximized( this ) ;
         setJMenuBar( createMenuBar() ) ;
+        getContentPane().setLayout( new BorderLayout() );
         setUpProjectDirChooser() ;
     }
     
@@ -70,8 +71,27 @@ public class MainFrame extends JFrame {
         if( userAction == JFileChooser.APPROVE_OPTION ) {
             File projectDir = projectDirChooser.getSelectedFile() ;
             if( projectDir != null ) {
-                ProjectPanel projectPanel = new ProjectPanel( projectDir ) ;
+                if( isValidProjectDir( projectDir ) ) {
+                    if( currentProjectPanel != null ) {
+                        getContentPane().remove( currentProjectPanel ) ;
+                        currentProjectPanel.destroy() ;
+                    }
+                    currentProjectPanel = new ProjectPanel( projectDir ) ;
+                    getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
+                }
+                else {
+                    JOptionPane.showMessageDialog( this,
+                        "Invalid project directory. The chosen directory " +
+                        "should have a pages subdirectory containing image " +
+                        "files for pages.",
+                        "Error", JOptionPane.ERROR_MESSAGE ) ;
+                }
             }
         }
+    }
+    
+    private boolean isValidProjectDir( File projectDir ) {
+        File pagesDir = new File( projectDir, "pages" ) ;
+        return pagesDir.exists() && pagesDir.isDirectory() ;
     }
 }
