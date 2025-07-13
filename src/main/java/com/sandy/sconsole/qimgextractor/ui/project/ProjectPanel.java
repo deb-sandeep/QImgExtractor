@@ -6,6 +6,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgListener;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
+import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectPageTree;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -23,6 +24,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private final File pagesDir ;
     
     private CloseableTabbedPane tabbedPane ;
+    private ProjectPageTree     pageTree ;
     
     public ProjectPanel( MainFrame mainFrame, File projectDir ) {
         this.mainFrame = mainFrame ;
@@ -35,7 +37,9 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private void setUpUI() {
         setLayout( new BorderLayout() );
         tabbedPane = new CloseableTabbedPane() ;
+        pageTree = new ProjectPageTree( this ) ;
         add( tabbedPane, BorderLayout.CENTER ) ;
+        add( pageTree, BorderLayout.WEST ) ;
     }
     
     private void loadPageImages() {
@@ -47,7 +51,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
             List<ExtractedImgInfo> imgInfoList = getExtractedImgInfoList( file ) ;
             ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
             
-            imgPanel.setImage( file, imgInfoList, SwingUtils.getScreenWidth() - 50 ) ;
+            imgPanel.setImage( file, imgInfoList, SwingUtils.getScreenWidth() - ProjectPageTree.PREFERRED_WIDTH - 10 ) ;
             SwingUtilities.invokeLater( () -> tabbedPane.addTab( file.getName(), imgPanel ) ) ;
         }
         mainFrame.clearStatusMsg() ;
