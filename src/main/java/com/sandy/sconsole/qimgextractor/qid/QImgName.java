@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.qid;
 
+import com.sandy.sconsole.qimgextractor.qid.blueprint.ParseException;
 import com.sandy.sconsole.qimgextractor.qid.parser.QIDParser;
 import com.sandy.sconsole.qimgextractor.qid.parser.QIDParserFactory;
 import lombok.Getter;
@@ -9,10 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 public class QImgName {
 
     @Getter private String srcId = null ;
-    @Getter private QID qid = null ;
+    @Getter private QID qid ;
     @Getter private int partNumber = -1 ;
     
-    public QImgName( String imgName ) {
+    private QImgName() {}
+    
+    public QImgName( String imgName ) throws ParseException {
         String normalizedImgName = imgName ;
         
         normalizedImgName = stripImgExtension( normalizedImgName ) ;
@@ -24,11 +27,12 @@ public class QImgName {
         partNumber = extractPartNumberIfPresent( normalizedImgName ) ;
         
         if( partNumber != -1 ) {
-            normalizedImgName = normalizedImgName.substring( 0, imgName.indexOf( '(' ) ) ;
+            normalizedImgName = normalizedImgName.substring( 0, normalizedImgName.indexOf( '(' ) ) ;
         }
 
         QIDParser parser = QIDParserFactory.getParser( srcId ) ;
-        qid = parser.parse( normalizedImgName ) ;
+        assert parser != null;
+        qid = parser.parse( srcId, normalizedImgName ) ;
     }
     
     private String stripImgExtension( String imgName ) {
@@ -57,5 +61,34 @@ public class QImgName {
             return Integer.parseInt( partNumStr ) ;
         }
         return -1 ;
+    }
+    
+    public String toString() {
+        String partNo = "" ;
+        if( partNumber != -1 ) {
+            partNo = "(" + partNumber + ")" ;
+        }
+        return qid.toString() + partNo + ".png" ;
+    }
+    
+    public QImgName getNextName() {
+        QImgName nextName = null ;
+        if( partNumber != -1 ) {
+            nextName = new QImgName() ;
+            nextName.srcId = srcId ;
+            nextName.partNumber = partNumber + 1 ;
+            nextName.qid = qid ;
+            return nextName ;
+        }
+        else {
+            QID nextQid = qid.rollForward() ;
+            if( nextQid != null ) {
+                nextName = new QImgName() ;
+                nextName.srcId = srcId ;
+                nextName.qid = nextQid ;
+                return nextName ;
+            }
+        }
+        return nextName ;
     }
 }

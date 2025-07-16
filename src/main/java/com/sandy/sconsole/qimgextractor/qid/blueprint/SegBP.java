@@ -1,15 +1,25 @@
 package com.sandy.sconsole.qimgextractor.qid.blueprint;
 
+import lombok.Getter;
 import lombok.Setter;
 
-public class SegBP {
+import java.util.Stack;
 
-    private final String segmentName ;
+public abstract class SegBP<T> {
+
+    @Getter
+    protected final String name;
     
-    @Setter private SegBP parent ;
-    @Setter private SegBP child ;
+    @Setter
+    protected SegBP<?> parent ;
     
-    public SegBP( String name ) {
-        this.segmentName = name ;
+    @Setter @Getter
+    protected SegBP<?> child ;
+    
+    protected SegBP( String name ) {
+        this.name = name ;
     }
+    
+    public abstract T parse( Stack<String> partStack )
+            throws ParseException ;
 }
