@@ -8,7 +8,6 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -114,7 +113,7 @@ public class ImgSaveDialog extends JFileChooser {
     
     private void updateLastSavedImage() {
         File[] savedImageFiles = getCurrentDirectory().listFiles( ( dir, name ) -> name.endsWith( ".png" ) ) ;
-        if( savedImageFiles != null ) {
+        if( savedImageFiles != null && savedImageFiles.length > 0 ) {
             List<QuestionImage> images = new ArrayList<>() ;
             for( File file : savedImageFiles ) {
                 images.add( new QuestionImage( file ) ) ;
@@ -140,7 +139,11 @@ public class ImgSaveDialog extends JFileChooser {
     public void updateRecommendedFileName() {
         if( this.lastSavedImage != null ) {
             QuestionImage nextQ = this.lastSavedImage.nextQuestion() ;
-            setSelectedFile( new File( getCurrentDirectory(), nextQ.getFileName() ) );
+            setSelectedFile( new File( getCurrentDirectory(), nextQ.getShortFileName() ) );
         }
+    }
+    
+    public void updateLastSavedImage( QuestionImage img ) {
+        this.lastSavedImage = img ;
     }
 }

@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project;
 
+import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
@@ -8,6 +9,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectPageTree;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -27,12 +29,16 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private final File extractedImgDir ;
     private final ImgSaveDialog saveDialog ;
     
+    @Getter
+    private final String srcId;
+    
     private CloseableTabbedPane tabbedPane ;
     private ProjectPageTree pageTree ;
     
     public ProjectPanel( MainFrame mainFrame, File projectDir ) {
         this.mainFrame = mainFrame ;
         this.projectDir = projectDir ;
+        this.srcId = projectDir.getName() ;
         this.pagesDir = new File( projectDir, "pages" ) ;
         this.extractedImgDir = new File( projectDir, "question-images" ) ;
         if( !extractedImgDir.exists() ) {
@@ -88,15 +94,40 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     }
     
     @Override
-    public String subImageSelected( File imgSrcFile, BufferedImage image, Rectangle subImgBounds, int selectionModifier ) {
+    public String subImageSelected( File imgSrcFile, BufferedImage image,
+                                    Rectangle subImgBounds, int selectionModifier ) {
+        
+        String processingId = null ;
         
         saveDialog.updateRecommendedFileName() ;
+        
         int userChoice = saveDialog.showSaveDialog( this ) ;
         if( userChoice == JOptionPane.OK_OPTION ) {
+            
             File destFile = saveDialog.getSelectedFile() ;
             if( destFile != null ) {
                 try {
-                    ImageIO.write( image, "png", destFile ) ;
+                    // 1. Append .png if user has not specified. Input brevity allowed.
+                    String fileName = destFile.getName() ;
+                    if( !fileName.endsWith( ".png" ) ) {
+                        fileName += ".png" ;
+                    }
+                    
+                    // 2. Prepend the source id to make the file name complete
+                    // and save the image.
+                    String imgFileName = this.srcId + fileName ;
+                    File newImgFile = new File( destFile.getParentFile(),
+                                                this.srcId + "." + fileName ) ;
+
+                    // 3. Parse the file to see if it meets the file name criteria.
+                    // If not, then an exception will be thrown.
+                    QuestionImage qImg = new QuestionImage( newImgFile ) ;
+
+                    // 4. Save the image, and other housekeeping tasks.
+                    ImageIO.write( image, "png", newImgFile ) ;
+                    saveDialog.updateLastSavedImage( qImg ) ;
+                    
+                    processingId = qImg.getShortFileNameWithoutExtension() ;
                     mainFrame.logStausMsg( "Saved " + destFile.getName() ) ;
                 }
                 catch( Exception e ) {
@@ -105,7 +136,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
                 }
             }
         }
-        return "" ;
+        return processingId ;
     }
     
     @Override

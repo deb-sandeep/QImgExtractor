@@ -119,7 +119,7 @@ public class MainFrame extends JFrame {
                     revalidate() ;
                     repaint() ;
                     
-                    projectNameSBComponent.log( projectDir.getAbsolutePath() ) ;
+                    projectNameSBComponent.log( currentProjectPanel.getSrcId() ) ;
                 }
                 else {
                     JOptionPane.showMessageDialog( this,

@@ -57,7 +57,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     }
     
     public QuestionImage getClone() {
-        File file = new File( imgFile.getParent(), getFileName() ) ;
+        File file = new File( imgFile.getParent(), getLongFileName() ) ;
         return new QuestionImage( file ) ;
     }
     
@@ -109,12 +109,10 @@ public class QuestionImage implements Comparable<QuestionImage> {
         }
     }
     
-    public String getFileName() {
+    public String getShortFileNameWithoutExtension() {
         StringBuilder sb = new StringBuilder() ;
-        
-        sb.append( this.srcId ).append( '.' )
-          .append( this.subjectCode ).append( "_" )
-          .append( this.questionType ).append( "_" ) ;
+        sb.append( this.subjectCode ).append( "_" )
+                .append( this.questionType ).append( "_" ) ;
         
         if( isLCT() ) {
             sb.append( this.lctSequence ).append( '_' ) ;
@@ -131,12 +129,18 @@ public class QuestionImage implements Comparable<QuestionImage> {
         
         if( this.partNumber != -1 ) {
             sb.append( "(" )
-              .append( this.partNumber )
-              .append( ")" );
+                    .append( this.partNumber )
+                    .append( ")" );
         }
-        sb.append( ".png" ) ;
-        
         return sb.toString() ;
+    }
+    
+    public String getShortFileName() {
+        return getShortFileNameWithoutExtension() + ".png" ;
+    }
+    
+    public String getLongFileName() {
+        return this.srcId + "." + getShortFileName() ;
     }
     
     private String stripFileExtension( String fileName ) {
@@ -211,10 +215,10 @@ public class QuestionImage implements Comparable<QuestionImage> {
             System.out.println( id ) ;
             File file = new File( id ) ;
             q = new QuestionImage( file ) ;
-            System.out.println( "\t" + q.getFileName() + " : " + id.equals( q.getFileName() ) ) ;
+            System.out.println( "\t" + q.getLongFileName() + " : " + id.equals( q.getLongFileName() ) ) ;
 
             q = q.nextQuestion() ;
-            System.out.println( "\t" + q.getFileName() ) ;
+            System.out.println( "\t" + q.getLongFileName() ) ;
         }
     }
     
