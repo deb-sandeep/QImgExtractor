@@ -31,6 +31,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     private MessageStatusComponent regionSizeStatus = null ;
     private MessageStatusComponent fileNameStatus = null ;
     private MessageStatusComponent mousePosStatus = null ;
+    private MessageStatusComponent curSelTagNameStatus = null ;
     
     private File curImgFile = null ;
     
@@ -71,7 +72,6 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         
         initStatusBar() ;
         
-        //add( imgScaleSlider, BorderLayout.EAST ) ;
         add( imgScrollPane, BorderLayout.CENTER ) ;
         add( statusBar, BorderLayout.SOUTH ) ;
     }
@@ -91,10 +91,13 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         mousePosStatus = new MessageStatusComponent() ;
         logMousePosition( 0, 0 ) ;
         
+        curSelTagNameStatus = new MessageStatusComponent() ;
+        
         CustomWidgetStatusComponent zoomStatusWidget = new CustomWidgetStatusComponent( getSliderWidget() );
         
         statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( curSelTagNameStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( mousePosStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( regionSizeStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( zoomStatusWidget, StatusBar.Direction.EAST ) ;
@@ -192,5 +195,21 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     public void emitCommandKey( int keyCode ) {
         listener.processCommandKey( keyCode ) ;
+    }
+    
+    public void selectionStarted() {
+        listener.selectionStarted() ;
+    }
+    
+    public void selectionEnded() {
+        listener.selectionEnded() ;
+    }
+    
+    public void setCurSelTagName( String tagName ) {
+        curSelTagNameStatus.log( tagName ) ;
+    }
+    
+    public void clearCurSelTagName() {
+        curSelTagNameStatus.clear() ;
     }
 }

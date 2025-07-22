@@ -18,17 +18,30 @@ public interface ExtractedImgListener {
      * @param selectionModifier The mouse button that was pressed to
      *        end the selection.
      */
-    String subImageSelected( File imgFile, BufferedImage image, Rectangle subImgBounds, int selectionModifier );
+    String subImageSelected( File imgFile, BufferedImage image,
+                             Rectangle subImgBounds, int selectionModifier );
     
     /**
      * Called with meta data of all the selected regions every time
      * a new selected region is successfully processed.
      */
-    void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo, File imgFile ) ;
+    void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo,
+                                 File imgFile ) ;
     
     /**
      * If the image extractor canvas is in COMMAND mode and a key other than
      * Escape is pressed, it is propagated to the listener as command key.
      */
     void processCommandKey( int keyCode ) ;
+    
+    /** Called once the image selection is initiated. */
+    void selectionStarted() ;
+    
+    /**
+     * Called once the image selection is completed. Note that this method is
+     * called even if the selection is cancelled. The subImageSelected()
+     * method is also called at the completion of selection but only if
+     * the selection was not cancelled by the user.
+     */
+    void selectionEnded() ;
 }

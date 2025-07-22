@@ -35,6 +35,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         if( !inRegionSelectMode ) {
             inRegionSelectMode = true ;
             activeRegion = new SelectedRegion( event.getPoint() ) ;
+            canvas.selectionStarted() ;
         }
         else {
             handleAreaSelectedEnded( event ) ;
@@ -102,7 +103,8 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         if( activeRegion != null ) {
             canvas.repaint( activeRegion.getRepaintBounds() ) ;
             activeRegion = null ;
-            canvas.logActiveRegionSize( null );
+            canvas.logActiveRegionSize( null ) ;
+            canvas.selectionEnded() ;
         }
     }
     

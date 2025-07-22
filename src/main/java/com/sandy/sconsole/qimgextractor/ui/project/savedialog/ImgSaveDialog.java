@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
 
 import com.sandy.sconsole.qimgextractor.qid.AITS_QID;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -20,6 +21,8 @@ import static java.awt.event.KeyEvent.VK_9;
 public class ImgSaveDialog extends JFileChooser {
     
     private final String srcId ;
+    
+    @Getter
     private QuestionImage lastSavedImage = null ;
     
     public ImgSaveDialog( File curDir, String srcId ) {

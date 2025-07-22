@@ -9,6 +9,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectPageTree;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,9 +17,11 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 
 @Slf4j
 public class ProjectPanel extends JPanel implements ExtractedImgListener {
@@ -27,6 +30,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private final File projectDir ;
     private final File pagesDir ;
     private final File extractedImgDir ;
+    private final File workDir ;
     private final ImgSaveDialog saveDialog ;
     
     @Getter
@@ -35,18 +39,35 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private CloseableTabbedPane tabbedPane ;
     private ProjectPageTree pageTree ;
     
+    private QuestionImage nextImgName = null ;
+    
     public ProjectPanel( MainFrame mainFrame, File projectDir ) {
+        
         this.mainFrame = mainFrame ;
         this.projectDir = projectDir ;
         this.srcId = projectDir.getName() ;
         this.pagesDir = new File( projectDir, "pages" ) ;
         this.extractedImgDir = new File( projectDir, "question-images" ) ;
+        this.workDir = new File( projectDir, ".workspace" ) ;
+        
         if( !extractedImgDir.exists() ) {
             if( extractedImgDir.mkdirs() ) {
                 log.info( "Created extracted images directory." ) ;
             }
         }
+        
+        if( !workDir.exists() ) {
+            if( workDir.mkdirs() ) {
+                log.info( "Created workspace directory." ) ;
+            }
+        }
+        
         this.saveDialog = new ImgSaveDialog( this.extractedImgDir, this.projectDir.getName() ) ;
+        
+        QuestionImage lastSavedImg = saveDialog.getLastSavedImage() ;
+        if( lastSavedImg != null ) {
+            this.nextImgName = lastSavedImg.nextQuestion() ;
+        }
         
         setUpUI() ;
         new Thread( this::loadPageImages ).start() ;
@@ -66,7 +87,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
         for( int i=0; i<files.length; i++ ) {
             File file = files[i] ;
             mainFrame.logStausMsg( "Loading (" + i + "/" + files.length + ") " + file.getName() + "..." ) ;
-            List<ExtractedImgInfo> imgInfoList = getExtractedImgInfoList( file ) ;
+            List<ExtractedImgInfo> imgInfoList = loadImgInfo( file ) ;
             ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
             
             imgPanel.setImage( file, imgInfoList, SwingUtils.getScreenWidth() - ProjectPageTree.PREFERRED_WIDTH - 10 ) ;
@@ -75,9 +96,25 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
         mainFrame.clearStatusMsg() ;
     }
     
-    private List<ExtractedImgInfo> getExtractedImgInfoList( File imgFile ) {
+    private List<ExtractedImgInfo> loadImgInfo( File imgFile ) {
         List<ExtractedImgInfo> imgInfoList = new ArrayList<>() ;
+        File imgInfoFile = getImgInfoFile( imgFile ) ;
+        if( imgInfoFile.exists() ) {
+            try {
+                ObjectInputStream ois = new ObjectInputStream( new FileInputStream( imgInfoFile ) ) ;
+                imgInfoList = ( List<ExtractedImgInfo> )ois.readObject() ;
+                ois.close() ;
+            }
+            catch( Exception e ) {
+                log.error( "Error reading image info.", e ) ;
+                showErrorMsg( "Error reading image info", e ) ;
+            }
+        }
         return imgInfoList ;
+    }
+    
+    private File getImgInfoFile( File imgFile ) {
+        return new File( workDir, AppUtil.stripExtension( imgFile ) + ".regions.info" ) ;
     }
     
     public void destroy() {
@@ -129,10 +166,12 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
                     
                     processingId = qImg.getShortFileNameWithoutExtension() ;
                     mainFrame.logStausMsg( "Saved " + destFile.getName() ) ;
+                    
+                    nextImgName = qImg.nextQuestion() ;
                 }
                 catch( Exception e ) {
                     log.error( "Error saving image.", e ) ;
-                    mainFrame.logStausMsg( "Error saving image." ) ;
+                    showErrorMsg( "Error saving image.", e ) ;
                 }
             }
         }
@@ -141,9 +180,38 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     
     @Override
     public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo, File imgFile ) {
+        saveImgInfo( imgFile, selectedRegionsInfo ) ;
     }
     
     @Override
     public void processCommandKey( int keyCode ) {
     }
+    
+    @Override
+    public void selectionStarted() {
+        ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabbedPane.getSelectedComponent() ;
+        if( nextImgName != null ) {
+            imgPanel.setCurSelTagName( nextImgName.getShortFileNameWithoutExtension() ) ;
+        }
+    }
+    
+    @Override
+    public void selectionEnded() {
+        ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabbedPane.getSelectedComponent() ;
+        imgPanel.clearCurSelTagName() ;
+    }
+    
+    private void saveImgInfo( File imgFile, List<ExtractedImgInfo> selectedRegionsInfo ) {
+        File imgInfoFile = getImgInfoFile( imgFile ) ;
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream( new FileOutputStream( imgInfoFile ) ) ;
+            oos.writeObject( selectedRegionsInfo ) ;
+            oos.close() ;
+        }
+        catch( Exception e ) {
+            log.error( "Error saving image info.", e ) ;
+            showErrorMsg( "Error saving image info.", e ) ;
+        }
+    }
+    
 }

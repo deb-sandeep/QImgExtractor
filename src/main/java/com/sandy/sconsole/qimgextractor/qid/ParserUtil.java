@@ -14,14 +14,14 @@ public class ParserUtil {
         assertCondition( subjectCode == null ||
                          subjectCode.trim().isEmpty() ||
                          !QuestionImage.SUB_SEQ.contains( subjectCode ),
-                         "Invalid subject code." ) ;
+                         "Invalid subject code - " + subjectCode + "." ) ;
     }
 
     public static void validateQuestionType( String questionType ) {
         assertCondition( questionType == null ||
                          questionType.trim().isEmpty() ||
                          !QuestionImage.Q_TYPE_SEQ.contains( questionType ),
-                         "Invalid question type." ) ;
+                         "Invalid question type - " + questionType + "." ) ;
     }
     
     private static void assertCondition( boolean flag, String message ) {
@@ -47,7 +47,7 @@ public class ParserUtil {
         String[] parts = input.split("_");
         Stack<String> stack = new Stack<>();
         
-        // Push elements in reverse order so first part is on top
+        // Push elements in reverse order so the first part is on top
         for( int i = parts.length - 1; i >= 0; i-- ) {
             stack.push( parts[i].trim() );
         }

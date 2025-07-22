@@ -166,4 +166,12 @@ public class ImageCanvas extends JLabel {
         parent.logMousePosition( (int)(point.x/scaleFactor),
                                  (int)(point.y/scaleFactor) ) ;
     }
+    
+    public void selectionStarted() {
+        parent.selectionStarted() ;
+    }
+    
+    public void selectionEnded() {
+        parent.selectionEnded() ;
+    }
 }
