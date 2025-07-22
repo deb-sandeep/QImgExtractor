@@ -166,7 +166,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     public String subImageSelected( BufferedImage subImg, Rectangle subImgBounds, int selectionFlag ) {
         if( listener != null ) {
-            return listener.subImageSelected( subImg, subImgBounds, selectionFlag ) ;
+            return listener.subImageSelected( curImgFile, subImg, subImgBounds, selectionFlag ) ;
         }
         else {
             log.warn( "No extracted image listener available." ) ;

@@ -6,9 +6,11 @@ import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgListener;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
+import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectPageTree;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,14 +24,24 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private final MainFrame mainFrame;
     private final File projectDir ;
     private final File pagesDir ;
+    private final File extractedImgDir ;
+    private final ImgSaveDialog saveDialog ;
     
     private CloseableTabbedPane tabbedPane ;
-    private ProjectPageTree     pageTree ;
+    private ProjectPageTree pageTree ;
     
     public ProjectPanel( MainFrame mainFrame, File projectDir ) {
         this.mainFrame = mainFrame ;
         this.projectDir = projectDir ;
         this.pagesDir = new File( projectDir, "pages" ) ;
+        this.extractedImgDir = new File( projectDir, "question-images" ) ;
+        if( !extractedImgDir.exists() ) {
+            if( extractedImgDir.mkdirs() ) {
+                log.info( "Created extracted images directory." ) ;
+            }
+        }
+        this.saveDialog = new ImgSaveDialog( this.extractedImgDir, this.projectDir.getName() ) ;
+        
         setUpUI() ;
         new Thread( this::loadPageImages ).start() ;
     }
@@ -76,8 +88,24 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     }
     
     @Override
-    public String subImageSelected( BufferedImage image, Rectangle subImgBounds, int selectionModifier ) {
-        return "";
+    public String subImageSelected( File imgSrcFile, BufferedImage image, Rectangle subImgBounds, int selectionModifier ) {
+        
+        saveDialog.updateRecommendedFileName() ;
+        int userChoice = saveDialog.showSaveDialog( this ) ;
+        if( userChoice == JOptionPane.OK_OPTION ) {
+            File destFile = saveDialog.getSelectedFile() ;
+            if( destFile != null ) {
+                try {
+                    ImageIO.write( image, "png", destFile ) ;
+                    mainFrame.logStausMsg( "Saved " + destFile.getName() ) ;
+                }
+                catch( Exception e ) {
+                    log.error( "Error saving image.", e ) ;
+                    mainFrame.logStausMsg( "Error saving image." ) ;
+                }
+            }
+        }
+        return "" ;
     }
     
     @Override

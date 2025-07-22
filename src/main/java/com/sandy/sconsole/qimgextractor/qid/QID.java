@@ -1,45 +1,26 @@
 package com.sandy.sconsole.qimgextractor.qid;
 
-import com.sandy.sconsole.qimgextractor.qid.segment.Seg;
-
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
-public class QID {
+public abstract class QID {
     
-    private String srcId ;
+    public static final List<String> COMMON_SAVE_HELP_CONTENTS = Arrays.asList(
+        "----------- Save shortcuts --",
+        "Ctrl+1 - Increment Subject Code",
+        "Ctrl+2 - Increment QType"
+    ) ;
+    protected QuestionImage parent ;
     
-    private final List<Seg<?>> segments = new ArrayList<>() ;
-    
-    private QID(){} ;
-    
-    public QID( String srcId ) {
-        this.srcId = srcId;
+    protected QID( QuestionImage qImg ){
+        this.parent = qImg ;
     }
     
-    public void addSegment( Seg<?> segment ) {
-        segments.add( segment ) ;
-        if( segments.size() > 1 ) {
-            Seg<?> lastSegment = segments.get( segments.size() - 2 ) ;
-            segment.setPrevSeg( lastSegment ) ;
-            lastSegment.setNextSeg( segment ) ;
-        }
-    }
+    protected abstract void parse( Stack<String> parts ) ;
+
+    public abstract void incrementQuestionNumber() ;
     
-    public String toString() {
-        return srcId + "." + generateImgName() ;
-    }
+    public abstract String getFilePartName() ;
     
-    private String generateImgName() {
-        StringBuilder sb = new StringBuilder() ;
-        segments.forEach( seg -> {
-            sb.append( seg.getValue().toString() ).append( "_" ) ;
-        } ) ;
-        sb.deleteCharAt( sb.length() - 1 ) ;
-        return sb.toString() ;
-    }
-    
-    public QID rollForward() {
-        return null ;
-    }
 }

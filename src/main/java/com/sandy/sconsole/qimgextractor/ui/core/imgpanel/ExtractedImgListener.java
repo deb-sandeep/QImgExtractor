@@ -10,6 +10,7 @@ public interface ExtractedImgListener {
      * Returns a not null tag for the image if the image is successfully
      * processed, else null.
      *
+     * @param imgFile The image file.
      * @param image The raster data for the selected image. This is an
      *        unscaled extract from the original image raster data.
      * @param subImgBounds The bounds of the selected image as per the
@@ -17,7 +18,7 @@ public interface ExtractedImgListener {
      * @param selectionModifier The mouse button that was pressed to
      *        end the selection.
      */
-    String subImageSelected( BufferedImage image, Rectangle subImgBounds, int selectionModifier );
+    String subImageSelected( File imgFile, BufferedImage image, Rectangle subImgBounds, int selectionModifier );
     
     /**
      * Called with meta data of all the selected regions every time
