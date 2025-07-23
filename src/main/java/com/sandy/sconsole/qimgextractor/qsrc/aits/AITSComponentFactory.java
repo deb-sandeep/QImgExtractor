@@ -18,6 +18,13 @@ public class AITSComponentFactory extends QSrcComponentFactory {
         }
     } ;
     
+    private static final SaveFnKeyHandler QTYPE_ROLL_FN_KEY_HANDLER = new SaveFnKeyHandler( "rollQType" ) {
+        protected QuestionImage mutateQuestionImage( QuestionImage qImg ) {
+            qImg.getQId().rollForwardQType() ;
+            return qImg ;
+        }
+    } ;
+    
     public AITSComponentFactory() {
         super() ;
     }
@@ -35,7 +42,8 @@ public class AITSComponentFactory extends QSrcComponentFactory {
     @Override
     public Map<Integer, SaveFnKeyHandler> getSaveFnKeyHandlers() {
         return Map.of(
-             KeyEvent.VK_1, SUB_ROLL_FN_KEY_HANDLER
-        );
+             KeyEvent.VK_1, SUB_ROLL_FN_KEY_HANDLER,
+             KeyEvent.VK_2, QTYPE_ROLL_FN_KEY_HANDLER
+        ) ;
     }
 }

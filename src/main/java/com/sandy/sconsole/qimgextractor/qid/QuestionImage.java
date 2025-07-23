@@ -152,5 +152,6 @@ public class QuestionImage implements Comparable<QuestionImage> {
         else {
             this.subjectCode = SUB_SEQ.get( idx+1 ) ;
         }
+        this.partNumber = -1 ;
     }
 }

@@ -112,5 +112,6 @@ public abstract class QID {
             this.isLCTContext = false ;
             this.lctSequence = -1 ;
         }
+        this.parent.setPartNumber( -1 ) ;
     }
 }
