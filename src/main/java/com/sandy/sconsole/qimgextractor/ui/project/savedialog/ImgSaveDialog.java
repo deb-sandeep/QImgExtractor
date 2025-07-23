@@ -1,7 +1,8 @@
 package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
 
-import com.sandy.sconsole.qimgextractor.qid.AITS_QID;
+import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.ProjectContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.KeyEvent.VK_0;
@@ -20,17 +22,20 @@ import static java.awt.event.KeyEvent.VK_9;
 @Slf4j
 public class ImgSaveDialog extends JFileChooser {
     
+    private final ProjectContext projectContext ;
+    
+    @Getter
     private final String srcId ;
     
     @Getter
     private QuestionImage lastSavedImage = null ;
     
-    public ImgSaveDialog( File curDir, String srcId ) {
+    public ImgSaveDialog( File curDir, ProjectContext projectContext ) {
         super() ;
-        this.srcId = srcId ;
+        this.srcId = projectContext.getProjectName() ;
+        this.projectContext = projectContext ;
         
         setCurrentDirectory( curDir ) ;
-        bindKeyStrokesForSaveDialog() ;
         setDialogTitle( "Save Image" ) ;
         setApproveButtonText( "Save" ) ;
         setApproveButtonToolTipText( "Save the selected image" ) ;
@@ -39,13 +44,18 @@ public class ImgSaveDialog extends JFileChooser {
         setControlButtonsAreShown( true ) ;
         setPreferredSize( new java.awt.Dimension( 800, 500 ) ) ;
         
+        bindKeyStrokesForSaveDialog() ;
         hideOnlyFileFormatSection() ;
-        
-        if( this.srcId.startsWith( "AITS" ) ) {
-            setAccessory( new HelpManual( AITS_QID.SAVE_HELP_CONTENTS ) ) ;
-        }
-        
+        setHelpAccessory() ;
         updateLastSavedImage() ;
+    }
+    
+    private void setHelpAccessory() {
+        List<String> helpContents = QSrcFactory.getQSrcComponentFactory( srcId )
+                                               .getSaveHelpContents() ;
+        if( helpContents != null && !helpContents.isEmpty() ) {
+            setAccessory( new HelpManual( helpContents ) ) ;
+        }
     }
     
     private void hideOnlyFileFormatSection() {
@@ -93,17 +103,26 @@ public class ImgSaveDialog extends JFileChooser {
         
         InputMap inputMap = super.getInputMap( JFileChooser.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ) ;
         ActionMap actionMap = super.getActionMap() ;
+        Map<Integer, SaveFnKeyHandler> cusomFnKeyHandlers = QSrcFactory.getQSrcComponentFactory( this.srcId )
+                                                                       .getSaveFnKeyHandlers() ;
         
         for( int i = 0; i <= 9; i++ ) {
-            
             int keyCode = VK_0 + i ;
             String keyHandlerID = getKeyHandlerID( i ) ;
             
             KeyStroke keyStroke = KeyStroke.getKeyStroke( keyCode, CTRL_DOWN_MASK  ) ;
-            SaveFnKeyHandler handler = new NoOpFnKeyHandler() ;
             
             inputMap.put( keyStroke, keyHandlerID ) ;
-            actionMap.put( keyHandlerID, handler ) ;
+            if( cusomFnKeyHandlers != null && cusomFnKeyHandlers.containsKey( keyCode ) ) {
+                SaveFnKeyHandler handler = cusomFnKeyHandlers.get( keyCode ) ;
+                SaveFnKeyHandlerWrapper wrapper = new SaveFnKeyHandlerWrapper( this, handler ) ;
+                
+                actionMap.put( keyHandlerID, wrapper ) ;
+                log.info( "Installed save fn key handler = {}", handler.getName() );
+            }
+            else {
+                actionMap.put( keyHandlerID, new SaveFnKeyHandlerWrapper( this, new NoOpFnKeyHandler() ) ) ;
+            }
         }
     }
     
@@ -119,24 +138,13 @@ public class ImgSaveDialog extends JFileChooser {
         if( savedImageFiles != null && savedImageFiles.length > 0 ) {
             List<QuestionImage> images = new ArrayList<>() ;
             for( File file : savedImageFiles ) {
-                images.add( new QuestionImage( file ) ) ;
+                QuestionImage qImg = new QuestionImage( file ) ;
+                images.add( qImg ) ;
+                projectContext.setLastSavedImage( qImg ) ;
             }
             Collections.sort( images ) ;
             this.lastSavedImage = images.get( images.size()-1 ) ;
         }
-    }
-    
-    public void registerSaveFnHandler( int vkCode, SaveFnKeyHandler handler ) {
-        if( vkCode < VK_0 || vkCode > VK_9 ) {
-            throw new IllegalArgumentException( "VK not in set (VK_0 ... VK_9)" ) ;
-        }
-        
-        String keyHandlerID = getKeyHandlerID( vkCode - VK_0 ) ;
-        ActionMap actionMap = super.getActionMap() ;
-        
-        actionMap.put( keyHandlerID, handler ) ;
-        
-        log.info( "Installed save fn key handler = {}", handler.getName() );
     }
     
     public void updateRecommendedFileName() {
@@ -148,5 +156,6 @@ public class ImgSaveDialog extends JFileChooser {
     
     public void updateLastSavedImage( QuestionImage img ) {
         this.lastSavedImage = img ;
+        projectContext.setLastSavedImage( img ) ;
     }
 }

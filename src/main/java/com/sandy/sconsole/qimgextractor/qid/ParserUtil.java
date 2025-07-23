@@ -20,7 +20,7 @@ public class ParserUtil {
     public static void validateQuestionType( String questionType ) {
         assertCondition( questionType == null ||
                          questionType.trim().isEmpty() ||
-                         !QuestionImage.Q_TYPE_SEQ.contains( questionType ),
+                         !QID.Q_TYPE_SEQ.contains( questionType ),
                          "Invalid question type - " + questionType + "." ) ;
     }
     

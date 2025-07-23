@@ -21,6 +21,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectContext;
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 
 @Slf4j
@@ -32,6 +33,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private final File extractedImgDir ;
     private final File workDir ;
     private final ImgSaveDialog saveDialog ;
+    private final ProjectContext projectContext ;
     
     @Getter
     private final String srcId;
@@ -42,6 +44,8 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private QuestionImage nextImgName = null ;
     
     public ProjectPanel( MainFrame mainFrame, File projectDir ) {
+        
+        this.projectContext = getProjectContext() ;
         
         this.mainFrame = mainFrame ;
         this.projectDir = projectDir ;
@@ -62,7 +66,8 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
             }
         }
         
-        this.saveDialog = new ImgSaveDialog( this.extractedImgDir, this.projectDir.getName() ) ;
+        this.saveDialog = new ImgSaveDialog( this.extractedImgDir,
+                                             this.projectContext ) ;
         
         QuestionImage lastSavedImg = saveDialog.getLastSavedImage() ;
         if( lastSavedImg != null ) {
@@ -152,9 +157,12 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
                     
                     // 2. Prepend the source id to make the file name complete
                     // and save the image.
-                    String imgFileName = this.srcId + fileName ;
+                    String imgFileName = fileName ;
+                    if( !fileName.startsWith( srcId ) ) {
+                        imgFileName = srcId + "." + fileName ;
+                    }
                     File newImgFile = new File( destFile.getParentFile(),
-                                                this.srcId + "." + fileName ) ;
+                                                imgFileName) ;
 
                     // 3. Parse the file to see if it meets the file name criteria.
                     // If not, then an exception will be thrown.
