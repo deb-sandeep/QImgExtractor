@@ -129,7 +129,13 @@ public class QuestionImage implements Comparable<QuestionImage> {
     public QuestionImage nextQuestion() {
         QuestionImage q = this.getClone() ;
         if( q.isPart() ) {
-            q.partNumber++ ;
+            if( q.partNumber >= 2 ) {
+                q.partNumber = -1 ;
+                q.getQId().incrementQuestionNumber() ;
+            }
+            else {
+                q.partNumber++ ;
+            }
         }
         else {
             q.getQId().incrementQuestionNumber() ;
@@ -161,6 +167,15 @@ public class QuestionImage implements Comparable<QuestionImage> {
             }
         }
         this.partNumber = -1 ;
+    }
+    
+    public void beginOrEndPartSequence( boolean end ) {
+        if( end ) {
+            this.partNumber = -1 ;
+        }
+        else {
+            this.partNumber = 1 ;
+        }
     }
     
     public String toString() {

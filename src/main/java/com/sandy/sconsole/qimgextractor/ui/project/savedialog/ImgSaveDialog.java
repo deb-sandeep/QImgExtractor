@@ -66,7 +66,7 @@ public class ImgSaveDialog extends JFileChooser {
                 if( parent != null && hasFileFormatLabel(parent) ) {
                     Container grandParent = parent.getParent() ;
                     if( grandParent != null ) {
-                        grandParent.remove( parent ) ; // just remove the "format" subpanel
+                        grandParent.remove( parent ) ; // remove the "format" subpanel
                         return;
                     }
                 }

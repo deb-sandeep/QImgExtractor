@@ -127,6 +127,17 @@ public abstract class QID {
         this.parent.setPartNumber( -1 ) ;
     }
     
+    public void rollQuestionNumber( boolean reverse ) {
+        if( reverse ) {
+            if( this.questionNumber > 1 ) {
+                this.questionNumber -= 1 ;
+            }
+        }
+        else {
+            this.questionNumber += 1 ;
+        }
+    }
+    
     public String toString() {
         StringBuilder sb = new StringBuilder() ;
         sb.append( questionType ).append( '/' ) ;

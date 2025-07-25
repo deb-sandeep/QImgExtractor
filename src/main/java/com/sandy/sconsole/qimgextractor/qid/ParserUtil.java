@@ -32,7 +32,7 @@ public class ParserUtil {
     
     public static int getInt( String field, String intStr ) {
         intStr = intStr.trim() ;
-        int val = 0 ;
+        int val ;
         try {
             val = Integer.parseInt( intStr ) ;
         }

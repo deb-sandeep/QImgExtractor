@@ -32,7 +32,7 @@ public class ProjectContext {
     }
     
     public void setLastSavedImage( QuestionImage qImg ) {
-        log.debug( "Setting last saved image to " + qImg ) ;
+        log.debug( "Setting last saved image to {}", qImg );
         lastSavedImg = qImg ;
         if( lastSavedImg.getQId().isLCT() ) {
             lastLCTSequence = lastSavedImg.getQId().getLctSequence() ;
