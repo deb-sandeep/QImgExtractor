@@ -1,7 +1,6 @@
 package com.sandy.sconsole.qimgextractor.qid;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
-import com.sandy.sconsole.qimgextractor.qsrc.aits.AITS_QID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
-import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectContext;
 import static com.sandy.sconsole.qimgextractor.qid.ParserUtil.*;
 
 @Data
@@ -144,14 +142,32 @@ public class QuestionImage implements Comparable<QuestionImage> {
         return (int)(this.imgFile.lastModified() - img.imgFile.lastModified()) ;
     }
     
-    public void rollForwardSubjectCode() {
+    public void rollSubjectCode( boolean reverse ) {
         int idx = SUB_SEQ.indexOf( this.subjectCode ) ;
-        if( idx == SUB_SEQ.size() - 1 ) {
-            this.subjectCode = SUB_SEQ.get( 0 ) ;
+        if( !reverse ) {
+            if( idx == SUB_SEQ.size() - 1 ) {
+                this.subjectCode = SUB_SEQ.get( 0 ) ;
+            }
+            else {
+                this.subjectCode = SUB_SEQ.get( idx+1 ) ;
+            }
         }
         else {
-            this.subjectCode = SUB_SEQ.get( idx+1 ) ;
+            if( idx == 0 ) {
+                this.subjectCode = SUB_SEQ.get( SUB_SEQ.size()-1 ) ;
+            }
+            else {
+                this.subjectCode = SUB_SEQ.get( idx-1 ) ;
+            }
         }
         this.partNumber = -1 ;
+    }
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder( srcId + "//" + subjectCode + "/" + qId  ) ;
+        if( partNumber != -1 ) {
+            sb.append( "/(" ).append( partNumber ).append( ")" ) ;
+        }
+        return sb.toString() ;
     }
 }

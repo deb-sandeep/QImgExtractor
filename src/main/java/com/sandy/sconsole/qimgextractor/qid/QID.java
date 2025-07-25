@@ -21,14 +21,13 @@ public abstract class QID {
     
     static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, MCA, LCT, IVT, NVT, MMT ) ;
 
-    public static final List<String> COMMON_SAVE_HELP_CONTENTS = Arrays.asList(
-        "----------- Save shortcuts --",
-        "Ctrl+1 - Increment Subject Code",
-        "Ctrl+2 - Increment QType"
-    ) ;
+    @Getter
     protected QuestionImage parent ;
     
+    @Getter
     private String questionType = null ;
+    
+    @Getter
     private boolean isLCTContext = false ;
     
     @Getter
@@ -95,13 +94,24 @@ public abstract class QID {
         return this.questionType.equals( LCT ) ;
     }
     
-    public void rollForwardQType() {
+    public void rollQType( boolean reverse ) {
+        
         int idx = Q_TYPE_SEQ.indexOf( this.questionType ) ;
-        if( idx == Q_TYPE_SEQ.size() - 1 ) {
-            this.questionType = Q_TYPE_SEQ.get( 0 ) ;
+        if( reverse ) {
+            if( idx == 0 ) {
+                this.questionType = Q_TYPE_SEQ.get( Q_TYPE_SEQ.size()-1 ) ;
+            }
+            else {
+                this.questionType = Q_TYPE_SEQ.get( idx-1 ) ;
+            }
         }
         else {
-            this.questionType = Q_TYPE_SEQ.get( idx+1 ) ;
+            if( idx == Q_TYPE_SEQ.size() - 1 ) {
+                this.questionType = Q_TYPE_SEQ.get( 0 ) ;
+            }
+            else {
+                this.questionType = Q_TYPE_SEQ.get( idx+1 ) ;
+            }
         }
         
         if( this.questionType.equals( LCT ) ) {
@@ -112,6 +122,18 @@ public abstract class QID {
             this.isLCTContext = false ;
             this.lctSequence = -1 ;
         }
+        
+        this.questionNumber = getProjectContext().getLastSavedImg().getQId().getQuestionNumber() + 1 ;
         this.parent.setPartNumber( -1 ) ;
+    }
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder() ;
+        sb.append( questionType ).append( '/' ) ;
+        if( isLCT() ) {
+            sb.append( lctSequence ).append( '/' ) ;
+        }
+        sb.append( questionNumber ) ;
+        return sb.toString() ;
     }
 }

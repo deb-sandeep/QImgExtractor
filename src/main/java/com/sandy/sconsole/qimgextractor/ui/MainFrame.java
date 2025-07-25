@@ -120,9 +120,9 @@ public class MainFrame extends JFrame {
                     closeCurrentProject() ;
                     
                     projectContext.reset() ;
-                    projectContext.setProjectName( projectDir.getName() ) ;
+                    projectContext.setProjectRootDir( projectDir ) ;
                     
-                    currentProjectPanel = new ProjectPanel( this, projectDir ) ;
+                    currentProjectPanel = new ProjectPanel( this, projectContext ) ;
                     
                     getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
                     revalidate() ;

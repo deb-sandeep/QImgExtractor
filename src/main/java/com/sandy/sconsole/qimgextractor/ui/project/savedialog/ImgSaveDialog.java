@@ -15,10 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.KeyEvent.VK_0;
-import static java.awt.event.KeyEvent.VK_9;
-
 @Slf4j
 public class ImgSaveDialog extends JFileChooser {
     
@@ -26,9 +22,6 @@ public class ImgSaveDialog extends JFileChooser {
     
     @Getter
     private final String srcId ;
-    
-    @Getter
-    private QuestionImage lastSavedImage = null ;
     
     public ImgSaveDialog( File curDir, ProjectContext projectContext ) {
         super() ;
@@ -96,41 +89,23 @@ public class ImgSaveDialog extends JFileChooser {
         return false;
     }
     
-    // There are ten keystroke bound for the input map of the save dialog.
-    // Each are bound by Ctrl+[0,1,2,3...9]. By default they do nothing.
-    // Each can be overridden by the subclass by attaching a new handler
     private void bindKeyStrokesForSaveDialog() {
         
         InputMap inputMap = super.getInputMap( JFileChooser.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT ) ;
         ActionMap actionMap = super.getActionMap() ;
-        Map<Integer, SaveFnKeyHandler> cusomFnKeyHandlers = QSrcFactory.getQSrcComponentFactory( this.srcId )
-                                                                       .getSaveFnKeyHandlers() ;
+        Map<KeyStroke, SaveFnKeyHandler> customFnKeyHandlers = QSrcFactory.getQSrcComponentFactory( this.srcId )
+                                                                          .getSaveFnKeyHandlers() ;
         
-        for( int i = 0; i <= 9; i++ ) {
-            int keyCode = VK_0 + i ;
-            String keyHandlerID = getKeyHandlerID( i ) ;
-            
-            KeyStroke keyStroke = KeyStroke.getKeyStroke( keyCode, CTRL_DOWN_MASK  ) ;
-            
-            inputMap.put( keyStroke, keyHandlerID ) ;
-            if( cusomFnKeyHandlers != null && cusomFnKeyHandlers.containsKey( keyCode ) ) {
-                SaveFnKeyHandler handler = cusomFnKeyHandlers.get( keyCode ) ;
+        if( customFnKeyHandlers != null && !customFnKeyHandlers.isEmpty() ) {
+            customFnKeyHandlers.forEach( (keyStroke,handler ) -> {
+                
+                inputMap.put( keyStroke, keyStroke.toString() ) ;
                 SaveFnKeyHandlerWrapper wrapper = new SaveFnKeyHandlerWrapper( this, handler ) ;
                 
-                actionMap.put( keyHandlerID, wrapper ) ;
-                log.info( "Installed save fn key handler = {}", handler.getName() );
-            }
-            else {
-                actionMap.put( keyHandlerID, new SaveFnKeyHandlerWrapper( this, new NoOpFnKeyHandler() ) ) ;
-            }
+                actionMap.put( keyStroke.toString(), wrapper ) ;
+                log.info( "Installed save fn key handler = {}", keyStroke ) ;
+            } ) ;
         }
-    }
-    
-    private String getKeyHandlerID( int keyIndex ) {
-        if( keyIndex < 0 || keyIndex > 9 ) {
-            throw new IllegalArgumentException( "VK not in set (VK_0 ... VK_9)" ) ;
-        }
-        return "SDHandler[Ctrl + VK_" + keyIndex + "]" ;
     }
     
     private void updateLastSavedImage() {
@@ -140,22 +115,17 @@ public class ImgSaveDialog extends JFileChooser {
             for( File file : savedImageFiles ) {
                 QuestionImage qImg = new QuestionImage( file ) ;
                 images.add( qImg ) ;
-                projectContext.setLastSavedImage( qImg ) ;
             }
             Collections.sort( images ) ;
-            this.lastSavedImage = images.get( images.size()-1 ) ;
+            projectContext.setLastSavedImage( images.get( images.size()-1 ) ) ;
         }
     }
     
     public void updateRecommendedFileName() {
-        if( this.lastSavedImage != null ) {
-            QuestionImage nextQ = this.lastSavedImage.nextQuestion() ;
+        QuestionImage lastSavedImage = projectContext.getLastSavedImg() ;
+        if( lastSavedImage != null ) {
+            QuestionImage nextQ = lastSavedImage.nextQuestion() ;
             setSelectedFile( new File( getCurrentDirectory(), nextQ.getShortFileName() ) );
         }
-    }
-    
-    public void updateLastSavedImage( QuestionImage img ) {
-        this.lastSavedImage = img ;
-        projectContext.setLastSavedImage( img ) ;
     }
 }

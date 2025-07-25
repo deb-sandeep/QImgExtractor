@@ -33,10 +33,10 @@ class SaveFnKeyHandlerWrapper extends AbstractAction {
         
         // 3. Parse the file to see if it meets the file name criteria.
         // If not, then an exception will be thrown.
-        QuestionImage curImgFile = new QuestionImage( fqImgFile ) ;
-        QuestionImage nextImgFile = fnKeyHandler.mutateQuestionImage( curImgFile ) ;
+        QuestionImage mutableImgFile = new QuestionImage( fqImgFile ) ;
+        fnKeyHandler.mutateQuestionImage( mutableImgFile, ( e.getModifiers() & ActionEvent.SHIFT_MASK ) == ActionEvent.SHIFT_MASK ) ;
         
-        File newFile = new File( selFile.getParentFile(), nextImgFile.getShortFileName() ) ;
+        File newFile = new File( selFile.getParentFile(), mutableImgFile.getShortFileName() ) ;
         saveDialog.setSelectedFile( newFile );
     }
 }

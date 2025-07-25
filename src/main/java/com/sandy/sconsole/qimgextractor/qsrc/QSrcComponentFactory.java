@@ -4,6 +4,7 @@ import com.sandy.sconsole.qimgextractor.qid.QID;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.SaveFnKeyHandler;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 
@@ -13,5 +14,5 @@ public abstract class QSrcComponentFactory {
     
     public abstract List<String> getSaveHelpContents() ;
     
-    public abstract Map<Integer, SaveFnKeyHandler> getSaveFnKeyHandlers() ;
+    public abstract Map<KeyStroke, SaveFnKeyHandler> getSaveFnKeyHandlers() ;
 }
