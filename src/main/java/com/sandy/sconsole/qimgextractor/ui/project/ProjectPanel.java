@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectContext;
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.extractPageNumber;
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 
 @Slf4j
@@ -140,7 +141,9 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
                     // and save the image.
                     String imgFileName = fileName ;
                     if( !fileName.startsWith( srcId ) ) {
-                        imgFileName = srcId + "." + fileName ;
+                        imgFileName = srcId + "." +
+                                      String.format( "%03d", extractPageNumber( imgSrcFile ) ) + "." +
+                                      fileName ;
                     }
                     File newImgFile = new File( destFile.getParentFile(),
                                                 imgFileName) ;

@@ -29,14 +29,16 @@ public class AITSComponentFactory extends QSrcComponentFactory {
     @Override
     public List<String> getSaveHelpContents() {
         return List.of(
-                "[C]  s : Subject code increment",
-                "[CS] s : Subject code decrement",
-                "[C]  q : Question type increment",
-                "[CS] q : Question type decrement",
-                "[C]  p : Part sequence start",
-                "[CS] p : Part sequence end",
-                "[C]  n : Question number increment",
-                "[CS] n : Question number decrement"
+            "[sub]_[<QType>]_[<lct-#>_]?[QNo][(part)]?",
+            "--------- Key strokes --------------",
+            "[C]  s : Subject code increment",
+            "[CS] s : Subject code decrement",
+            "[C]  q : Question type increment",
+            "[CS] q : Question type decrement",
+            "[C]  p : Part sequence start",
+            "[CS] p : Part sequence end",
+            "[C]  n : Question number increment",
+            "[CS] n : Question number decrement"
         );
     }
     

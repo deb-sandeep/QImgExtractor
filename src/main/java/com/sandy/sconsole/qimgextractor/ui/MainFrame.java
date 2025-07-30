@@ -5,6 +5,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;
@@ -28,6 +29,9 @@ public class MainFrame extends JFrame {
     
     @Autowired
     private ProjectContext projectContext ;
+    
+    @Autowired
+    private ProjectModel projectModel ;
     
     private JFileChooser projectDirChooser ;
     private ProjectPanel currentProjectPanel ;
@@ -118,6 +122,8 @@ public class MainFrame extends JFrame {
             if( projectDir != null ) {
                 if( isValidProjectDir( projectDir ) ) {
                     closeCurrentProject() ;
+                    
+                    projectModel.initialize( projectDir ) ;
                     
                     projectContext.reset() ;
                     projectContext.setProjectRootDir( projectDir ) ;

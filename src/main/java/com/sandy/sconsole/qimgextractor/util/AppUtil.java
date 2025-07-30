@@ -45,4 +45,16 @@ public class AppUtil {
         }
         return sb.toString() ;
     }
+    
+    public static int extractPageNumber( File pageImgFile ) {
+        String fileName = pageImgFile.getName() ;
+        
+        // Strip the file name of its extension
+        fileName = fileName.substring( 0, fileName.lastIndexOf( '.' ) ) ;
+        
+        // Tokenize the file name and extract the last token, that will
+        // be the page number
+        String[] tokens = fileName.split( "-" ) ;
+        return Integer.parseInt( tokens[tokens.length-1] ) ;
+    }
 }

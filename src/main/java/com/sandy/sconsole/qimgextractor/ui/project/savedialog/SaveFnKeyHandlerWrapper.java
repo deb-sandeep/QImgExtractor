@@ -28,6 +28,7 @@ class SaveFnKeyHandlerWrapper extends AbstractAction {
         String fqImgFileName = fileName ;
         if( !fileName.startsWith( saveDialog.getSrcId() ) ) {
             fqImgFileName = saveDialog.getSrcId() + "." + fileName ;
+            // TODO: How to get the file name. Also, FQN of a file should be made into a utility function
         }
         File fqImgFile = new File( selFile.getParentFile(), fqImgFileName ) ;
         

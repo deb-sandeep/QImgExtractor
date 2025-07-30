@@ -22,6 +22,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     private String srcId       = null ;
     private String subjectCode = null ;
     private int    partNumber  = -1 ;
+    private int    pageNumber  = -1 ;
     private QID    qId         = null ;
     
     private File imgFile ;
@@ -46,6 +47,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
         fName = stripFileExtension( fName ) ;
         fName = collectPartNumber( fName ) ; // Returns the file name without the part number
         fName = collectSrcId( fName ) ;
+        fName = collectPageNumber( fName ) ;
         
         // At this point, the file name has been stripped off any file extension,
         // any part numbers (if present) and source id.
@@ -81,7 +83,9 @@ public class QuestionImage implements Comparable<QuestionImage> {
     }
     
     public String getLongFileName() {
-        return this.srcId + "." + getShortFileName() ;
+        return srcId + "." +
+               String.format( "%03d", pageNumber ) + "." +
+               getShortFileName() ;
     }
     
     private String stripFileExtension( String fileName ) {
@@ -113,11 +117,25 @@ public class QuestionImage implements Comparable<QuestionImage> {
         if( fName.contains( "." ) ) {
             String[] parts = fName.split( "\\." ) ;
             this.srcId = parts[0].trim() ;
-            fName = parts[1].trim() ;
+            fName = String.join( ".", Arrays.copyOfRange( parts, 1, parts.length ) ) ;
         }
         else {
             throw new IllegalArgumentException( "File name " + fName +
                     " does not have source ID." ) ;
+        }
+        return fName ;
+    }
+    
+    private String collectPageNumber( String fileName ) {
+        String fName = fileName ;
+        if( fName.contains( "." ) ) {
+            String[] parts = fName.split( "\\." ) ;
+            this.pageNumber = Integer.parseInt( parts[0].trim() ) ;
+            fName = parts[1].trim() ;
+        }
+        else {
+            throw new IllegalArgumentException( "File name " + fName +
+                    " does not have page number." ) ;
         }
         return fName ;
     }
