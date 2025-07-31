@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor;
 
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
-import com.sandy.sconsole.qimgextractor.ui.project.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +30,8 @@ public class QImgExtractor
         return APP_CTX.getBean( requiredType ) ;
     }
     
-    public static ProjectContext getProjectContext() {
-        return getBean( ProjectContext.class ) ;
+    public static ProjectModel getProjectModel() {
+        return APP_CTX.getBean( ProjectModel.class ) ;
     }
     
     // ---------------- Instance methods start ---------------------------------

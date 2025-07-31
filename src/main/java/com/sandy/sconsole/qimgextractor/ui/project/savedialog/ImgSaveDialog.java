@@ -2,7 +2,8 @@ package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
-import com.sandy.sconsole.qimgextractor.ui.project.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,17 +19,21 @@ import java.util.Map;
 @Slf4j
 public class ImgSaveDialog extends JFileChooser {
     
-    private final ProjectContext projectContext ;
+    @Getter
+    private final ProjectModel projectModel ;
     
     @Getter
     private final String srcId ;
     
-    public ImgSaveDialog( File curDir, ProjectContext projectContext ) {
+    private final ProjectContext projectContext ;
+    
+    public ImgSaveDialog( ProjectModel model ) {
         super() ;
-        this.srcId = projectContext.getProjectName() ;
-        this.projectContext = projectContext ;
+        this.projectModel = model ;
+        this.projectContext = model.getProjectContext() ;
+        this.srcId = model.getProjectName() ;
         
-        setCurrentDirectory( curDir ) ;
+        setCurrentDirectory( model.getExtractedImgDir() ) ;
         setDialogTitle( "Save Image" ) ;
         setApproveButtonText( "Save" ) ;
         setApproveButtonToolTipText( "Save the selected image" ) ;

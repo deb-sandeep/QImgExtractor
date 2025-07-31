@@ -27,8 +27,9 @@ class SaveFnKeyHandlerWrapper extends AbstractAction {
         // before creating a temporary question image for mutation
         String fqImgFileName = fileName ;
         if( !fileName.startsWith( saveDialog.getSrcId() ) ) {
-            fqImgFileName = saveDialog.getSrcId() + "." + fileName ;
-            // TODO: How to get the file name. Also, FQN of a file should be made into a utility function
+            fqImgFileName = saveDialog.getSrcId() + "." +
+                            String.format( "%03d", saveDialog.getProjectModel().getProjectContext().getSelectedPageNumber() ) + "." +
+                            fileName ;
         }
         File fqImgFile = new File( selFile.getParentFile(), fqImgFileName ) ;
         

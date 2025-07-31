@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
-import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectContext;
+import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
 import static com.sandy.sconsole.qimgextractor.qid.ParserUtil.getInt;
 import static com.sandy.sconsole.qimgextractor.qid.ParserUtil.validateQuestionType;
 
@@ -116,14 +116,14 @@ public abstract class QID {
         
         if( this.questionType.equals( LCT ) ) {
             this.isLCTContext = true ;
-            this.lctSequence = getProjectContext().getLastLCTSequence() + 1 ;
+            this.lctSequence = getProjectModel().getProjectContext().getLastLCTSequence() + 1 ;
         }
         else {
             this.isLCTContext = false ;
             this.lctSequence = -1 ;
         }
         
-        this.questionNumber = getProjectContext().getLastSavedImg().getQId().getQuestionNumber() + 1 ;
+        this.questionNumber = getProjectModel().getProjectContext().getLastSavedImg().getQId().getQuestionNumber() + 1 ;
         this.parent.setPartNumber( -1 ) ;
     }
     

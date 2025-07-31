@@ -4,6 +4,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal.ImageCanvas;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.CustomWidgetStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -33,7 +34,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     private MessageStatusComponent mousePosStatus = null ;
     private MessageStatusComponent curSelTagNameStatus = null ;
     
-    private File curImgFile = null ;
+    @Getter private File curImgFile = null ;
     
     private ExtractedImgListener listener = null ;
     

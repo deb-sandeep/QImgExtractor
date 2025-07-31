@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -16,6 +17,8 @@ public class ProjectModel {
     @Getter private File pagesDir ;
     @Getter private File workDir ;
     @Getter private File extractedImgDir ;
+    @Getter private String projectName ;
+    @Getter private ProjectContext projectContext ;
     
     private List<PageImage> pageImages ;
     
@@ -41,6 +44,10 @@ public class ProjectModel {
             }
         }
         
+        this.projectName = projectDir.getName() ;
+        
+        projectContext = new ProjectContext() ;
+        
         log.info( "  Project directory: {}", baseDir.getAbsolutePath() ) ;
         log.info( "  Pages directory: <project-dir>/{}", pagesDir.getName() ) ;
         log.info( "  Work directory: <project-dir>/{}", workDir.getName() ) ;
@@ -61,6 +68,6 @@ public class ProjectModel {
             PageImage pageImg = new PageImage( this, file );
             pageImages.add( pageImg );
         }
+        Collections.sort( pageImages ) ;
     }
-    
 }

@@ -1,6 +1,7 @@
-package com.sandy.sconsole.qimgextractor.ui.project;
+package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -8,28 +9,22 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 
-@Component
 @Slf4j
 public class ProjectContext {
-    
-    @Getter
-    private File projectDir ;
-    
-    @Getter
-    private String projectName ;
     
     @Getter @Setter
     private int lastLCTSequence = 0 ;
     
     @Getter
     private QuestionImage lastSavedImg ;
+    
+    @Getter
+    private File selectedPageImageFile ;
+    
+    @Getter
+    private int selectedPageNumber = -1 ;
 
-    public void reset() {
-        projectDir = null ;
-        projectName = null ;
-        lastLCTSequence = 0 ;
-        lastSavedImg = null ;
-    }
+    ProjectContext() {}
     
     public void setLastSavedImage( QuestionImage qImg ) {
         log.debug( "Setting last saved image to {}", qImg );
@@ -39,8 +34,8 @@ public class ProjectContext {
         }
     }
     
-    public void setProjectRootDir( File projectDir ) {
-        this.projectDir = projectDir ;
-        this.projectName = projectDir.getName() ;
+    public void setSelectedPageImageFile( File file ) {
+        this.selectedPageImageFile = file ;
+        this.selectedPageNumber = AppUtil.extractPageNumber( file ) ;
     }
 }
