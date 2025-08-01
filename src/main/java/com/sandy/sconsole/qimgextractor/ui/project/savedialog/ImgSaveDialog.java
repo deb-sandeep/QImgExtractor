@@ -83,29 +83,6 @@ public class ImgSaveDialog extends JFileChooser {
         }
     }
     
-    public void unfocusFileNameField() {
-        SwingUtilities.invokeLater(() -> {
-            JTextField fileNameField = findFileNameTextField(this);
-            if (fileNameField != null) {
-                fileNameField.setFocusable( false );
-                this.requestFocusInWindow();
-            }
-        });
-    }
-    
-    private JTextField findFileNameTextField( Container root ) {
-        for (Component comp : root.getComponents()) {
-            if (comp instanceof JTextField tf && tf.isEditable()) {
-                return tf;
-            }
-            if (comp instanceof Container container) {
-                JTextField result = findFileNameTextField(container);
-                if (result != null) return result;
-            }
-        }
-        return null;
-    }
-    
     private boolean hasFileFormatLabel( Container parent ) {
         for( Component c : parent.getComponents() ) {
             if (c instanceof JLabel label) {
@@ -159,7 +136,6 @@ public class ImgSaveDialog extends JFileChooser {
     }
     
     public int showSaveDialog( Component parent ) throws HeadlessException {
-        unfocusFileNameField() ;
         return super.showSaveDialog( parent ) ;
     }
 }

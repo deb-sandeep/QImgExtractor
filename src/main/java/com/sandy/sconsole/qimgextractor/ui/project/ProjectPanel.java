@@ -113,7 +113,6 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         
         saveDialog.updateRecommendedFileName() ;
         selectedFile = saveDialog.getSelectedFile() ;
-        destDir = selectedFile.getParentFile() ;
         
         if( selectedFile == null || selectionModifier == MouseEvent.BUTTON3 ) {
             int userChoice = saveDialog.showSaveDialog( this ) ;
@@ -124,6 +123,9 @@ public class ProjectPanel extends JPanel implements SubImgListener {
             else {
                 return null ;
             }
+        }
+        else {
+            destDir = selectedFile.getParentFile() ;
         }
         
         try {

@@ -87,9 +87,17 @@ public class PageImage implements Comparable<PageImage> {
                 log.error( "    Sub image is invalid: {}", subImgInfo.getTag() ) ;
             }
         }
+
+        // TODO: Organize sub images into logical questions. Tricky, the LCT
+        //  context will belong now to multiple questions :) Go through a
+        //  round of refactoring keeping in mind that the sub image info can
+        //  be edited, deleted and created new at runtime and the tree
+        //  should be updated. So model should be observable and provide apis
+        //  to properly bookkeep a newly added entity or modification of existing
+        //  entity.
         
         // If we have some invalid sub images metadata, persist a fresh
-        // copy of valid metadata list. This time don't run validation.
+        // copy of a valid metadata list. This time don't run validation.
         if( validList.size() != subImgInfoList.size() ) {
             subImgInfoList = validList ;
             subImgInfoMap = validMap ;
@@ -97,7 +105,7 @@ public class PageImage implements Comparable<PageImage> {
         }
     }
     
-    // A sub-image information is valid when
+    // Sub-image information is valid when
     // 1 - The corresponding file exists
     // 2 - The name of the corresponding file is of valid syntax
     private boolean isSubImgInfoValid( SubImgInfo subImgInfo ) {
@@ -109,9 +117,10 @@ public class PageImage implements Comparable<PageImage> {
             return false ;
         }
         
-        // Validation 2: The name of the file is syntactially valid
+        // Validation 2: The name of the file is syntactically valid
         try {
-            new QuestionImage( subImgFile ) ;
+            QuestionImage questionImage = new QuestionImage( subImgFile ) ;
+            subImgInfo.setQuestionImage( questionImage ); ;
         }
         catch( Exception e ) {
             log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName() ) ;
@@ -125,11 +134,6 @@ public class PageImage implements Comparable<PageImage> {
                                            this.pageNumber,
                                            subImgInfo.getTag() + ".png" ) ;
         return new File( projectModel.getExtractedImgDir(), fqFileName ) ;
-    }
-    
-    public void destroy() {
-        File imgInfoFile = getImgInfoFile() ;
-        if( imgInfoFile.exists() ) {}
     }
     
     private File getImgInfoFile() {
