@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
@@ -53,13 +53,13 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         canvas.logMousePosition( event.getPoint() ) ;
     }
     
-    public List<ExtractedImgInfo> getSelectedRegionsInfo() {
-        List<ExtractedImgInfo> infoList = new ArrayList<>() ;
+    public List<SubImgInfo> getSelectedRegionsInfo() {
+        List<SubImgInfo> infoList = new ArrayList<>() ;
         oldRegions.forEach( r -> infoList.add( r.getRegionInfo() ) ) ;
         return infoList ;
     }
     
-    public void setSelectedRegionsInfo( List<ExtractedImgInfo> infoList ) {
+    public void setSelectedRegionsInfo( List<SubImgInfo> infoList ) {
         oldRegions.clear() ;
         if( infoList != null ) {
             infoList.forEach( info -> oldRegions.add( new SelectedRegion( info ) ) ) ;

@@ -116,14 +116,14 @@ public abstract class QID {
         
         if( this.questionType.equals( LCT ) ) {
             this.isLCTContext = true ;
-            this.lctSequence = getProjectModel().getProjectContext().getLastLCTSequence() + 1 ;
+            this.lctSequence = getProjectModel().getContext().getLastLCTSequence() + 1 ;
         }
         else {
             this.isLCTContext = false ;
             this.lctSequence = -1 ;
         }
         
-        this.questionNumber = getProjectModel().getProjectContext().getLastSavedImg().getQId().getQuestionNumber() + 1 ;
+        this.questionNumber = getProjectModel().getContext().getLastSavedImg().getQId().getQuestionNumber() + 1 ;
         this.parent.setPartNumber( -1 ) ;
     }
     

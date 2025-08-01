@@ -36,9 +36,9 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     @Getter private File curImgFile = null ;
     
-    private ExtractedImgListener listener = null ;
+    private SubImgListener listener = null ;
     
-    public ImgExtractorPanel( ExtractedImgListener listener ) {
+    public ImgExtractorPanel( SubImgListener listener ) {
         super( new BorderLayout() ) ;
         setUpUI() ;
         this.listener = listener ;
@@ -112,7 +112,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         return panel ;
     }
     
-    public void setImage( File pngFile, List<ExtractedImgInfo> imgInfoList,
+    public void setImage( File pngFile, List<SubImgInfo> imgInfoList,
                           int preferredImgWidth ) {
         
         try {
@@ -178,8 +178,8 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         return null ;
     }
     
-    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
-        listener.selectedRegionsUpdated( selectedRegionsInfo, curImgFile ) ;
+    public void selectedRegionsUpdated( List<SubImgInfo> selectedRegionsInfo ) {
+        listener.selectedRegionsUpdated( curImgFile, selectedRegionsInfo ) ;
     }
     
     public void setModeStatus( String mode) {

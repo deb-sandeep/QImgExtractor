@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 @Data
 @ToString
-public class ExtractedImgInfo implements Serializable {
+public class SubImgInfo implements Serializable {
 
     private Point anchorPoint ;
     private String tag ;

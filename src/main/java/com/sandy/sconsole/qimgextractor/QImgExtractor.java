@@ -4,7 +4,6 @@ import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -20,11 +19,6 @@ public class QImgExtractor
         implements ApplicationContextAware, WebMvcConfigurer {
     
     private static ConfigurableApplicationContext APP_CTX = null ;
-    private static QImgExtractor                  APP     = null;
-    
-    public static QImgExtractor getApp() {
-        return APP;
-    }
     
     public static <T> T getBean( Class<T> requiredType ) {
         return APP_CTX.getBean( requiredType ) ;
@@ -36,17 +30,16 @@ public class QImgExtractor
     
     // ---------------- Instance methods start ---------------------------------
     
-    @Autowired
-    private MainFrame mainFrame ;
+    private final MainFrame mainFrame ;
     
-    public QImgExtractor() {
-        APP = this;
+    public QImgExtractor( MainFrame mainFrame ) {
+        this.mainFrame = mainFrame ;
     }
     
     @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
+    public void setApplicationContext( ApplicationContext ctx )
             throws BeansException {
-        APP_CTX = ( ConfigurableApplicationContext )applicationContext;
+        APP_CTX = ( ConfigurableApplicationContext )ctx;
     }
     
     public void initialize() {
@@ -54,9 +47,7 @@ public class QImgExtractor
         log.debug( "## Initializing QImgExtractor app. >" ) ;
         
         log.debug( "- Initializing MainFrame" ) ;
-        SwingUtilities.invokeLater( () -> {
-            mainFrame.setVisible( true ) ;
-        }) ;
+        SwingUtilities.invokeLater( () -> mainFrame.setVisible( true ) ) ;
         
         log.debug( "<< ## QImgExtractor initialization complete" ) ;
     }

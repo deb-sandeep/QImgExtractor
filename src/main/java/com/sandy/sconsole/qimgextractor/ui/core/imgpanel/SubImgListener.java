@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 
-public interface ExtractedImgListener {
+public interface SubImgListener {
     /**
      * Returns a not null tag for the image if the image is successfully
      * processed, else null.
@@ -25,8 +25,8 @@ public interface ExtractedImgListener {
      * Called with meta data of all the selected regions every time
      * a new selected region is successfully processed.
      */
-    void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo,
-                                 File imgFile ) ;
+    void selectedRegionsUpdated( File imgFile,
+                                 List<SubImgInfo> selectedRegionsInfo ) ;
     
     /**
      * If the image extractor canvas is in COMMAND mode and a key other than

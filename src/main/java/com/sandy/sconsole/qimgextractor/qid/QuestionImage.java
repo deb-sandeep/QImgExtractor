@@ -187,12 +187,17 @@ public class QuestionImage implements Comparable<QuestionImage> {
         this.partNumber = -1 ;
     }
     
-    public void beginOrEndPartSequence( boolean end ) {
+    public void mutatePartSequence( boolean end ) {
         if( end ) {
             this.partNumber = -1 ;
         }
         else {
-            this.partNumber = 1 ;
+            if( this.partNumber == -1 ) {
+                this.partNumber = 1 ;
+            }
+            else {
+                this.partNumber++ ;
+            }
         }
     }
     

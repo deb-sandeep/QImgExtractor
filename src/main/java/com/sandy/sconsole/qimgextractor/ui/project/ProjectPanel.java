@@ -3,40 +3,35 @@ package com.sandy.sconsole.qimgextractor.ui.project;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgListener;
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgListener;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
+import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectPageTree;
-import com.sandy.sconsole.qimgextractor.util.AppUtil;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.sandy.sconsole.qimgextractor.util.AppUtil.extractPageNumber;
-import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 
 @Slf4j
-public class ProjectPanel extends JPanel implements ExtractedImgListener {
+public class ProjectPanel extends JPanel implements SubImgListener {
     
-    private final MainFrame      mainFrame;
-    private final ProjectModel   projectModel ;
-    private final ImgSaveDialog  saveDialog ;
+    private final MainFrame mainFrame ;
+    private final ProjectModel projectModel ;
+    private final ImgSaveDialog saveDialog ;
     
-    @Getter
-    private final String srcId;
-    
-    private CloseableTabbedPane tabbedPane ;
-    private ProjectPageTree pageTree ;
+    private CloseableTabbedPane tabPane;
+    private ProjectPageTree     pageTree ;
     
     private QuestionImage nextImgName = null ;
     
@@ -44,10 +39,9 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
         
         this.projectModel = model ;
         this.mainFrame = mainFrame ;
-        this.srcId = projectModel.getProjectName() ;
         this.saveDialog = new ImgSaveDialog( model ) ;
         
-        QuestionImage lastSavedImg = model.getProjectContext().getLastSavedImg() ;
+        QuestionImage lastSavedImg = model.getContext().getLastSavedImg() ;
         if( lastSavedImg != null ) {
             this.nextImgName = lastSavedImg.nextQuestion() ;
         }
@@ -59,48 +53,51 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     private void setUpUI() {
         setLayout( new BorderLayout() );
         
-        tabbedPane = new CloseableTabbedPane() ;
-        tabbedPane.addChangeListener( e -> tabSelectionChanged() ) ;
+        tabPane = new CloseableTabbedPane() ;
+        tabPane.addChangeListener( e -> tabSelectionChanged() ) ;
         
         pageTree = new ProjectPageTree( this ) ;
         
-        add( tabbedPane, BorderLayout.CENTER ) ;
+        add( tabPane, BorderLayout.CENTER ) ;
         add( pageTree, BorderLayout.WEST ) ;
-    }
-    
-    private void tabSelectionChanged() {
-        ImgExtractorPanel selectedPanel = ( ImgExtractorPanel )tabbedPane.getSelectedComponent() ;
-        projectModel.getProjectContext()
-                    .setSelectedPageImageFile( selectedPanel.getCurImgFile() ) ;
     }
     
     private void loadPageImages() {
         
-        File[] files = projectModel.getPagesDir().listFiles( f -> f.getName().endsWith( ".png" ) ) ;
-        assert files != null;
-        for( int i=0; i<files.length; i++ ) {
-            File file = files[i] ;
-            mainFrame.logStausMsg( "Loading (" + i + "/" + files.length + ") " + file.getName() + "..." ) ;
-            List<ExtractedImgInfo> imgInfoList = loadImgInfo( file ) ;
-            ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
+        List<PageImage> pageImages = projectModel.getPageImages() ;
+        for( int i=0; i<pageImages.size(); i++ ) {
+            PageImage pageImg = pageImages.get( i ) ;
+            File file = pageImg.getImgFile() ;
             
-            imgPanel.setImage( file, imgInfoList, SwingUtils.getScreenWidth() - ProjectPageTree.PREFERRED_WIDTH - 10 ) ;
-            SwingUtilities.invokeLater( () -> tabbedPane.addTab( file.getName(), imgPanel ) ) ;
+            mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
+
+            ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
+            imgPanel.setImage( file,
+                               pageImg.getSubImgInfoList(),
+                               SwingUtils.getScreenWidth() - ProjectPageTree.PREFERRED_WIDTH - 10 ) ;
+            
+            SwingUtilities.invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
         }
         mainFrame.clearStatusMsg() ;
     }
     
     public void destroy() {
         SwingUtilities.invokeLater( () -> {
-            int numberOfTabs = tabbedPane.getTabCount() ;
+            int numberOfTabs = tabPane.getTabCount() ;
             for( int i=numberOfTabs-1; i>=0; i-- ) {
-                ImgExtractorPanel panel = ( ImgExtractorPanel )tabbedPane.getTabComponentAt( i ) ;
+                ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getTabComponentAt( i ) ;
                 if( panel != null ) {
                     panel.destroy() ;
-                    tabbedPane.removeTabAt( i ) ;
+                    tabPane.removeTabAt( i ) ;
                 }
             }
         } ) ;
+    }
+    
+    private void tabSelectionChanged() {
+        ImgExtractorPanel selectedPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
+        projectModel.getContext()
+                    .setSelectedPageImageFile( selectedPanel.getCurImgFile() ) ;
     }
     
     @Override
@@ -108,57 +105,65 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
                                     Rectangle subImgBounds, int selectionModifier ) {
         
         String processingId = null ;
+        File selectedFile ;
+        File destDir ;
         
         saveDialog.updateRecommendedFileName() ;
+        selectedFile = saveDialog.getSelectedFile() ;
+        destDir = selectedFile.getParentFile() ;
         
-        int userChoice = saveDialog.showSaveDialog( this ) ;
-        if( userChoice == JOptionPane.OK_OPTION ) {
-            
-            File destFile = saveDialog.getSelectedFile() ;
-            if( destFile != null ) {
-                try {
-                    // 1. Append .png if user has not specified. Input brevity allowed.
-                    String fileName = destFile.getName() ;
-                    if( !fileName.endsWith( ".png" ) ) {
-                        fileName += ".png" ;
-                    }
-                    
-                    // 2. Prepend the source id to make the file name complete
-                    // and save the image.
-                    String imgFileName = fileName ;
-                    if( !fileName.startsWith( srcId ) ) {
-                        imgFileName = srcId + "." +
-                                      String.format( "%03d", extractPageNumber( imgSrcFile ) ) + "." +
-                                      fileName ;
-                    }
-                    File newImgFile = new File( destFile.getParentFile(),
-                                                imgFileName) ;
-
-                    // 3. Parse the file to see if it meets the file name criteria.
-                    // If not, then an exception will be thrown.
-                    QuestionImage qImg = new QuestionImage( newImgFile ) ;
-
-                    // 4. Save the image, and other housekeeping tasks.
-                    ImageIO.write( image, "png", newImgFile ) ;
-                    projectModel.getProjectContext().setLastSavedImage( qImg );
-                    
-                    processingId = qImg.getShortFileNameWithoutExtension() ;
-                    mainFrame.logStausMsg( "Saved " + destFile.getName() ) ;
-                    
-                    nextImgName = qImg.nextQuestion() ;
-                }
-                catch( Exception e ) {
-                    log.error( "Error saving image.", e ) ;
-                    showErrorMsg( "Error saving image.", e ) ;
-                }
+        if( selectedFile == null || selectionModifier == MouseEvent.BUTTON3 ) {
+            int userChoice = saveDialog.showSaveDialog( this ) ;
+            if( userChoice == JOptionPane.OK_OPTION ) {
+                selectedFile = saveDialog.getSelectedFile() ;
+                destDir = selectedFile.getParentFile() ;
+            }
+            else {
+                return null ;
             }
         }
+        
+        try {
+            // 1. Append .png if user has not specified. Input brevity allowed.
+            String fileName = selectedFile.getName();
+            if( !fileName.endsWith( ".png" ) ) {
+                fileName += ".png";
+            }
+            
+            // 2. Prepend the source id to make the file name complete
+            // and save the image.
+            String imgFileName = fileName;
+            if( !fileName.startsWith( projectModel.getProjectName() ) ) {
+                imgFileName = getFQFileName( projectModel.getProjectName(), extractPageNumber( imgSrcFile ), fileName );
+            }
+            File newImgFile = new File( destDir, imgFileName );
+            
+            // 3. Parse the file to see if it meets the file name criteria.
+            // If not, then an exception will be thrown.
+            QuestionImage qImg = new QuestionImage( newImgFile );
+            
+            // 4. Save the image, and other housekeeping tasks.
+            ImageIO.write( image, "png", newImgFile );
+            projectModel.getContext().setLastSavedImage( qImg );
+            
+            processingId = qImg.getShortFileNameWithoutExtension();
+            mainFrame.logStausMsg( "Saved " + selectedFile.getName() );
+            
+            nextImgName = qImg.nextQuestion();
+        }
+        catch( Exception e ) {
+            log.error( "Error saving image.", e );
+            showErrorMsg( "Error saving image.", e );
+        }
+
         return processingId ;
     }
     
     @Override
-    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo, File imgFile ) {
-        saveImgInfo( imgFile, selectedRegionsInfo ) ;
+    public void selectedRegionsUpdated( File imgFile, List<SubImgInfo> selectedRegionsInfo ) {
+        PageImage pageImg = projectModel.getPageImage( imgFile ) ;
+        assert pageImg != null ;
+        pageImg.selectedRegionsUpdated( selectedRegionsInfo ) ;
     }
     
     @Override
@@ -167,7 +172,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     
     @Override
     public void selectionStarted() {
-        ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabbedPane.getSelectedComponent() ;
+        ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
         if( nextImgName != null ) {
             imgPanel.setCurSelTagName( nextImgName.getShortFileNameWithoutExtension() ) ;
         }
@@ -175,42 +180,7 @@ public class ProjectPanel extends JPanel implements ExtractedImgListener {
     
     @Override
     public void selectionEnded() {
-        ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabbedPane.getSelectedComponent() ;
+        ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
         imgPanel.clearCurSelTagName() ;
-    }
-    
-    private List<ExtractedImgInfo> loadImgInfo( File imgFile ) {
-        List<ExtractedImgInfo> imgInfoList = new ArrayList<>() ;
-        File imgInfoFile = getImgInfoFile( imgFile ) ;
-        if( imgInfoFile.exists() ) {
-            try {
-                ObjectInputStream ois = new ObjectInputStream( new FileInputStream( imgInfoFile ) ) ;
-                imgInfoList = ( List<ExtractedImgInfo> )ois.readObject() ;
-                ois.close() ;
-            }
-            catch( Exception e ) {
-                log.error( "Error reading image info.", e ) ;
-                showErrorMsg( "Error reading image info", e ) ;
-            }
-        }
-        return imgInfoList ;
-    }
-    
-    private void saveImgInfo( File imgFile, List<ExtractedImgInfo> selectedRegionsInfo ) {
-        File imgInfoFile = getImgInfoFile( imgFile ) ;
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream( new FileOutputStream( imgInfoFile ) ) ;
-            oos.writeObject( selectedRegionsInfo ) ;
-            oos.close() ;
-        }
-        catch( Exception e ) {
-            log.error( "Error saving image info.", e ) ;
-            showErrorMsg( "Error saving image info.", e ) ;
-        }
-    }
-    
-    private File getImgInfoFile( File imgFile ) {
-        return new File( projectModel.getWorkDir(),
-                         AppUtil.stripExtension( imgFile ) + ".regions.info" ) ;
     }
 }

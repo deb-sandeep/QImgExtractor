@@ -28,7 +28,7 @@ class SaveFnKeyHandlerWrapper extends AbstractAction {
         String fqImgFileName = fileName ;
         if( !fileName.startsWith( saveDialog.getSrcId() ) ) {
             fqImgFileName = saveDialog.getSrcId() + "." +
-                            String.format( "%03d", saveDialog.getProjectModel().getProjectContext().getSelectedPageNumber() ) + "." +
+                            String.format( "%03d", saveDialog.getProjectModel().getContext().getSelectedPageNumber() ) + "." +
                             fileName ;
         }
         File fqImgFile = new File( selFile.getParentFile(), fqImgFileName ) ;

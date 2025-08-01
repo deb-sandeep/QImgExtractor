@@ -18,7 +18,7 @@ public class AITSComponentFactory extends QSrcComponentFactory {
     
     private static final SaveFnKeyHandler SUB_ROLL_KH   = QuestionImage::rollSubjectCode ;
     private static final SaveFnKeyHandler QTYPE_ROLL_KH = ( qImg, isShiftPressed ) ->  qImg.getQId().rollQType( isShiftPressed ) ;
-    private static final SaveFnKeyHandler PART_SEQ_KH   = QuestionImage::beginOrEndPartSequence;
+    private static final SaveFnKeyHandler PART_SEQ_KH   = QuestionImage::mutatePartSequence;
     private static final SaveFnKeyHandler QNO_KH        = ( qImg, isShiftPressed ) -> qImg.getQId().rollQuestionNumber( isShiftPressed ) ;
     
     @Override

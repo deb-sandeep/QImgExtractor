@@ -9,11 +9,9 @@ import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -23,11 +21,8 @@ import java.io.File;
 @Component
 public class MainFrame extends JFrame {
     
-    @Autowired
-    private AppConfig appConfig ;
-    
-    @Autowired
-    private ProjectModel projectModel ;
+    private final AppConfig appConfig ;
+    private final ProjectModel projectModel ;
     
     private JFileChooser projectDirChooser ;
     private ProjectPanel currentProjectPanel ;
@@ -35,7 +30,10 @@ public class MainFrame extends JFrame {
     private MessageStatusComponent projectNameSBComponent ;
     private MessageStatusComponent messageSBComponent ;
     
-    public MainFrame() {
+    public MainFrame( AppConfig appConfig, ProjectModel projectModel ) {
+        this.appConfig = appConfig ;
+        this.projectModel = projectModel ;
+        
         addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
                 processWindowClosing() ;
@@ -65,7 +63,7 @@ public class MainFrame extends JFrame {
     private StatusBar createStatusBar() {
         
         projectNameSBComponent = new MessageStatusComponent() ;
-        projectNameSBComponent.setBorder( BorderFactory.createBevelBorder( BevelBorder.RAISED ) );
+        projectNameSBComponent.setBorder( null ) ;
         projectNameSBComponent.setForeground( Color.BLUE ) ;
         projectNameSBComponent.setFont( UITheme.STATUS_FONT );
         projectNameSBComponent.log( "Choose project directory" ) ;
@@ -120,14 +118,13 @@ public class MainFrame extends JFrame {
                     closeCurrentProject() ;
                     
                     projectModel.initialize( projectDir ) ;
-                    
                     currentProjectPanel = new ProjectPanel( this, projectModel ) ;
                     
                     getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
                     revalidate() ;
                     repaint() ;
                     
-                    projectNameSBComponent.log( currentProjectPanel.getSrcId() ) ;
+                    projectNameSBComponent.log( projectModel.getProjectName() ) ;
                 }
                 else {
                     JOptionPane.showMessageDialog( this,

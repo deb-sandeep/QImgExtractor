@@ -30,10 +30,11 @@ public class ImgSaveDialog extends JFileChooser {
     public ImgSaveDialog( ProjectModel model ) {
         super() ;
         this.projectModel = model ;
-        this.projectContext = model.getProjectContext() ;
+        this.projectContext = model.getContext() ;
         this.srcId = model.getProjectName() ;
         
         setCurrentDirectory( model.getExtractedImgDir() ) ;
+        setSelectedFile( null ) ;
         setDialogTitle( "Save Image" ) ;
         setApproveButtonText( "Save" ) ;
         setApproveButtonToolTipText( "Save the selected image" ) ;
@@ -82,7 +83,30 @@ public class ImgSaveDialog extends JFileChooser {
         }
     }
     
-    private boolean hasFileFormatLabel(Container parent) {
+    public void unfocusFileNameField() {
+        SwingUtilities.invokeLater(() -> {
+            JTextField fileNameField = findFileNameTextField(this);
+            if (fileNameField != null) {
+                fileNameField.setFocusable( false );
+                this.requestFocusInWindow();
+            }
+        });
+    }
+    
+    private JTextField findFileNameTextField( Container root ) {
+        for (Component comp : root.getComponents()) {
+            if (comp instanceof JTextField tf && tf.isEditable()) {
+                return tf;
+            }
+            if (comp instanceof Container container) {
+                JTextField result = findFileNameTextField(container);
+                if (result != null) return result;
+            }
+        }
+        return null;
+    }
+    
+    private boolean hasFileFormatLabel( Container parent ) {
         for( Component c : parent.getComponents() ) {
             if (c instanceof JLabel label) {
                 String text = label.getText() ;
@@ -132,5 +156,10 @@ public class ImgSaveDialog extends JFileChooser {
             QuestionImage nextQ = lastSavedImage.nextQuestion() ;
             setSelectedFile( new File( getCurrentDirectory(), nextQ.getShortFileName() ) );
         }
+    }
+    
+    public int showSaveDialog( Component parent ) throws HeadlessException {
+        unfocusFileNameField() ;
+        return super.showSaveDialog( parent ) ;
     }
 }

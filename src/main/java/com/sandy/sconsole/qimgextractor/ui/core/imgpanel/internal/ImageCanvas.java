@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ExtractedImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +70,7 @@ public class ImageCanvas extends JLabel {
         parent.setModeStatus( opMode.toString() + " MODE" ) ;
     }
     
-    public void setOriginalImage( BufferedImage img, List<ExtractedImgInfo> imgInfoList  ) {
+    public void setOriginalImage( BufferedImage img, List<SubImgInfo> imgInfoList  ) {
         originalImage = img ;
         scaledImg = img ;
         scaleFactor = 1.0f ;
@@ -144,7 +144,7 @@ public class ImageCanvas extends JLabel {
         }
     }
     
-    public void selectedRegionsUpdated( List<ExtractedImgInfo> selectedRegionsInfo ) {
+    public void selectedRegionsUpdated( List<SubImgInfo> selectedRegionsInfo ) {
         // The region info returned is in the image coordinates of the view. The view
         // is/might be scaled. So before returning information which is relative to original
         // image coordinates, we have to apply a reverse scaling factor.

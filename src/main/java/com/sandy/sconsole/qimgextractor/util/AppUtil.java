@@ -22,19 +22,22 @@ public class AppUtil {
     }
 
     public static void showErrorMsg( String msg, Throwable t ) {
+        String text = msg + "\n" +
+                    "Caused by: " + t.getMessage() + "\n" +
+                    "Stack trace:" + "\n" + getStackTraceAsString( t ) ;
+        
         JTextArea textArea = new JTextArea() ;
         textArea.setEditable( false ) ;
         textArea.setOpaque( false ) ;  // optional for transparent background
-        textArea.setColumns(30) ;
-        textArea.setRows(10) ;
+        textArea.setColumns(80) ;
+        textArea.setRows(20) ;
+        textArea.setText( text ) ;
         
-        StringBuilder sb = new StringBuilder() ;
-        sb.append( msg ).append( "\n" ) ;
-        sb.append( "Caused by: " ).append( t.getMessage() ).append( "\n" ) ;
-        sb.append( "Stack trace:" ).append( "\n" ) ;
-        sb.append( getStackTraceAsString( t ) ) ;
+        JScrollPane sp = new JScrollPane( textArea ) ;
         
-        JOptionPane.showMessageDialog(null, textArea, "Multiline Message", JOptionPane.INFORMATION_MESSAGE);
+        MainFrame frame = QImgExtractor.getBean( MainFrame.class ) ;
+        JOptionPane.showMessageDialog( frame, sp, "Message",
+                                       JOptionPane.ERROR_MESSAGE ) ;
     }
     
     private static String getStackTraceAsString( Throwable t ) {
@@ -46,6 +49,9 @@ public class AppUtil {
         return sb.toString() ;
     }
     
+    // Page scans are of the format AITS-13-A-FT1P1-02.png. The last
+    // segment of the file name is the page sequence number. This method
+    // extracts the page sequence number, given a page image file.
     public static int extractPageNumber( File pageImgFile ) {
         String fileName = pageImgFile.getName() ;
         
@@ -56,5 +62,9 @@ public class AppUtil {
         // be the page number
         String[] tokens = fileName.split( "-" ) ;
         return Integer.parseInt( tokens[tokens.length-1] ) ;
+    }
+    
+    public static String getFQFileName( String srcId, int pageNumber, String fileName ) {
+        return srcId + "." + String.format( "%03d", pageNumber ) + "." + fileName;
     }
 }

@@ -12,4 +12,7 @@ public class AppConfig {
 
     @Value( "${sourceBaseDir}" )
     private File sourceBaseDir ;
+    
+    @Value( "${repairProjectOnStartup}" )
+    private boolean repairProjectOnStartup = false ;
 }
