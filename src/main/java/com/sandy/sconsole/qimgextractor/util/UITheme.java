@@ -4,5 +4,8 @@ import java.awt.*;
 
 public class UITheme {
 
-    public static final Font STATUS_FONT = new Font( "SansSerif", Font.PLAIN, 11 ) ;
+    private static final String FONT_NAME = "Helvetica" ;
+
+    public static final Font STATUS_FONT = new Font( FONT_NAME, Font.PLAIN, 11 ) ;
+    
 }

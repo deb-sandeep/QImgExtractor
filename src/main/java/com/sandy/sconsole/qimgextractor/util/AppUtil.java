@@ -53,11 +53,7 @@ public class AppUtil {
     // segment of the file name is the page sequence number. This method
     // extracts the page sequence number, given a page image file.
     public static int extractPageNumber( File pageImgFile ) {
-        String fileName = pageImgFile.getName() ;
-        
-        // Strip the file name of its extension
-        fileName = fileName.substring( 0, fileName.lastIndexOf( '.' ) ) ;
-        
+        String fileName = stripFileExtension( pageImgFile ) ;
         // Tokenize the file name and extract the last token, that will
         // be the page number
         String[] tokens = fileName.split( "-" ) ;
@@ -66,5 +62,10 @@ public class AppUtil {
     
     public static String getFQFileName( String srcId, int pageNumber, String fileName ) {
         return srcId + "." + String.format( "%03d", pageNumber ) + "." + fileName;
+    }
+    
+    public static String stripFileExtension( File file ) {
+        String fileName = file.getName() ;
+        return fileName.substring( 0, fileName.lastIndexOf( '.' ) ) ;
     }
 }

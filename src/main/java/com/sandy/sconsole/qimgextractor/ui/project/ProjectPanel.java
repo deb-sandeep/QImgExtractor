@@ -10,7 +10,8 @@ import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
-import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectPageTree;
+import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectTreePanel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -27,14 +28,16 @@ import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 public class ProjectPanel extends JPanel implements SubImgListener {
     
     private final MainFrame mainFrame ;
-    private final ProjectModel projectModel ;
     private final ImgSaveDialog saveDialog ;
     
     private CloseableTabbedPane tabPane;
-    private ProjectPageTree     pageTree ;
+    private ProjectTreePanel    pageTree ;
     
     private QuestionImage nextImgName = null ;
     
+    @Getter
+    private final ProjectModel projectModel ;
+
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         
         this.projectModel = model ;
@@ -56,7 +59,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         tabPane = new CloseableTabbedPane() ;
         tabPane.addChangeListener( e -> tabSelectionChanged() ) ;
         
-        pageTree = new ProjectPageTree( this ) ;
+        pageTree = new ProjectTreePanel( this ) ;
         
         add( tabPane, BorderLayout.CENTER ) ;
         add( pageTree, BorderLayout.WEST ) ;
@@ -74,7 +77,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
             ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
             imgPanel.setImage( file,
                                pageImg.getSubImgInfoList(),
-                               SwingUtils.getScreenWidth() - ProjectPageTree.PREFERRED_WIDTH - 10 ) ;
+                               SwingUtils.getScreenWidth() - ProjectTreePanel.PREFERRED_WIDTH - 10 ) ;
             
             SwingUtilities.invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
         }
