@@ -112,7 +112,8 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         return panel ;
     }
     
-    public void setImage( File pngFile, List<SubImgInfo> imgInfoList,
+    public void setImage( File pngFile,
+                          List<SubImgInfo> imgInfoList,
                           int preferredImgWidth ) {
         
         try {
@@ -178,8 +179,8 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         return null ;
     }
     
-    public void selectedRegionsUpdated( List<SubImgInfo> selectedRegionsInfo ) {
-        listener.selectedRegionsUpdated( curImgFile, selectedRegionsInfo ) ;
+    public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
+        listener.selectedRegionAdded( curImgFile, newRegionInfo ) ;
     }
     
     public void setModeStatus( String mode) {
@@ -212,5 +213,13 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     public void clearCurSelTagName() {
         curSelTagNameStatus.clear() ;
+    }
+    
+    public void deleteSelectedRegion( String tag ) {
+        imgCanvas.deleteSelectedRegion( tag ) ;
+    }
+    
+    public void renameSelectedRegion( String oldTag, String newTag ) {
+        imgCanvas.renameSelectedRegion( oldTag, newTag ) ;
     }
 }

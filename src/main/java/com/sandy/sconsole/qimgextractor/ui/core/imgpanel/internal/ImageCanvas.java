@@ -50,7 +50,6 @@ public class ImageCanvas extends JLabel {
                     switch ( keyCode ) {
                         case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.COMMAND ) ;
                         case KeyEvent.VK_BACK_SPACE -> regionSelector.clearActiveSelection() ;
-                        case KeyEvent.VK_C -> regionSelector.clearSelectedRegions() ;
                     }
                 }
                 else if( opMode == OpMode.COMMAND ) {
@@ -70,12 +69,13 @@ public class ImageCanvas extends JLabel {
         parent.setModeStatus( opMode.toString() + " MODE" ) ;
     }
     
-    public void setOriginalImage( BufferedImage img, List<SubImgInfo> imgInfoList  ) {
+    public void setOriginalImage( BufferedImage img,
+                                  List<SubImgInfo> subImgInfoList  ) {
         originalImage = img ;
         scaledImg = img ;
         scaleFactor = 1.0f ;
         regionSelector.clearActiveSelection() ;
-        regionSelector.setSelectedRegionsInfo( imgInfoList ) ;
+        regionSelector.setSelectedRegions( subImgInfoList ) ;
     }
     
     public void scaleImage( double factor ) {
@@ -144,12 +144,20 @@ public class ImageCanvas extends JLabel {
         }
     }
     
-    public void selectedRegionsUpdated( List<SubImgInfo> selectedRegionsInfo ) {
+    public void deleteSelectedRegion( String tag ) {
+        regionSelector.deleteSelectedRegion( tag ) ;
+    }
+    
+    public void renameSelectedRegion( String oldTag, String newTag ) {
+        regionSelector.renameSelectedRegion( oldTag, newTag ) ;
+    }
+    
+    public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
         // The region info returned is in the image coordinates of the view. The view
         // is/might be scaled. So before returning information which is relative to original
         // image coordinates, we have to apply a reverse scaling factor.
-        selectedRegionsInfo.forEach( info -> info.scale( 1/scaleFactor ) ) ;
-        parent.selectedRegionsUpdated( selectedRegionsInfo ) ;
+        newRegionInfo.scale( 1/scaleFactor ) ;
+        parent.selectedRegionAdded( newRegionInfo ) ;
     }
     
     public void logActiveRegionSize( Rectangle regionBounds ) {

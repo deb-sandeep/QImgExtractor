@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
@@ -53,16 +54,31 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         canvas.logMousePosition( event.getPoint() ) ;
     }
     
-    public List<SubImgInfo> getSelectedRegionsInfo() {
-        List<SubImgInfo> infoList = new ArrayList<>() ;
-        oldRegions.forEach( r -> infoList.add( r.getRegionInfo() ) ) ;
-        return infoList ;
-    }
-    
-    public void setSelectedRegionsInfo( List<SubImgInfo> infoList ) {
+    public void setSelectedRegions( List<SubImgInfo> infoList ) {
         oldRegions.clear() ;
         if( infoList != null ) {
             infoList.forEach( info -> oldRegions.add( new SelectedRegion( info ) ) ) ;
+        }
+    }
+    
+    public void deleteSelectedRegion( String tag ) {
+        for( Iterator<SelectedRegion> iter = oldRegions.iterator(); iter.hasNext(); ) {
+            SelectedRegion region = iter.next() ;
+            if( region.getTag().equals( tag ) ) {
+                iter.remove() ;
+                canvas.repaint( region.getRepaintBounds() ) ;
+                break ;
+            }
+        }
+    }
+    
+    public void renameSelectedRegion( String oldTag, String newTag ) {
+        for( SelectedRegion region : oldRegions ) {
+            if( region.getTag().equals( oldTag ) ) {
+                region.setTag( newTag ) ;
+                canvas.repaint( region.getRepaintBounds() ) ;
+                break ;
+            }
         }
     }
 
@@ -72,10 +88,9 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
                 int selectionFlag = event.getButton() ;
                 String tag = canvas.subImageSelected( activeRegion.getRegionBounds(), selectionFlag ) ;
                 if( tag != null ) {
-                    activeRegion.setSelectionFlag( selectionFlag ) ;
                     activeRegion.setTag( tag ) ;
                     oldRegions.add( activeRegion ) ;
-                    canvas.selectedRegionsUpdated( getSelectedRegionsInfo() ) ;
+                    canvas.selectedRegionAdded( activeRegion.getRegionInfo() ) ;
                     canvas.logActiveRegionSize( null ) ;
                 }
                 clearActiveSelection() ;
@@ -106,12 +121,5 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             canvas.logActiveRegionSize( null ) ;
             canvas.selectionEnded() ;
         }
-    }
-    
-    public void clearSelectedRegions() {
-        clearActiveSelection() ;
-        oldRegions.clear() ;
-        canvas.selectedRegionsUpdated( getSelectedRegionsInfo() ) ;
-        canvas.repaint() ;
     }
 }

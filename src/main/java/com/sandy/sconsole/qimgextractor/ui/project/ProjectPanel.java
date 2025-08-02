@@ -31,7 +31,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     private final ImgSaveDialog saveDialog ;
     
     private CloseableTabbedPane tabPane;
-    private ProjectTreePanel    pageTree ;
+    private ProjectTreePanel pageTree ;
     
     private QuestionImage nextImgName = null ;
     
@@ -165,10 +165,10 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     }
     
     @Override
-    public void selectedRegionsUpdated( File imgFile, List<SubImgInfo> selectedRegionsInfo ) {
+    public void selectedRegionAdded( File imgFile, SubImgInfo newRegionInfo ) {
         PageImage pageImg = projectModel.getPageImage( imgFile ) ;
         assert pageImg != null ;
-        pageImg.selectedRegionsUpdated( selectedRegionsInfo ) ;
+        pageImg.selectedRegionAdded( newRegionInfo ) ;
     }
     
     @Override
@@ -187,5 +187,13 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     public void selectionEnded() {
         ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
         imgPanel.clearCurSelTagName() ;
+    }
+    
+    public void deleteSelectedRegion( String tag ) {
+        // TODO:
+    }
+    
+    public void renameSelectedRegion( String oldTag, String newTag ) {
+        // TODO:
     }
 }

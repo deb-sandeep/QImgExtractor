@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
+import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ public class ProjectModel {
     
     private Map<File, PageImage> pageImageMap ;
     
+    private final List<ProjectModelListener> listeners = new ArrayList<>() ;
+    
     public ProjectModel( AppConfig appConfig ) {
         this.appConfig = appConfig ;
     }
@@ -35,6 +38,7 @@ public class ProjectModel {
         this.pagesDir = new File( baseDir, "pages" ) ;
         this.workDir = new File( projectDir, ".workspace" ) ;
         this.extractedImgDir = new File( projectDir, "question-images" ) ;
+        this.listeners.clear() ;
         
         if( !workDir.exists() ) {
             if( workDir.mkdirs() ) {
@@ -58,6 +62,7 @@ public class ProjectModel {
         log.info( "  Images directory: <project-dir>/{}", extractedImgDir.getName() ) ;
         log.info( "" ) ;
         log.info( "  Loading pages...." ) ;
+        
         loadPageImages() ;
         
         if( appConfig.isRepairProjectOnStartup() ) {
@@ -66,6 +71,13 @@ public class ProjectModel {
         }
     }
     
+    public void addListener( ProjectModelListener listener ) {
+        listeners.add( listener ) ;
+    }
+    
+    // Assumption: Once a project has been loaded, no new pages can be added
+    // to the project. The page images existing in the pages folder forms the
+    // domain of pages on which the project will operate.
     private void loadPageImages() {
         
         File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
@@ -86,6 +98,11 @@ public class ProjectModel {
         return pageImageMap.get( file ) ;
     }
     
+    // This function is driven by the configuration 'repairProjectOnStartup'.
+    // If set to true, the extracted image folder will be cleaned and synced
+    // with the extracted images meta-data. This might cause deletion of images
+    // in the question-images folder which are not associated with sub image meta-data
+    // for a page.
     private void repairProjectArtefacts() {
     
         File[] files = extractedImgDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
@@ -108,5 +125,9 @@ public class ProjectModel {
                 }
             }
         }
+    }
+    
+    public void newSubImgAdded( PageImage pageImage, SubImgInfo newRegionInfo ) {
+        listeners.forEach( l -> l.newSubImgAdded( pageImage, newRegionInfo ) ) ;
     }
 }

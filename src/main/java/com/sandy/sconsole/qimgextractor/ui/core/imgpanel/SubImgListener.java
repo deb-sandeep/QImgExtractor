@@ -3,7 +3,6 @@ package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.List;
 
 public interface SubImgListener {
     /**
@@ -22,11 +21,11 @@ public interface SubImgListener {
                              Rectangle subImgBounds, int selectionModifier );
     
     /**
-     * Called with meta data of all the selected regions every time
-     * a new selected region is successfully processed.
+     * Called with meta-data of all the selected regions every time
+     * a newly selected region is successfully processed.
      */
-    void selectedRegionsUpdated( File imgFile,
-                                 List<SubImgInfo> selectedRegionsInfo ) ;
+    void selectedRegionAdded( File imgFile,
+                              SubImgInfo newRegionInfo ) ;
     
     /**
      * If the image extractor canvas is in COMMAND mode and a key other than

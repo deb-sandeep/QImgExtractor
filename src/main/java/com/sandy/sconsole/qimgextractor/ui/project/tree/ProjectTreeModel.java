@@ -3,21 +3,24 @@ package com.sandy.sconsole.qimgextractor.ui.project.tree;
 import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModelListener;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 
-public class ProjectTreeModel extends DefaultTreeModel {
+public class ProjectTreeModel extends DefaultTreeModel
+    implements ProjectModelListener {
     
     private final ProjectModel projectModel ;
     
-    private DefaultMutableTreeNode rootNode = null ;
+    private final DefaultMutableTreeNode rootNode ;
     
     public ProjectTreeModel( ProjectModel projectModel ) {
         
-        super( new DefaultMutableTreeNode( projectModel.getProjectName() ) ) ;
-        this.projectModel = projectModel ;
+        super( new DefaultMutableTreeNode( projectModel.getProjectName() ) );
+        this.projectModel = projectModel;
+        this.projectModel.addListener( this ) ;
         this.rootNode = ( DefaultMutableTreeNode )super.getRoot() ;
         buildTree() ;
     }
@@ -42,5 +45,17 @@ public class ProjectTreeModel extends DefaultTreeModel {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode( subImgInfo ) ;
         node.setUserObject( subImgInfo ) ;
         return node ;
+    }
+    
+    @Override
+    public void newSubImgAdded( PageImage pageImage, SubImgInfo newRegionInfo ) {
+        for( int i = 0; i < rootNode.getChildCount(); i++ ) {
+            DefaultMutableTreeNode pageNode = ( DefaultMutableTreeNode )rootNode.getChildAt( i ) ;
+            if( pageNode.getUserObject() == pageImage ) {
+                pageNode.add( createSubImageNode( newRegionInfo ) ) ;
+                nodeStructureChanged( pageNode ) ;
+                break;
+            }
+        }
     }
 }

@@ -15,8 +15,8 @@ class SelectedRegion {
     
     private Point  anchorPoint ;
     
-    @Setter private String tag ;
-    @Setter private int selectionFlag ;
+    @Getter @Setter
+    private String tag ;
     
     @Getter private Rectangle regionBounds ;
     @Getter private Rectangle repaintBounds ;
@@ -31,7 +31,6 @@ class SelectedRegion {
     SelectedRegion( SubImgInfo regionInfo ) {
         anchorPoint = regionInfo.getAnchorPoint() ;
         tag = regionInfo.getTag() ;
-        selectionFlag = regionInfo.getSelectionFlag() ;
         regionBounds = regionInfo.getRegionBounds() ;
         repaintBounds = new Rectangle( regionBounds.x - 1, regionBounds.y - 1,
                                        regionBounds.width + 2, regionBounds.height + 2 ) ;
@@ -41,7 +40,6 @@ class SelectedRegion {
         SubImgInfo info = new SubImgInfo() ;
         info.setAnchorPoint( anchorPoint ) ;
         info.setTag( tag ) ;
-        info.setSelectionFlag( selectionFlag ) ;
         info.setRegionBounds( regionBounds ) ;
         return info ;
     }

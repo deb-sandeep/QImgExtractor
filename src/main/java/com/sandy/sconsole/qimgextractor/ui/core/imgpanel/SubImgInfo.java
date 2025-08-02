@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
 
-import com.sandy.sconsole.qimgextractor.qid.QID;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import lombok.Data;
@@ -15,9 +15,9 @@ public class SubImgInfo implements Serializable {
 
     private Point anchorPoint ;
     private String tag ;
-    private int selectionFlag ;
     private Rectangle regionBounds ;
     
+    @JsonIgnore
     private transient QuestionImage questionImage ;
     
     public void scale( double scaleFactor ) {
