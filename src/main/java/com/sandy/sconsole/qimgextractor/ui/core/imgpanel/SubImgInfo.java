@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 @Data
 @ToString
-public class SubImgInfo implements Serializable {
+public class SubImgInfo implements Serializable, Cloneable {
 
     private Point anchorPoint ;
     private String tag ;
@@ -23,5 +23,15 @@ public class SubImgInfo implements Serializable {
     public void scale( double scaleFactor ) {
         anchorPoint = SwingUtils.scale( anchorPoint, scaleFactor ) ;
         regionBounds = SwingUtils.scale( regionBounds, scaleFactor ) ;
+    }
+    
+    @Override
+    public SubImgInfo clone() {
+        SubImgInfo clone = new SubImgInfo();
+        clone.setTag( this.tag );
+        clone.setAnchorPoint( new Point( this.anchorPoint ) );
+        clone.setRegionBounds( new Rectangle( this.regionBounds ) );
+        clone.setQuestionImage( this.questionImage );
+        return clone;
     }
 }
