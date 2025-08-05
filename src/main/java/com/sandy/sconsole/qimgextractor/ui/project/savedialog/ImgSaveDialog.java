@@ -106,7 +106,7 @@ public class ImgSaveDialog extends JFileChooser {
                 SaveFnKeyHandlerWrapper wrapper = new SaveFnKeyHandlerWrapper( this, handler ) ;
                 
                 actionMap.put( keyStroke.toString(), wrapper ) ;
-                log.info( "Installed save fn key handler = {}", keyStroke ) ;
+                log.debug( "Installed save fn key handler = {}", keyStroke ) ;
             } ) ;
         }
     }

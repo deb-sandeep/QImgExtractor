@@ -1,5 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
 
+import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -24,7 +26,7 @@ public interface SubImgListener {
      * Called with meta-data of all the selected regions every time
      * a newly selected region is successfully processed.
      */
-    void selectedRegionAdded( File imgFile,
+    void selectedRegionAdded( PageImage pageImg,
                               SubImgInfo newRegionInfo ) ;
     
     /**

@@ -1,13 +1,12 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model.qid;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
 public class ParserUtil {
     
-    static List<String> SUBJECT_SEQ = Arrays.asList( "P", "C", "M" ) ;
+    public static List<String> SUBJECT_SEQ = Arrays.asList( "P", "C", "M" ) ;
     
     public static void validateSubjectCode( String subjectCode ) {
         assertCondition( subjectCode == null ||

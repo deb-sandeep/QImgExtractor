@@ -1,9 +1,9 @@
 package com.sandy.sconsole.qimgextractor.ui.project.tree;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModelListener;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -29,30 +29,28 @@ public class ProjectTreeModel extends DefaultTreeModel
         this.rootNode.removeAllChildren() ;
         for( PageImage pageImg : projectModel.getPageImages() ) {
             this.rootNode.add( createPageImageNode( pageImg ) );
-        } ;
+        }
     }
     
     private DefaultMutableTreeNode createPageImageNode( PageImage pageImg ) {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode( pageImg ) ;
         node.setUserObject( pageImg ) ;
-        for( SubImgInfo subImgInfo : pageImg.getSubImgInfoList() ) {
-            node.add( createSubImageNode( subImgInfo ) ) ;
+        for( QuestionImage qImg : pageImg.getQImgList() ) {
+            node.add( createQuestionImgNode( qImg ) ) ;
         }
         return node ;
     }
     
-    private MutableTreeNode createSubImageNode( SubImgInfo subImgInfo ) {
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode( subImgInfo ) ;
-        node.setUserObject( subImgInfo ) ;
-        return node ;
+    private MutableTreeNode createQuestionImgNode( QuestionImage qImg ) {
+        return new DefaultMutableTreeNode( qImg ) ;
     }
     
     @Override
-    public void newSubImgAdded( PageImage pageImage, SubImgInfo newRegionInfo ) {
+    public void newQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
         for( int i = 0; i < rootNode.getChildCount(); i++ ) {
             DefaultMutableTreeNode pageNode = ( DefaultMutableTreeNode )rootNode.getChildAt( i ) ;
             if( pageNode.getUserObject() == pageImage ) {
-                pageNode.add( createSubImageNode( newRegionInfo ) ) ;
+                pageNode.add( createQuestionImgNode( qImg ) ) ;
                 nodeStructureChanged( pageNode ) ;
                 break;
             }

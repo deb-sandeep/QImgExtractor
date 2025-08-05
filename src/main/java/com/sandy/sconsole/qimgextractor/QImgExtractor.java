@@ -101,6 +101,7 @@ public class QImgExtractor
             this.appState = new AppState() ;
         }
         this.appState.setApp( this ) ;
+        this.appState.setInitialized( true ) ;
     }
     
     // --------------------- Main method ---------------------------------------

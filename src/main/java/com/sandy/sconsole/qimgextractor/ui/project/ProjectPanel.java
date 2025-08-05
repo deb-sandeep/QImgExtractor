@@ -11,6 +11,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectTreePanel;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
+import static javax.swing.SwingUtilities.invokeLater;
 
 @Slf4j
 public class ProjectPanel extends JPanel implements SubImgListener {
@@ -88,7 +90,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     }
     
     public void destroy() {
-        SwingUtilities.invokeLater( () -> {
+        invokeLater( () -> {
             int numberOfTabs = tabPane.getTabCount() ;
             for( int i=numberOfTabs-1; i>=0; i-- ) {
                 ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getTabComponentAt( i ) ;
@@ -110,13 +112,15 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         
         panelMap.put( pageImg, imgPanel ) ;
         
-        SwingUtilities.invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
+        invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
     }
     
     private void tabSelectionChanged() {
         ImgExtractorPanel selectedPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
-        projectModel.getContext()
-                    .setSelectedPageImg( selectedPanel.getPageImg() ) ;
+        if( selectedPanel != null ) {
+            projectModel.getContext()
+                        .setSelectedPageImg( selectedPanel.getPageImg() ) ;
+        }
     }
     
     private void tabClosing( Component component ) {
@@ -162,17 +166,20 @@ public class ProjectPanel extends JPanel implements SubImgListener {
             if( !fileName.startsWith( projectModel.getProjectName() ) ) {
                 imgFileName = getFQFileName( projectModel.getProjectName(), extractPageNumber( imgSrcFile ), fileName );
             }
+            
+            // 3. Save the image, and other housekeeping tasks.
             File newImgFile = new File( destDir, imgFileName );
-            
-            // 3. Parse the file to see if it meets the file name criteria.
-            // If not, then an exception will be thrown.
-            PageImage selPageImg = projectModel.getContext().getSelectedPageImg() ;
-            QuestionImage qImg = new QuestionImage( selPageImg, newImgFile );
-            
-            // 4. Save the image, and other housekeeping tasks.
             ImageIO.write( img, "png", newImgFile );
-            projectModel.getContext().setLastSavedImage( qImg );
             
+            // 4. Parse the file to see if it meets the file name criteria.
+            // If not, then an exception will be thrown.
+            // NOTE: THis is a hack - the question image being created is a
+            // fake instance with the sole purpose of generating the short
+            // file name without the extension - this becomes the tag name
+            // which this function returns. DON'T use this qImg instance for
+            // anything else.
+            PageImage curPageImg = projectModel.getContext().getSelectedPageImg() ;
+            QuestionImage qImg = new QuestionImage( curPageImg, newImgFile, null );
             processingId = qImg.getShortFileNameWithoutExtension();
             mainFrame.logStausMsg( "Saved " + selectedFile.getName() );
             
@@ -187,10 +194,18 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     }
     
     @Override
-    public void selectedRegionAdded( File imgFile, SubImgInfo newRegionInfo ) {
-        PageImage pageImg = projectModel.getPageImage( imgFile ) ;
-        assert pageImg != null ;
-        pageImg.selectedRegionAdded( newRegionInfo ) ;
+    public void selectedRegionAdded( PageImage pageImage, SubImgInfo newRegionInfo ) {
+        
+        String fqFileName = getFQFileName( projectModel.getProjectName(),
+                                           AppUtil.extractPageNumber( pageImage.getImgFile() ),
+                                           newRegionInfo.getTag() + ".png" ) ;
+        File imgFile = new File( projectModel.getExtractedImgDir(), fqFileName ) ;
+        
+        QuestionImage qImg = new QuestionImage( pageImage, imgFile, newRegionInfo );
+        
+        pageImage.addQImg( qImg, true ) ;
+        projectModel.getContext().setLastSavedImage( qImg ) ;
+        projectModel.notifyListenersNewQuestionImgAdded( pageImage, qImg ) ;
     }
     
     @Override
@@ -221,7 +236,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     }
     
     public void activatePageImg( PageImage pageImg ) {
-        SwingUtilities.invokeLater( () -> {
+        invokeLater( () -> {
             if( panelMap.containsKey( pageImg ) ) {
                 ImgExtractorPanel selPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
                 if( selPanel.getPageImg() != pageImg ) {
@@ -230,7 +245,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
             }
             else {
                 loadPageImg( pageImg ) ;
-                tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ;
+                invokeLater( () -> tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ) ;
             }
         }) ;
     }

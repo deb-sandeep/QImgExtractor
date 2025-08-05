@@ -37,10 +37,14 @@ class SaveFnKeyHandlerWrapper extends AbstractAction {
         // 3. Parse the file to see if it meets the file name criteria.
         // If not, then an exception will be thrown.
         PageImage selPageImg = saveDialog.getProjectModel().getContext().getSelectedPageImg() ;
-        QuestionImage mutableImgFile = new QuestionImage( selPageImg, fqImgFile ) ;
-        fnKeyHandler.mutateQuestionImage( mutableImgFile, ( e.getModifiers() & ActionEvent.SHIFT_MASK ) == ActionEvent.SHIFT_MASK ) ;
+        QuestionImage mutableImgFile = new QuestionImage( selPageImg, fqImgFile, null ) ;
+        fnKeyHandler.mutateQuestionImage( mutableImgFile, isShiftPressed( e ) ) ;
         
         File newFile = new File( selFile.getParentFile(), mutableImgFile.getShortFileName() ) ;
         saveDialog.setSelectedFile( newFile );
+    }
+    
+    private boolean isShiftPressed( ActionEvent e ) {
+        return ( e.getModifiers() & ActionEvent.SHIFT_MASK ) == ActionEvent.SHIFT_MASK ;
     }
 }

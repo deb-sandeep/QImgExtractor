@@ -23,8 +23,6 @@ public class ProjectModel {
     @Getter private ProjectContext context;
     @Getter private List<PageImage> pageImages ;
     
-    private Map<File, PageImage> pageImageMap ;
-    
     private final List<ProjectModelListener> listeners = new ArrayList<>() ;
     
     public ProjectModel( AppConfig appConfig ) {
@@ -83,7 +81,6 @@ public class ProjectModel {
         File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
         assert files != null ;
         
-        pageImageMap = new HashMap<>() ;
         pageImages = new ArrayList<>() ;
         
         QuestionImage lastSavedQImg = null ;
@@ -91,7 +88,6 @@ public class ProjectModel {
         for( File file : files ) {
             PageImage pageImg = new PageImage( this, file );
             pageImages.add( pageImg );
-            pageImageMap.put( file, pageImg ) ;
             
             QuestionImage lastQImg = pageImg.getLastQuestionImg() ;
             if( lastQImg != null ) {
@@ -105,10 +101,6 @@ public class ProjectModel {
         }
         context.setLastSavedImage( lastSavedQImg ) ;
         Collections.sort( pageImages ) ;
-    }
-    
-    public PageImage getPageImage( File file ) {
-        return pageImageMap.get( file ) ;
     }
     
     // This function is driven by the configuration 'repairProjectOnStartup'.
@@ -140,7 +132,7 @@ public class ProjectModel {
         }
     }
     
-    public void newSubImgAdded( PageImage pageImage, SubImgInfo newRegionInfo ) {
-        listeners.forEach( l -> l.newSubImgAdded( pageImage, newRegionInfo ) ) ;
+    public void notifyListenersNewQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
+        listeners.forEach( l -> l.newQuestionImgAdded( pageImage, qImg ) ) ;
     }
 }

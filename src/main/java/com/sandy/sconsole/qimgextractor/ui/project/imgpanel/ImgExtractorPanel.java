@@ -179,7 +179,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     }
     
     public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
-        listener.selectedRegionAdded( pageImg.getImgFile(), newRegionInfo ) ;
+        listener.selectedRegionAdded( pageImg, newRegionInfo ) ;
     }
     
     public void setModeStatus( String mode) {

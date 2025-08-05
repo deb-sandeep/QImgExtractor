@@ -1,8 +1,8 @@
 package com.sandy.sconsole.qimgextractor.ui.project.tree;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,8 +31,8 @@ public class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
             if( userObj instanceof PageImage pageImage ) {
                 renderPageImgNode( comp, pageImage ) ;
             }
-            else if( userObj instanceof SubImgInfo subImgInfo ) {
-                renderSubImgNode( comp, subImgInfo ) ;
+            else if( userObj instanceof QuestionImage qImg ) {
+                renderQuestionImgNode( comp, qImg ) ;
             }
         }
         
@@ -46,10 +46,10 @@ public class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
         label.setIcon( SwingUtils.getIcon( "page_image" ) );
     }
     
-    private void renderSubImgNode( Component comp, SubImgInfo subImgInfo ) {
+    private void renderQuestionImgNode( Component comp, QuestionImage qImg ) {
         DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
         label.setFont( SUB_IMG_FONT ) ;
-        label.setText( subImgInfo.getTag() ) ;
+        label.setText( qImg.getSubImgInfo().getTag() ) ;
         label.setIcon( SwingUtils.getIcon( "sub_image" ) );
     }
 }

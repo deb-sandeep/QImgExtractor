@@ -17,6 +17,10 @@ public class AppState implements Serializable {
     @Setter
     private QImgExtractor app ;
     
+    @JsonIgnore
+    @Setter
+    private boolean isInitialized = false ;
+    
     @Getter
     private String lastOpenedProjectDir ;
     
@@ -26,13 +30,15 @@ public class AppState implements Serializable {
     }
     
     private void saveAppState() {
-        try {
-            File stateFile = new File( app.getAppConfig().getAppWorkspaceDir(), "app-state.json" ) ;
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue( stateFile, this );
-        }
-        catch( Exception e ) {
-            log.error( "Error saving app state", e );
+        if( isInitialized ) {
+            try {
+                File stateFile = new File( app.getAppConfig().getAppWorkspaceDir(), "app-state.json" ) ;
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.writeValue( stateFile, this );
+            }
+            catch( Exception e ) {
+                log.error( "Error saving app state", e );
+            }
         }
     }
 }

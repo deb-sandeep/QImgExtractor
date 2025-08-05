@@ -31,9 +31,7 @@ public class PageImage implements Comparable<PageImage> {
     @Getter private final File imgFile ;
     @Getter private final int pageNumber ;
     
-    // Note that this is the golden copy of the sub-image information list.
-    // No other part of the application should store a cached copy.
-    @Getter private final List<SubImgInfo> subImgInfoList = new ArrayList<>();
+    @Getter private final List<QuestionImage> qImgList = new ArrayList<>() ;
     
     PageImage( ProjectModel projectModel, File imgFile ) {
         log.info( "    Loading page: {}.", imgFile.getName() + " ..." ) ;
@@ -41,15 +39,10 @@ public class PageImage implements Comparable<PageImage> {
         this.imgFile = imgFile ;
         this.pageNumber = extractPageNumber( imgFile ) ;
         
-        this.loadSubImgInfoList() ;
+        this.loadQuestionImgList() ;
     }
     
-    public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
-        addSubImgInfo( newRegionInfo, true ) ;
-        projectModel.newSubImgAdded( this, newRegionInfo ) ;
-    }
-    
-    private void loadSubImgInfoList() {
+    private void loadQuestionImgList() {
         File imgInfoFile = getImgInfoFile() ;
         if( imgInfoFile.exists() ) {
             try {
@@ -57,8 +50,9 @@ public class PageImage implements Comparable<PageImage> {
                 List<SubImgInfo> infoList = mapper.readValue( imgInfoFile, new TypeReference<>() {} );
                 
                 for( SubImgInfo info : infoList ) {
-                    addSubImgInfo( info, false ) ;
+                    addQImg( info ) ;
                 }
+                Collections.sort( qImgList ) ;
                 saveSubImgInfoList() ;
             }
             catch( Exception e ) {
@@ -68,12 +62,18 @@ public class PageImage implements Comparable<PageImage> {
         }
     }
     
-    private void addSubImgInfo( SubImgInfo subImgInfo, boolean persistAll ) {
+    private void addQImg( SubImgInfo subImgInfo ) {
         if( isSubImgInfoValid( subImgInfo ) ) {
-            subImgInfoList.add( subImgInfo ) ;
-            if( persistAll ) {
-                saveSubImgInfoList() ;
-            }
+            File subImgFile = getSubImgFile( subImgInfo ) ;
+            QuestionImage questionImage = new QuestionImage( this, subImgFile, subImgInfo ) ;
+            addQImg( questionImage, false ) ;
+        }
+    }
+    
+    public void addQImg( QuestionImage qImg, boolean persist ) {
+        qImgList.add( qImg ) ;
+        if( persist ) {
+            saveSubImgInfoList() ;
         }
     }
     
@@ -91,8 +91,7 @@ public class PageImage implements Comparable<PageImage> {
         
         // Validation 2: The name of the file is syntactically valid
         try {
-            QuestionImage questionImage = new QuestionImage( this, subImgFile ) ;
-            subImgInfo.setQuestionImage( questionImage ) ;
+            new QuestionImage( this, subImgFile, subImgInfo ) ;
         }
         catch( Exception e ) {
             log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName(), e ) ;
@@ -104,15 +103,22 @@ public class PageImage implements Comparable<PageImage> {
     private void saveSubImgInfoList() {
         File imgInfoFile = getImgInfoFile() ;
         try {
-            Collections.sort( subImgInfoList ) ;
             ObjectMapper mapper = new ObjectMapper() ;
             mapper.addMixIn( Rectangle.class, RectangleMixIn.class);
-            mapper.writeValue( imgInfoFile, subImgInfoList );
+            mapper.writeValue( imgInfoFile, getSubImgInfoList() );
         }
         catch( Exception e ) {
             log.error( "Error saving image info.", e ) ;
             showErrorMsg( "Error saving image info.", e ) ;
         }
+    }
+    
+    public List<SubImgInfo> getSubImgInfoList() {
+        List<SubImgInfo> list = new ArrayList<>() ;
+        for( QuestionImage qImg : qImgList ) {
+            list.add( qImg.getSubImgInfo() ) ;
+        }
+        return list ;
     }
     
     private File getSubImgFile( SubImgInfo subImgInfo ) {
@@ -134,16 +140,16 @@ public class PageImage implements Comparable<PageImage> {
     
     public List<File> getSubImgFiles() {
         List<File> subImgFiles = new ArrayList<>() ;
-        for( SubImgInfo subImgInfo : subImgInfoList ) {
-            subImgFiles.add( getSubImgFile( subImgInfo ) ) ;
+        for( QuestionImage qImg : qImgList ) {
+            subImgFiles.add( qImg.getQImgFile() ) ;
         }
         return subImgFiles ;
     }
     
     public QuestionImage getLastQuestionImg() {
-        if( subImgInfoList.isEmpty() ) {
+        if( qImgList.isEmpty() ) {
             return null ;
         }
-        return subImgInfoList.get( subImgInfoList.size()-1 ).getQuestionImage() ;
+        return qImgList.get( qImgList.size()-1 ) ;
     }
 }

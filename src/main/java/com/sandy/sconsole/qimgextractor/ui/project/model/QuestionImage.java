@@ -1,14 +1,15 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Stack;
 
 import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.*;
@@ -27,15 +28,19 @@ public class QuestionImage implements Comparable<QuestionImage> {
     private final PageImage pageImg ;
     private final File qImgFile ;
     
-    public QuestionImage( PageImage pageImg, File qImgFile )  {
+    @Getter
+    private final SubImgInfo subImgInfo ;
+    
+    public QuestionImage( PageImage pageImg, File qImgFile, SubImgInfo subImgInfo )  {
         this.pageImg = pageImg ;
         this.qImgFile = qImgFile ;
+        this.subImgInfo = subImgInfo ;
         parseFileName( qImgFile.getName() ) ;
     }
     
     public QuestionImage getClone() {
         File file = new File( pageImg.getImgFile().getParentFile(), getLongFileName() ) ;
-        return new QuestionImage( pageImg, file ) ;
+        return new QuestionImage( pageImg, file, subImgInfo ) ;
     }
     
     private void parseFileName( String fileName ) 
@@ -161,21 +166,21 @@ public class QuestionImage implements Comparable<QuestionImage> {
     }
     
     public void rollSubjectCode( boolean reverse ) {
-        int idx = SUB_SEQ.indexOf( this.subjectCode ) ;
+        int idx = SUBJECT_SEQ.indexOf( this.subjectCode ) ;
         if( !reverse ) {
-            if( idx == SUB_SEQ.size() - 1 ) {
-                this.subjectCode = SUB_SEQ.get( 0 ) ;
+            if( idx == SUBJECT_SEQ.size() - 1 ) {
+                this.subjectCode = SUBJECT_SEQ.get( 0 ) ;
             }
             else {
-                this.subjectCode = SUB_SEQ.get( idx+1 ) ;
+                this.subjectCode = SUBJECT_SEQ.get( idx+1 ) ;
             }
         }
         else {
             if( idx == 0 ) {
-                this.subjectCode = SUB_SEQ.get( SUB_SEQ.size()-1 ) ;
+                this.subjectCode = SUBJECT_SEQ.get( SUBJECT_SEQ.size()-1 ) ;
             }
             else {
-                this.subjectCode = SUB_SEQ.get( idx-1 ) ;
+                this.subjectCode = SUBJECT_SEQ.get( idx-1 ) ;
             }
         }
         this.partNumber = -1 ;

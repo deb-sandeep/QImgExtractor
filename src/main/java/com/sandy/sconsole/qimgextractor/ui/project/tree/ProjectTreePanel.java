@@ -3,6 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.tree;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -110,8 +111,8 @@ public class ProjectTreePanel extends JPanel
         if( userObj instanceof PageImage pageImg ) {
             projectPanel.activatePageImg( pageImg ) ;
         }
-        else if( userObj instanceof SubImgInfo subImg ) {
-            projectPanel.activatePageImg( subImg.getQuestionImage().getPageImg() ) ;
+        else if( userObj instanceof QuestionImage qImg ) {
+            projectPanel.activatePageImg( qImg.getPageImg() ) ;
         }
     }
     
