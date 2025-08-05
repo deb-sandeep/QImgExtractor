@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import lombok.Data;
 import lombok.ToString;

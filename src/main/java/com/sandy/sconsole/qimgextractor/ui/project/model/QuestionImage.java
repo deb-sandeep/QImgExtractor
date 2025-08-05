@@ -1,9 +1,7 @@
-package com.sandy.sconsole.qimgextractor.qid;
+package com.sandy.sconsole.qimgextractor.ui.project.model;
 
-import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
-import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
-import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -13,14 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
-import static com.sandy.sconsole.qimgextractor.qid.ParserUtil.*;
+import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.*;
 
 @Data
 @EqualsAndHashCode( callSuper = false )
 @Slf4j
 public class QuestionImage implements Comparable<QuestionImage> {
-    
-    static List<String> SUB_SEQ = Arrays.asList( "P", "C", "M" ) ;
     
     private String srcId       = null ;
     private String subjectCode = null ;

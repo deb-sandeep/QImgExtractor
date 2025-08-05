@@ -1,6 +1,5 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
-import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;

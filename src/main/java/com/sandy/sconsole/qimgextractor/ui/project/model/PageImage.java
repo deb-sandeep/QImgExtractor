@@ -3,7 +3,6 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -50,30 +49,6 @@ public class PageImage implements Comparable<PageImage> {
         projectModel.newSubImgAdded( this, newRegionInfo ) ;
     }
     
-    // Sub-image information is valid when
-    // 1 - The corresponding file exists
-    // 2 - The name of the corresponding file is of valid syntax
-    private boolean isSubImgInfoValid( SubImgInfo subImgInfo ) {
-        
-        // Validation 1: The file for this sub-image exists
-        File subImgFile = getSubImgFile( subImgInfo ) ;
-        if( !subImgFile.exists() ) {
-            log.error( "Sub image does not exist: {}", subImgFile.getName() ) ;
-            return false ;
-        }
-        
-        // Validation 2: The name of the file is syntactically valid
-        try {
-            QuestionImage questionImage = new QuestionImage( this, subImgFile ) ;
-            subImgInfo.setQuestionImage( questionImage ) ;
-        }
-        catch( Exception e ) {
-            log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName(), e ) ;
-            return false ;
-        }
-        return true ;
-    }
-    
     private void loadSubImgInfoList() {
         File imgInfoFile = getImgInfoFile() ;
         if( imgInfoFile.exists() ) {
@@ -100,6 +75,30 @@ public class PageImage implements Comparable<PageImage> {
                 saveSubImgInfoList() ;
             }
         }
+    }
+    
+    // Sub-image information is valid when
+    // 1 - The corresponding file exists
+    // 2 - The name of the corresponding file is of valid syntax
+    private boolean isSubImgInfoValid( SubImgInfo subImgInfo ) {
+        
+        // Validation 1: The file for this sub-image exists
+        File subImgFile = getSubImgFile( subImgInfo ) ;
+        if( !subImgFile.exists() ) {
+            log.error( "Sub image does not exist: {}", subImgFile.getName() ) ;
+            return false ;
+        }
+        
+        // Validation 2: The name of the file is syntactically valid
+        try {
+            QuestionImage questionImage = new QuestionImage( this, subImgFile ) ;
+            subImgInfo.setQuestionImage( questionImage ) ;
+        }
+        catch( Exception e ) {
+            log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName(), e ) ;
+            return false ;
+        }
+        return true ;
     }
     
     private void saveSubImgInfoList() {

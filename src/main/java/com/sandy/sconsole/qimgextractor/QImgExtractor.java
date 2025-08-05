@@ -5,6 +5,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.AppState;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.SpringApplication;
@@ -53,7 +54,7 @@ public class QImgExtractor
     }
     
     @Override
-    public void setApplicationContext( ApplicationContext context )
+    public void setApplicationContext( @NonNull ApplicationContext context )
             throws BeansException {
         APP_CTX = ( ConfigurableApplicationContext )context;
     }

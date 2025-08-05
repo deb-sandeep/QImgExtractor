@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project;
 
-import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
@@ -150,7 +150,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         }
         
         try {
-            // 1. Append .png if user has not specified. Input brevity allowed.
+            // 1. Append .png if the user has not specified. Input brevity is allowed.
             String fileName = selectedFile.getName();
             if( !fileName.endsWith( ".png" ) ) {
                 fileName += ".png";

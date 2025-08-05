@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor.qsrc;
 
-import com.sandy.sconsole.qimgextractor.qid.QID;
-import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.SaveFnKeyHandler;
 
 import javax.swing.*;

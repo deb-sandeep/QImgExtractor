@@ -1,5 +1,6 @@
-package com.sandy.sconsole.qimgextractor.qid;
+package com.sandy.sconsole.qimgextractor.ui.project.model.qid;
 
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -7,8 +8,8 @@ import java.util.List;
 import java.util.Stack;
 
 import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
-import static com.sandy.sconsole.qimgextractor.qid.ParserUtil.getInt;
-import static com.sandy.sconsole.qimgextractor.qid.ParserUtil.validateQuestionType;
+import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.getInt;
+import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.validateQuestionType;
 
 public abstract class QID {
     

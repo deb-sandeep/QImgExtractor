@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
 
-import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 
 import javax.swing.*;
