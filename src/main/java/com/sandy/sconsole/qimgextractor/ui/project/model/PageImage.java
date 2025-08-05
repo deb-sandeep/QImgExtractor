@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import lombok.Getter;
@@ -100,12 +101,13 @@ public class PageImage implements Comparable<PageImage> {
         return true ;
     }
     
-    private void saveSubImgInfoList() {
+    public void saveSubImgInfoList() {
         File imgInfoFile = getImgInfoFile() ;
         try {
             ObjectMapper mapper = new ObjectMapper() ;
-            mapper.addMixIn( Rectangle.class, RectangleMixIn.class);
-            mapper.writeValue( imgInfoFile, getSubImgInfoList() );
+            mapper.enable( SerializationFeature.INDENT_OUTPUT ) ;
+            mapper.addMixIn( Rectangle.class, RectangleMixIn.class) ;
+            mapper.writeValue( imgInfoFile, getSubImgInfoList() ) ;
         }
         catch( Exception e ) {
             log.error( "Error saving image info.", e ) ;

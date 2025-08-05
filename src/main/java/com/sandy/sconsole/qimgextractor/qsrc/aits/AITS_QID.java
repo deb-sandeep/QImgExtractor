@@ -16,4 +16,8 @@ public class AITS_QID extends QID {
     public void parse( Stack<String> parts ) {
         super.parseQTypeAndNumber( parts ) ;
     }
+    
+    public boolean isValid( Stack<String> parts ) {
+        return super.validateQTypeAndNumber( parts ) ;
+    }
 }

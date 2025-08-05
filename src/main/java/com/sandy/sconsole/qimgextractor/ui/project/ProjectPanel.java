@@ -111,6 +111,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         imgPanel.setImage( pageImg, initialDisplayWidth ) ;
         
         panelMap.put( pageImg, imgPanel ) ;
+        projectModel.addListener( imgPanel ) ;
         
         invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
     }
@@ -126,6 +127,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     private void tabClosing( Component component ) {
         ImgExtractorPanel panel = ( ImgExtractorPanel )component ;
         panelMap.remove( panel.getPageImg() ) ;
+        projectModel.removeListener( panel ) ;
     }
     
     @Override
@@ -226,13 +228,12 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         imgPanel.clearCurSelTagName() ;
     }
     
-    public void subImgDeleted( SubImgInfo subImgInfo ) {
+    public void questionImgDeleted( SubImgInfo subImgInfo ) {
         // TODO:
     }
     
-    public boolean subImgIagNameChanged( SubImgInfo subImgInfo, String newTagName ) {
-        // TODO: Complete this method
-        return true ;
+    public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
+        projectModel.questionImgTagNameChanged( qImg, newTagName ) ;
     }
     
     public void activatePageImg( PageImage pageImg ) {

@@ -4,11 +4,13 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModelListener;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 
+@Slf4j
 public class ProjectTreeModel extends DefaultTreeModel
     implements ProjectModelListener {
     
@@ -53,6 +55,20 @@ public class ProjectTreeModel extends DefaultTreeModel
                 pageNode.add( createQuestionImgNode( qImg ) ) ;
                 nodeStructureChanged( pageNode ) ;
                 break;
+            }
+        }
+    }
+    
+    @Override
+    public void questionTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) {
+        for( int i = 0; i < rootNode.getChildCount(); i++ ) {
+            DefaultMutableTreeNode pageNode = ( DefaultMutableTreeNode )rootNode.getChildAt( i ) ;
+            for( int j = 0; j < pageNode.getChildCount(); j++ ) {
+                DefaultMutableTreeNode qImgNode = ( DefaultMutableTreeNode )pageNode.getChildAt( j ) ;
+                if( qImgNode.getUserObject() == qImg ) {
+                    nodeChanged( qImgNode ) ;
+                    break ;
+                }
             }
         }
     }

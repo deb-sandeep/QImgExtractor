@@ -1,13 +1,19 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 
 @Component
 @Slf4j
@@ -73,6 +79,10 @@ public class ProjectModel {
         listeners.add( listener ) ;
     }
     
+    public void removeListener( ImgExtractorPanel panel ) {
+        listeners.remove( panel ) ;
+    }
+    
     // Assumption: Once a project has been loaded, no new pages can be added
     // to the project. The page images existing in the pages folder forms the
     // domain of pages on which the project will operate.
@@ -135,4 +145,28 @@ public class ProjectModel {
     public void notifyListenersNewQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
         listeners.forEach( l -> l.newQuestionImgAdded( pageImage, qImg ) ) ;
     }
+    
+    public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
+        try {
+            String oldTagName = qImg.getSubImgInfo().getTag() ;
+            
+            // Update qImg with the new tag name
+            qImg.setNewTagName( newTagName ) ;
+            qImg.getSubImgInfo().setTag( qImg.getShortFileNameWithoutExtension() ) ;
+            qImg.getPageImg().saveSubImgInfoList() ;
+            
+            // Change the file name
+            File oldFile = qImg.getQImgFile() ;
+            File newFile = new File( oldFile.getParentFile(), qImg.getLongFileName() ) ;
+            FileUtils.moveFile( oldFile, newFile ) ;
+            
+            // Notify the listeners
+            listeners.forEach( l -> l.questionTagNameChanged( qImg, oldTagName, newTagName ) ) ;
+        }
+        catch( IOException e ) {
+            log.error( "Error renaming question image file.", e ) ;
+            showErrorMsg( "Failed to rename question image file. Please try again.", e ) ;
+        }
+    }
+    
 }

@@ -59,7 +59,7 @@ public class ProjectTreePanel extends JPanel
 
         tree = new JTree( treeModel ) {
             public boolean isPathEditable( TreePath path ) {
-                return getUserObject( path ) instanceof SubImgInfo ;
+                return getUserObject( path ) instanceof QuestionImage ;
             }
         } ;
         tree.setRootVisible( true ) ;
@@ -80,7 +80,7 @@ public class ProjectTreePanel extends JPanel
         tree.setEditable( true ) ;
         
         // Set the custom cell editor with SubImgInfoEditCallback
-        tree.setCellEditor( new SubImgInfoEditor( this ) );
+        tree.setCellEditor( new QuestionImgTagNameEditor( this ) );
         
         JScrollPane sp = new JScrollPane( VERTICAL_SCROLLBAR_AS_NEEDED,
                                           HORIZONTAL_SCROLLBAR_NEVER ) ;
@@ -94,10 +94,9 @@ public class ProjectTreePanel extends JPanel
     }
     
     private void handleMouseClickOnNode( TreePath path, int clickCount ) {
-        
         DefaultMutableTreeNode lastNode = ( DefaultMutableTreeNode )path.getLastPathComponent() ;
         Object userObj = lastNode.getUserObject() ;
-        if( userObj instanceof SubImgInfo && clickCount == 2 ) {
+        if( userObj instanceof QuestionImage qImg && clickCount == 2 ) {
             tree.startEditingAtPath( path ) ;
         }
     }
@@ -106,13 +105,14 @@ public class ProjectTreePanel extends JPanel
     public void valueChanged( TreeSelectionEvent e ) {
         
         TreePath selPath = e.getNewLeadSelectionPath() ;
-        Object userObj = TreeUtil.getUserObject( selPath ) ;
-        
-        if( userObj instanceof PageImage pageImg ) {
-            projectPanel.activatePageImg( pageImg ) ;
-        }
-        else if( userObj instanceof QuestionImage qImg ) {
-            projectPanel.activatePageImg( qImg.getPageImg() ) ;
+        if( selPath != null ) {
+            Object userObj = TreeUtil.getUserObject( selPath ) ;
+            if( userObj instanceof PageImage pageImg ) {
+                projectPanel.activatePageImg( pageImg ) ;
+            }
+            else if( userObj instanceof QuestionImage qImg ) {
+                projectPanel.activatePageImg( qImg.getPageImg() ) ;
+            }
         }
     }
     
@@ -135,8 +135,7 @@ public class ProjectTreePanel extends JPanel
         return tree ;
     }
     
-    boolean subImgTagNameChanged( SubImgInfo subImgInfo, String newTagName ) {
-        log.debug( "Sub img tag edited: Old Value: {}, new value:{}", subImgInfo.getTag(), newTagName ) ;
-        return projectPanel.subImgIagNameChanged( subImgInfo, newTagName ) ;
+    void questionImgTagNameChanged( QuestionImage questionImage, String newTagName ) {
+        projectPanel.questionImgTagNameChanged( questionImage, newTagName ) ;
     }
 }

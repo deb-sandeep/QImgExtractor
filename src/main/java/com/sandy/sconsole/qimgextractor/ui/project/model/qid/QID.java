@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.model.qid;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +12,7 @@ import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
 import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.getInt;
 import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.validateQuestionType;
 
+@Slf4j
 public abstract class QID {
     
     private static final String SCA = "SCA" ;
@@ -42,6 +44,8 @@ public abstract class QID {
     }
     
     public abstract void parse( Stack<String> parts ) ;
+    
+    public abstract boolean isValid( Stack<String> parts ) ;
 
     protected void parseQTypeAndNumber( Stack<String> parts ) {
         
@@ -66,6 +70,39 @@ public abstract class QID {
                         "AITS question numner " + part + " is not a number" ) ;
             }
         }
+    }
+    
+    protected boolean validateQTypeAndNumber( Stack<String> parts ) {
+        try {
+            boolean lctContext = false ;
+            
+            String qType = parts.pop() ;
+            validateQuestionType( qType ) ;
+            
+            if( qType.equals( LCT ) ) {
+                int lctSeq = getInt( "LCT sequence", parts.pop() ) ;
+                if( parts.peek().equals( "Ctx" ) ) {
+                    lctContext = true ;
+                    parts.pop() ;
+                }
+            }
+            
+            if( !lctContext ) {
+                String part = parts.pop() ;
+                try {
+                    int qNo = Integer.parseInt( part ) ;
+                }
+                catch( NumberFormatException e ) {
+                    throw new IllegalArgumentException(
+                            "AITS question numner " + part + " is not a number" ) ;
+                }
+            }
+            return true ;
+        }
+        catch( IllegalArgumentException e ) {
+            log.error( "Error parsing QID", e ) ;
+        }
+        return false ;
     }
     
     public void incrementQuestionNumber() {

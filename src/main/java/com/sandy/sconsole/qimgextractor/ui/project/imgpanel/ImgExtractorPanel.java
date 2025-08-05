@@ -5,6 +5,8 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.CustomWidgetStatusComp
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModelListener;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +19,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 @Slf4j
-public class ImgExtractorPanel extends JPanel implements ChangeListener {
+public class ImgExtractorPanel extends JPanel
+        implements ChangeListener, ProjectModelListener {
     
     private static final double MAX_SCALE = 2.5 ;
     
@@ -218,7 +221,14 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         imgCanvas.deleteSelectedRegion( tag ) ;
     }
     
-    public void renameSelectedRegion( String oldTag, String newTag ) {
-        imgCanvas.renameSelectedRegion( oldTag, newTag ) ;
+    @Override
+    // Ignore this - this class is the one updating the model on addition of question images.
+    public void newQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {}
+    
+    @Override
+    public void questionTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) {
+        if( pageImg.getQImgList().contains( qImg ) ) {
+            imgCanvas.renameSelectedRegion( oldTagName, newTagName ) ;
+        }
     }
 }

@@ -43,7 +43,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
         return new QuestionImage( pageImg, file, subImgInfo ) ;
     }
     
-    private void parseFileName( String fileName ) 
+    private void parseFileName( String fileName )
         throws IllegalArgumentException {
         
         String fName = fileName ;
@@ -64,6 +64,37 @@ public class QuestionImage implements Comparable<QuestionImage> {
         
         this.qId = QSrcFactory.getQSrcComponentFactory( srcId )
                               .getNewQIDInstance( this ) ;
+        this.qId.parse( parts ) ;
+    }
+    
+    public boolean isValidTagName( String tagName ) {
+        
+        // Strip off the part number if present. QID doesn't
+        // deal with part number.
+        if( tagName.indexOf( '(' ) != -1 ) {
+            tagName = tagName.substring( 0, tagName.indexOf( '(' ) ) ;
+        }
+        
+        Stack<String> parts = parseToStack( tagName ) ;
+        if( parts.size() < 2 ) {
+            log.debug( "Tag name {} has less than 2 parts", tagName ) ;
+            return false ;
+        }
+        
+        // Pop the subject code
+        parts.pop() ;
+        return this.qId.isValid( parts ) ;
+    }
+    
+    public void setNewTagName( String tagName ) {
+    
+        String fName = stripFileExtension( tagName ) ;
+        fName = collectPartNumber( fName ) ;
+        
+        // Tokenize the remaining string into parts
+        Stack<String> parts = parseToStack( fName ) ;
+        
+        this.subjectCode = parts.pop() ;
         this.qId.parse( parts ) ;
     }
     
@@ -103,6 +134,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     // It is assumed that the file name's extension has been stripped
     private String collectPartNumber( String fileName ) {
         String fName = fileName ;
+        this.partNumber = -1 ;
         if( fName.contains( "(" ) ) {
             int startIndex = fName.indexOf( "(" ) ;
             int endIndex   = fName.indexOf( ")", startIndex ) ;

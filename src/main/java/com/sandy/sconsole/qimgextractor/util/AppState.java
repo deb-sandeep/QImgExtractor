@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.util;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +35,7 @@ public class AppState implements Serializable {
             try {
                 File stateFile = new File( app.getAppConfig().getAppWorkspaceDir(), "app-state.json" ) ;
                 ObjectMapper mapper = new ObjectMapper();
+                mapper.enable( SerializationFeature.INDENT_OUTPUT ) ;
                 mapper.writeValue( stateFile, this );
             }
             catch( Exception e ) {
