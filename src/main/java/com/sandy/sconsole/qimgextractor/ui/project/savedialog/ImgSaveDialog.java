@@ -11,8 +11,6 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +44,6 @@ public class ImgSaveDialog extends JFileChooser {
         bindKeyStrokesForSaveDialog() ;
         hideOnlyFileFormatSection() ;
         setHelpAccessory() ;
-        updateLastSavedImage() ;
     }
     
     private void setHelpAccessory() {
@@ -111,19 +108,6 @@ public class ImgSaveDialog extends JFileChooser {
                 actionMap.put( keyStroke.toString(), wrapper ) ;
                 log.info( "Installed save fn key handler = {}", keyStroke ) ;
             } ) ;
-        }
-    }
-    
-    private void updateLastSavedImage() {
-        File[] savedImageFiles = getCurrentDirectory().listFiles( ( dir, name ) -> name.endsWith( ".png" ) ) ;
-        if( savedImageFiles != null && savedImageFiles.length > 0 ) {
-            List<QuestionImage> images = new ArrayList<>() ;
-            for( File file : savedImageFiles ) {
-                QuestionImage qImg = new QuestionImage( file ) ;
-                images.add( qImg ) ;
-            }
-            Collections.sort( images ) ;
-            projectContext.setLastSavedImage( images.get( images.size()-1 ) ) ;
         }
     }
     

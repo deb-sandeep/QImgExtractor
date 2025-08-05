@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -86,11 +87,24 @@ public class ProjectModel {
         pageImageMap = new HashMap<>() ;
         pageImages = new ArrayList<>() ;
         
+        QuestionImage lastSavedQImg = null ;
+        
         for( File file : files ) {
             PageImage pageImg = new PageImage( this, file );
             pageImages.add( pageImg );
             pageImageMap.put( file, pageImg ) ;
+            
+            QuestionImage lastQImg = pageImg.getLastQuestionImg() ;
+            if( lastQImg != null ) {
+                if( lastSavedQImg == null ) {
+                    lastSavedQImg = lastQImg ;
+                }
+                else if( lastQImg.compareTo( lastSavedQImg ) > 0 ) {
+                    lastSavedQImg = lastQImg ;
+                }
+            }
         }
+        context.setLastSavedImage( lastSavedQImg ) ;
         Collections.sort( pageImages ) ;
     }
     

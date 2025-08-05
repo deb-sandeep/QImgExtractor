@@ -1,6 +1,9 @@
 package com.sandy.sconsole.qimgextractor.qid;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
+import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -25,22 +28,22 @@ public class QuestionImage implements Comparable<QuestionImage> {
     private int    pageNumber  = -1 ;
     private QID    qId         = null ;
     
-    private File imgFile ;
+    private final PageImage pageImg ;
+    private final File qImgFile ;
     
-    public QuestionImage( File file ) {
-        this.imgFile = file ;
-        parseFileName( this.imgFile.getName() ) ;
+    public QuestionImage( PageImage pageImg, File qImgFile )  {
+        this.pageImg = pageImg ;
+        this.qImgFile = qImgFile ;
+        parseFileName( qImgFile.getName() ) ;
     }
     
     public QuestionImage getClone() {
-        File file = new File( imgFile.getParent(), getLongFileName() ) ;
-        return new QuestionImage( file ) ;
+        File file = new File( pageImg.getImgFile().getParentFile(), getLongFileName() ) ;
+        return new QuestionImage( pageImg, file ) ;
     }
     
     private void parseFileName( String fileName ) 
         throws IllegalArgumentException {
-        
-        checkNullFile( this.imgFile ) ;
         
         String fName = fileName ;
         
@@ -161,11 +164,6 @@ public class QuestionImage implements Comparable<QuestionImage> {
         return q ;
     }
     
-    @Override
-    public int compareTo( QuestionImage img ) {
-        return (int)(this.imgFile.lastModified() - img.imgFile.lastModified()) ;
-    }
-    
     public void rollSubjectCode( boolean reverse ) {
         int idx = SUB_SEQ.indexOf( this.subjectCode ) ;
         if( !reverse ) {
@@ -199,6 +197,12 @@ public class QuestionImage implements Comparable<QuestionImage> {
                 this.partNumber++ ;
             }
         }
+    }
+    
+    @Override
+    public int compareTo( QuestionImage img ) {
+        return (int)(this.qImgFile.lastModified() -
+                img.qImgFile.lastModified()) ;
     }
     
     public String toString() {

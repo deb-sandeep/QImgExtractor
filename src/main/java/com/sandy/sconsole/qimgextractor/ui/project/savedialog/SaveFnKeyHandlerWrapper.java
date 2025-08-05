@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
 
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -35,7 +36,8 @@ class SaveFnKeyHandlerWrapper extends AbstractAction {
         
         // 3. Parse the file to see if it meets the file name criteria.
         // If not, then an exception will be thrown.
-        QuestionImage mutableImgFile = new QuestionImage( fqImgFile ) ;
+        PageImage selPageImg = saveDialog.getProjectModel().getContext().getSelectedPageImg() ;
+        QuestionImage mutableImgFile = new QuestionImage( selPageImg, fqImgFile ) ;
         fnKeyHandler.mutateQuestionImage( mutableImgFile, ( e.getModifiers() & ActionEvent.SHIFT_MASK ) == ActionEvent.SHIFT_MASK ) ;
         
         File newFile = new File( selFile.getParentFile(), mutableImgFile.getShortFileName() ) ;

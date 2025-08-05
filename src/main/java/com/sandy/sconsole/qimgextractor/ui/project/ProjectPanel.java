@@ -3,9 +3,9 @@ package com.sandy.sconsole.qimgextractor.ui.project;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgListener;
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgListener;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
@@ -20,7 +20,9 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 
@@ -33,10 +35,12 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     private CloseableTabbedPane tabPane;
     private ProjectTreePanel pageTree ;
     
-    private QuestionImage nextImgName = null ;
-    
     @Getter
     private final ProjectModel projectModel ;
+    
+    private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>();
+    
+    private transient QuestionImage nextImgName = null ;
 
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         
@@ -58,6 +62,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         
         tabPane = new CloseableTabbedPane() ;
         tabPane.addChangeListener( e -> tabSelectionChanged() ) ;
+        tabPane.addTabCloseListener( (tabIndex, component ) -> tabClosing( component ) ) ;
         
         pageTree = new ProjectTreePanel( this ) ;
         
@@ -71,17 +76,15 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         for( int i=0; i<pageImages.size(); i++ ) {
             PageImage pageImg = pageImages.get( i ) ;
             File file = pageImg.getImgFile() ;
-            
             mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
-
-            ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
-            imgPanel.setImage( file,
-                               pageImg.getSubImgInfoList(),
-                               SwingUtils.getScreenWidth() - ProjectTreePanel.PREFERRED_WIDTH - 10 ) ;
-            
-            SwingUtilities.invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
+            loadPageImg( pageImg ) ;
         }
         mainFrame.clearStatusMsg() ;
+        
+        QuestionImage lastSavedQImg = projectModel.getContext().getLastSavedImg() ;
+        if( lastSavedQImg != null ) {
+            activatePageImg( lastSavedQImg.getPageImg() ) ;
+        }
     }
     
     public void destroy() {
@@ -97,14 +100,32 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         } ) ;
     }
     
+    private void loadPageImg( PageImage pageImg ) {
+        
+        File file = pageImg.getImgFile() ;
+        
+        int initialDisplayWidth = SwingUtils.getScreenWidth() - ProjectTreePanel.PREFERRED_WIDTH - 10 ;
+        ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
+        imgPanel.setImage( pageImg, initialDisplayWidth ) ;
+        
+        panelMap.put( pageImg, imgPanel ) ;
+        
+        SwingUtilities.invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
+    }
+    
     private void tabSelectionChanged() {
         ImgExtractorPanel selectedPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
         projectModel.getContext()
-                    .setSelectedPageImageFile( selectedPanel.getCurImgFile() ) ;
+                    .setSelectedPageImg( selectedPanel.getPageImg() ) ;
+    }
+    
+    private void tabClosing( Component component ) {
+        ImgExtractorPanel panel = ( ImgExtractorPanel )component ;
+        panelMap.remove( panel.getPageImg() ) ;
     }
     
     @Override
-    public String subImageSelected( File imgSrcFile, BufferedImage image,
+    public String subImageSelected( File imgSrcFile, BufferedImage img,
                                     Rectangle subImgBounds, int selectionModifier ) {
         
         String processingId = null ;
@@ -145,10 +166,11 @@ public class ProjectPanel extends JPanel implements SubImgListener {
             
             // 3. Parse the file to see if it meets the file name criteria.
             // If not, then an exception will be thrown.
-            QuestionImage qImg = new QuestionImage( newImgFile );
+            PageImage selPageImg = projectModel.getContext().getSelectedPageImg() ;
+            QuestionImage qImg = new QuestionImage( selPageImg, newImgFile );
             
             // 4. Save the image, and other housekeeping tasks.
-            ImageIO.write( image, "png", newImgFile );
+            ImageIO.write( img, "png", newImgFile );
             projectModel.getContext().setLastSavedImage( qImg );
             
             processingId = qImg.getShortFileNameWithoutExtension();
@@ -189,11 +211,27 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         imgPanel.clearCurSelTagName() ;
     }
     
-    public void deleteSelectedRegion( String tag ) {
+    public void subImgDeleted( SubImgInfo subImgInfo ) {
         // TODO:
     }
     
-    public void renameSelectedRegion( String oldTag, String newTag ) {
-        // TODO:
+    public boolean subImgIagNameChanged( SubImgInfo subImgInfo, String newTagName ) {
+        // TODO: Complete this method
+        return true ;
+    }
+    
+    public void activatePageImg( PageImage pageImg ) {
+        SwingUtilities.invokeLater( () -> {
+            if( panelMap.containsKey( pageImg ) ) {
+                ImgExtractorPanel selPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
+                if( selPanel.getPageImg() != pageImg ) {
+                    tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ;
+                }
+            }
+            else {
+                loadPageImg( pageImg ) ;
+                tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ;
+            }
+        }) ;
     }
 }

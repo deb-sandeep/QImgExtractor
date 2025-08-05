@@ -2,6 +2,9 @@ package com.sandy.sconsole.qimgextractor;
 
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.util.AppConfig;
+import com.sandy.sconsole.qimgextractor.util.AppState;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.SpringApplication;
@@ -12,6 +15,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.swing.*;
+import java.io.File;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Slf4j
 @SpringBootApplication
@@ -28,28 +34,72 @@ public class QImgExtractor
         return APP_CTX.getBean( ProjectModel.class ) ;
     }
     
+    public static AppState getAppState() {
+        return APP_CTX.getBean( QImgExtractor.class ).appState ;
+    }
+    
     // ---------------- Instance methods start ---------------------------------
+    
+    @Getter
+    private final AppConfig appConfig ;
     
     private final MainFrame mainFrame ;
     
-    public QImgExtractor( MainFrame mainFrame ) {
+    private AppState appState ;
+    
+    public QImgExtractor( AppConfig appConfig, MainFrame mainFrame ) {
+        this.appConfig = appConfig ;
         this.mainFrame = mainFrame ;
     }
     
     @Override
-    public void setApplicationContext( ApplicationContext ctx )
+    public void setApplicationContext( ApplicationContext context )
             throws BeansException {
-        APP_CTX = ( ConfigurableApplicationContext )ctx;
+        APP_CTX = ( ConfigurableApplicationContext )context;
     }
     
-    public void initialize() {
+    private void initialize() {
         
         log.debug( "## Initializing QImgExtractor app. >" ) ;
         
+        log.debug( "- Initializing AppState" ) ;
+        this.loadAppState() ;
+        
         log.debug( "- Initializing MainFrame" ) ;
-        SwingUtilities.invokeLater( () -> mainFrame.setVisible( true ) ) ;
+        SwingUtilities.invokeLater( () -> {
+            mainFrame.setVisible( true ) ;
+            openLastOpenedProject() ;
+        } ) ;
         
         log.debug( "<< ## QImgExtractor initialization complete" ) ;
+    }
+    
+    private void openLastOpenedProject() {
+        String lastOpenedProjectDirPath = appState.getLastOpenedProjectDir() ;
+        if( lastOpenedProjectDirPath != null ) {
+            File lastOpenedProjectDir = new File( lastOpenedProjectDirPath ) ;
+            if( lastOpenedProjectDir.exists() ) {
+                mainFrame.openProject( lastOpenedProjectDir ) ;
+            }
+        }
+    }
+    
+    private void loadAppState() {
+        File appStateFile = new File( appConfig.getAppWorkspaceDir(), "app-state.json" ) ;
+        if( appStateFile.exists() ) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                this.appState = mapper.readValue( appStateFile, AppState.class );
+            }
+            catch( Exception e ) {
+                log.error( "Error loading app state", e );
+                this.appState = new AppState();
+            }
+        }
+        else {
+            this.appState = new AppState() ;
+        }
+        this.appState.setApp( this ) ;
     }
     
     // --------------------- Main method ---------------------------------------

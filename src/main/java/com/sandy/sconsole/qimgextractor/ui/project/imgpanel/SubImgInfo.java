@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
+package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 @Data
 @ToString
-public class SubImgInfo implements Serializable, Cloneable {
+public class SubImgInfo implements Serializable, Cloneable, Comparable<SubImgInfo> {
 
     private Point anchorPoint ;
     private String tag ;
@@ -33,5 +33,10 @@ public class SubImgInfo implements Serializable, Cloneable {
         clone.setRegionBounds( new Rectangle( this.regionBounds ) );
         clone.setQuestionImage( this.questionImage );
         return clone;
+    }
+    
+    @Override
+    public int compareTo( SubImgInfo siInfo ) {
+        return questionImage.compareTo( siInfo.getQuestionImage() ) ;
     }
 }

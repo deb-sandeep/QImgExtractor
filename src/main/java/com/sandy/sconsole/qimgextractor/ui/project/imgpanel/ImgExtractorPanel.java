@@ -1,9 +1,10 @@
-package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
+package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal.ImageCanvas;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal.ImageCanvas;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.CustomWidgetStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
+import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,9 +14,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 public class ImgExtractorPanel extends JPanel implements ChangeListener {
@@ -34,7 +33,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     private MessageStatusComponent mousePosStatus = null ;
     private MessageStatusComponent curSelTagNameStatus = null ;
     
-    @Getter private File curImgFile = null ;
+    @Getter private PageImage pageImg = null ;
     
     private SubImgListener listener = null ;
     
@@ -112,20 +111,19 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
         return panel ;
     }
     
-    public void setImage( File pngFile,
-                          List<SubImgInfo> imgInfoList,
-                          int preferredImgWidth ) {
+    public void setImage( PageImage pageImg, int preferredImgWidth ) {
         
         try {
-            BufferedImage img = ImageIO.read( pngFile ) ;
-            curImgFile = pngFile ;
-            imgCanvas.setOriginalImage( img, imgInfoList ) ;
+            this.pageImg = pageImg ;
+            
+            BufferedImage img = ImageIO.read( pageImg.getImgFile() ) ;
+            imgCanvas.setOriginalImage( img, pageImg.getSubImgInfoList() ) ;
             
             double sf = ( double )preferredImgWidth / img.getWidth() ;
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
             this.imgScaleSlider.setValue( sliderVal ) ;
             
-            fileNameStatus.log( curImgFile.getAbsolutePath() );
+            fileNameStatus.log( pageImg.getImgFile().getAbsolutePath() );
         }
         catch( IOException e ) {
             log.error( "Error setting image." , e ) ;
@@ -171,7 +169,8 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     
     public String subImageSelected( BufferedImage subImg, Rectangle subImgBounds, int selectionFlag ) {
         if( listener != null ) {
-            return listener.subImageSelected( curImgFile, subImg, subImgBounds, selectionFlag ) ;
+            return listener.subImageSelected( pageImg.getImgFile(), subImg,
+                                              subImgBounds, selectionFlag ) ;
         }
         else {
             log.warn( "No extracted image listener available." ) ;
@@ -180,7 +179,7 @@ public class ImgExtractorPanel extends JPanel implements ChangeListener {
     }
     
     public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
-        listener.selectedRegionAdded( curImgFile, newRegionInfo ) ;
+        listener.selectedRegionAdded( pageImg.getImgFile(), newRegionInfo ) ;
     }
     
     public void setModeStatus( String mode) {

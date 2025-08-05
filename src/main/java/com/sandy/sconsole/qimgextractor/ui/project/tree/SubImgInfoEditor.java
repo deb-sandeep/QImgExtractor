@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.tree;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -9,37 +9,36 @@ import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 import static javax.swing.BorderFactory.*;
 
 @Slf4j
 public class SubImgInfoEditor extends DefaultTreeCellEditor {
 
-    private JTextField editorField;
-    private SubImgInfo oldSubImgInfo;
+    private final ProjectTreePanel treePanel ;
     
-    private final SubImgInfoEditCallback callback;
-
-    public SubImgInfoEditor( JTree tree,
-                             DefaultTreeCellRenderer renderer,
-                             SubImgInfoEditCallback callback ) {
-        super( tree, renderer ) ;
-        this.callback = callback;
-        initEditorComponent();
+    private JTextField editorField ;
+    private SubImgInfo subImgInfo ;
+    
+    public SubImgInfoEditor( ProjectTreePanel treePanel ) {
+        super( treePanel.getTree(), ( DefaultTreeCellRenderer )treePanel.getTree().getCellRenderer() ) ;
+        this.treePanel = treePanel ;
+        
+        initEditorComponent() ;
     }
 
     private void initEditorComponent() {
         editorField = new JTextField() ;
-        editorField.setBorder(
-                createCompoundBorder( createLineBorder( Color.GRAY ),
-                                      createEmptyBorder( 2, 20, 2, 5 ) )
-        ) ;
+        editorField.setBorder( createCompoundBorder(
+                createLineBorder( Color.GRAY ), createEmptyBorder( 2, 20, 2, 5 ) ) ) ;
         editorField.addActionListener( e -> {
-            if( callback != null && oldSubImgInfo != null ) {
-                SubImgInfo newSubImgInfo = oldSubImgInfo.clone() ;
-                newSubImgInfo.setTag( editorField.getText() ) ;
-                // TODO: Simplify, populate tree utils, add delete
-                callback.onSubImgInfoEdited( oldSubImgInfo, newSubImgInfo ) ;
+            boolean validEdit = treePanel.subImgTagNameChanged( subImgInfo, editorField.getText() ) ;
+            if( validEdit ) {
+                subImgInfo.setTag( editorField.getText() ) ;
                 stopCellEditing() ;
+            }
+            else {
+                showErrorMsg( treePanel, "Invalid sub image tag name!" ) ;
             }
         } ) ;
     }
@@ -49,11 +48,11 @@ public class SubImgInfoEditor extends DefaultTreeCellEditor {
             JTree tree, Object value, boolean isSelected,
             boolean expanded, boolean leaf, int row ) {
         
-        if( value instanceof DefaultMutableTreeNode node ){
+        if( value instanceof DefaultMutableTreeNode node ) {
             Object userObject = node.getUserObject() ;
-            if( userObject instanceof SubImgInfo subImgInfo ){
-                this.oldSubImgInfo = subImgInfo;
-                editorField.setText( subImgInfo.getTag() ) ;
+            if( userObject instanceof SubImgInfo info ){
+                this.subImgInfo = info ;
+                editorField.setText( info.getTag() ) ;
                 return editorField;
             }
         }
@@ -63,13 +62,6 @@ public class SubImgInfoEditor extends DefaultTreeCellEditor {
     
     @Override
     public Object getCellEditorValue() {
-        if( oldSubImgInfo != null ) {
-            oldSubImgInfo.setTag( editorField.getText() ) ;
-        }
-        return oldSubImgInfo ;
-    }
-
-    public interface SubImgInfoEditCallback {
-        void onSubImgInfoEdited( SubImgInfo oldSubImgInfo, SubImgInfo newSubImgInfo ) ;
+        return subImgInfo ;
     }
 }

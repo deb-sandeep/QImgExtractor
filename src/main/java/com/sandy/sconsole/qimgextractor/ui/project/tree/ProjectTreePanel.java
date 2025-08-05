@@ -1,14 +1,14 @@
 package com.sandy.sconsole.qimgextractor.ui.project.tree;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -16,10 +16,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 
+import static com.sandy.sconsole.qimgextractor.ui.project.tree.TreeUtil.getUserObject;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
 
+@Slf4j
 public class ProjectTreePanel extends JPanel
     implements TreeSelectionListener {
     
@@ -56,10 +58,9 @@ public class ProjectTreePanel extends JPanel
 
         tree = new JTree( treeModel ) {
             public boolean isPathEditable( TreePath path ) {
-                DefaultMutableTreeNode node = ( DefaultMutableTreeNode )path.getLastPathComponent() ;
-                return node.getUserObject() instanceof SubImgInfo ;
+                return getUserObject( path ) instanceof SubImgInfo ;
             }
-        };
+        } ;
         tree.setRootVisible( true ) ;
         tree.setFont( TREE_FONT ) ;
         tree.getSelectionModel().setSelectionMode( SINGLE_TREE_SELECTION ) ;
@@ -78,17 +79,7 @@ public class ProjectTreePanel extends JPanel
         tree.setEditable( true ) ;
         
         // Set the custom cell editor with SubImgInfoEditCallback
-        tree.setCellEditor( new SubImgInfoEditor(
-                tree,
-                ( DefaultTreeCellRenderer ) tree.getCellRenderer(),
-                (oldSubImgInfo, newSubImgInfo) -> {
-                    // Handle the callback with old and new values
-                    System.out.println("Old Value: " + oldSubImgInfo.getTag());
-                    System.out.println("New Value: " + newSubImgInfo.getTag());
-                    
-                    // Optionally update the model or UI
-                }
-        ));
+        tree.setCellEditor( new SubImgInfoEditor( this ) );
         
         JScrollPane sp = new JScrollPane( VERTICAL_SCROLLBAR_AS_NEEDED,
                                           HORIZONTAL_SCROLLBAR_NEVER ) ;
@@ -113,13 +104,14 @@ public class ProjectTreePanel extends JPanel
     @Override
     public void valueChanged( TreeSelectionEvent e ) {
         
-        DefaultMutableTreeNode lastNode ;
-        Object userObj ;
-        
         TreePath selPath = e.getNewLeadSelectionPath() ;
-        if( selPath != null ) {
-            lastNode = ( DefaultMutableTreeNode )selPath.getLastPathComponent() ;
-            userObj  = lastNode.getUserObject() ;
+        Object userObj = TreeUtil.getUserObject( selPath ) ;
+        
+        if( userObj instanceof PageImage pageImg ) {
+            projectPanel.activatePageImg( pageImg ) ;
+        }
+        else if( userObj instanceof SubImgInfo subImg ) {
+            projectPanel.activatePageImg( subImg.getQuestionImage().getPageImg() ) ;
         }
     }
     
@@ -136,5 +128,14 @@ public class ProjectTreePanel extends JPanel
                 }
             }
         }
+    }
+    
+    JTree getTree() {
+        return tree ;
+    }
+    
+    boolean subImgTagNameChanged( SubImgInfo subImgInfo, String newTagName ) {
+        log.debug( "Sub img tag edited: Old Value: {}, new value:{}", subImgInfo.getTag(), newTagName ) ;
+        return projectPanel.subImgIagNameChanged( subImgInfo, newTagName ) ;
     }
 }

@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.core.imgpanel;
+package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

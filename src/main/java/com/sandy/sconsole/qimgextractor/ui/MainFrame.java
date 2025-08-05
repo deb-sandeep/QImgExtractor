@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
@@ -114,26 +115,31 @@ public class MainFrame extends JFrame {
         if( userAction == JFileChooser.APPROVE_OPTION ) {
             File projectDir = projectDirChooser.getSelectedFile() ;
             if( projectDir != null ) {
-                if( isValidProjectDir( projectDir ) ) {
-                    closeCurrentProject() ;
-                    
-                    projectModel.initialize( projectDir ) ;
-                    currentProjectPanel = new ProjectPanel( this, projectModel ) ;
-                    
-                    getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
-                    revalidate() ;
-                    repaint() ;
-                    
-                    projectNameSBComponent.log( projectModel.getProjectName() ) ;
-                }
-                else {
-                    JOptionPane.showMessageDialog( this,
-                        "Invalid project directory. The chosen directory " +
-                        "should have a pages subdirectory containing image " +
-                        "files for pages.",
-                        "Error", JOptionPane.ERROR_MESSAGE ) ;
-                }
+                openProject( projectDir ) ;
             }
+        }
+    }
+    
+    public void openProject( File projectDir ) {
+        if( isValidProjectDir( projectDir ) ) {
+            closeCurrentProject() ;
+            
+            projectModel.initialize( projectDir ) ;
+            currentProjectPanel = new ProjectPanel( this, projectModel ) ;
+            
+            getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
+            revalidate() ;
+            repaint() ;
+            
+            projectNameSBComponent.log( projectModel.getProjectName() ) ;
+            QImgExtractor.getAppState().setLastOpenedProjectDir( projectDir ) ;
+        }
+        else {
+            JOptionPane.showMessageDialog( this,
+                    "Invalid project directory. The chosen directory " +
+                    "should have a pages subdirectory containing image " +
+                    "files for pages.",
+                    "Error", JOptionPane.ERROR_MESSAGE ) ;
         }
     }
     

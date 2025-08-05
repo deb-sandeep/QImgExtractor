@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sandy.sconsole.qimgextractor.qid.QuestionImage;
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
@@ -63,11 +64,11 @@ public class PageImage implements Comparable<PageImage> {
         
         // Validation 2: The name of the file is syntactically valid
         try {
-            QuestionImage questionImage = new QuestionImage( subImgFile ) ;
+            QuestionImage questionImage = new QuestionImage( this, subImgFile ) ;
             subImgInfo.setQuestionImage( questionImage ) ;
         }
         catch( Exception e ) {
-            log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName() ) ;
+            log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName(), e ) ;
             return false ;
         }
         return true ;
@@ -104,6 +105,7 @@ public class PageImage implements Comparable<PageImage> {
     private void saveSubImgInfoList() {
         File imgInfoFile = getImgInfoFile() ;
         try {
+            Collections.sort( subImgInfoList ) ;
             ObjectMapper mapper = new ObjectMapper() ;
             mapper.addMixIn( Rectangle.class, RectangleMixIn.class);
             mapper.writeValue( imgInfoFile, subImgInfoList );
@@ -137,5 +139,12 @@ public class PageImage implements Comparable<PageImage> {
             subImgFiles.add( getSubImgFile( subImgInfo ) ) ;
         }
         return subImgFiles ;
+    }
+    
+    public QuestionImage getLastQuestionImg() {
+        if( subImgInfoList.isEmpty() ) {
+            return null ;
+        }
+        return subImgInfoList.get( subImgInfoList.size()-1 ).getQuestionImage() ;
     }
 }

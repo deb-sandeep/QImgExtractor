@@ -5,7 +5,6 @@ import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 
@@ -19,7 +18,7 @@ public class ProjectContext {
     private QuestionImage lastSavedImg ;
     
     @Getter
-    private File selectedPageImageFile ;
+    private PageImage selectedPageImg ;
     
     @Getter
     private int selectedPageNumber = -1 ;
@@ -29,13 +28,13 @@ public class ProjectContext {
     public void setLastSavedImage( QuestionImage qImg ) {
         log.debug( "Setting last saved image to {}", qImg );
         lastSavedImg = qImg ;
-        if( lastSavedImg.getQId().isLCT() ) {
+        if( lastSavedImg != null && lastSavedImg.getQId().isLCT() ) {
             lastLCTSequence = lastSavedImg.getQId().getLctSequence() ;
         }
     }
     
-    public void setSelectedPageImageFile( File file ) {
-        this.selectedPageImageFile = file ;
-        this.selectedPageNumber = AppUtil.extractPageNumber( file ) ;
+    public void setSelectedPageImg( PageImage pageImg ) {
+        this.selectedPageImg = pageImg ;
+        this.selectedPageNumber = AppUtil.extractPageNumber( pageImg.getImgFile() ) ;
     }
 }

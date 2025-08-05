@@ -1,6 +1,6 @@
-package com.sandy.sconsole.qimgextractor.ui.core.imgpanel.internal;
+package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.core.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;

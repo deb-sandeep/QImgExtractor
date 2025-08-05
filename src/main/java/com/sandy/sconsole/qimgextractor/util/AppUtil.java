@@ -4,6 +4,7 @@ import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 
 public class AppUtil {
@@ -18,7 +19,11 @@ public class AppUtil {
     
     public static void showErrorMsg( String msg ) {
         MainFrame frame = QImgExtractor.getBean( MainFrame.class ) ;
-        JOptionPane.showMessageDialog( frame, msg, "Error", JOptionPane.ERROR_MESSAGE ) ;
+        showErrorMsg( frame, msg ) ;
+    }
+
+    public static void showErrorMsg( Component parent, String msg ) {
+        JOptionPane.showMessageDialog( parent, msg, "Error", JOptionPane.ERROR_MESSAGE ) ;
     }
 
     public static void showErrorMsg( String msg, Throwable t ) {
