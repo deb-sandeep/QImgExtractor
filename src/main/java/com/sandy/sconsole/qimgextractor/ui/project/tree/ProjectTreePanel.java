@@ -12,6 +12,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
@@ -54,32 +56,22 @@ public class ProjectTreePanel extends JPanel
     
     private JPanel createTreePanel() {
         
-        treeModel = new ProjectTreeModel( projectPanel.getProjectModel() ) ;
-
-        tree = new JTree( treeModel ) {
+        tree = new JTree() {
             public boolean isPathEditable( TreePath path ) {
                 return getUserObject( path ) instanceof QuestionImage ;
             }
         } ;
+        treeModel = new ProjectTreeModel( projectPanel.getProjectModel(), tree ) ;
+
+        tree.setModel( treeModel ) ;
         tree.setRootVisible( true ) ;
         tree.setFont( TREE_FONT ) ;
         tree.getSelectionModel().setSelectionMode( SINGLE_TREE_SELECTION ) ;
-        tree.addTreeSelectionListener( this ) ;
-        tree.addMouseListener( new MouseAdapter() {
-            public void mouseClicked( MouseEvent e ) {
-                TreePath path = tree.getPathForLocation( e.getX(), e.getY() );
-                if( path != null ) {
-                    tree.setSelectionPath( path ) ;
-                    handleMouseClickOnNode( path, e.getClickCount() ) ;
-                }
-            }
-        } ) ;
         tree.setCellRenderer( new ProjectTreeCellRenderer() ) ;
         tree.setRowHeight( 25 ) ;
         tree.setEditable( true ) ;
-        
-        // Set the custom cell editor with SubImgInfoEditCallback
-        tree.setCellEditor( new QuestionImgTagNameEditor( this ) );
+        tree.setCellEditor( new QuestionImgTagNameEditor( this ) ) ;
+        addTreeListeners() ;
         
         JScrollPane sp = new JScrollPane( VERTICAL_SCROLLBAR_AS_NEEDED,
                                           HORIZONTAL_SCROLLBAR_NEVER ) ;
@@ -92,11 +84,43 @@ public class ProjectTreePanel extends JPanel
         return treePanel ;
     }
     
+    private void addTreeListeners() {
+        tree.addTreeSelectionListener( this ) ;
+        tree.addMouseListener( new MouseAdapter() {
+            public void mouseClicked( MouseEvent e ) {
+                TreePath path = tree.getPathForLocation( e.getX(), e.getY() );
+                if( path != null ) {
+                    tree.setSelectionPath( path ) ;
+                    handleMouseClickOnNode( path, e.getClickCount() ) ;
+                }
+            }
+        } ) ;
+        tree.addKeyListener( new KeyAdapter() {
+            public void keyPressed( KeyEvent e ) {
+                TreePath path = tree.getSelectionPath() ;
+                if( path != null ) {
+                    handleKeyPressedOnNode( path, e ) ;
+                }
+            }
+        } ) ;
+    }
+    
     private void handleMouseClickOnNode( TreePath path, int clickCount ) {
         DefaultMutableTreeNode lastNode = ( DefaultMutableTreeNode )path.getLastPathComponent() ;
         Object userObj = lastNode.getUserObject() ;
-        if( userObj instanceof QuestionImage qImg && clickCount == 2 ) {
+        if( userObj instanceof QuestionImage && clickCount == 2 ) {
             tree.startEditingAtPath( path ) ;
+        }
+    }
+    
+    private void handleKeyPressedOnNode( TreePath path, KeyEvent e ) {
+        DefaultMutableTreeNode lastNode = ( DefaultMutableTreeNode )path.getLastPathComponent() ;
+        Object userObj = lastNode.getUserObject() ;
+        if( userObj instanceof QuestionImage qImg ) {
+            switch( e.getKeyCode() ) {
+                case KeyEvent.VK_F2 -> tree.startEditingAtPath( path ) ;
+                case KeyEvent.VK_DELETE -> projectPanel.questionImgDeleted( qImg ) ;
+            }
         }
     }
     
@@ -116,10 +140,8 @@ public class ProjectTreePanel extends JPanel
     }
     
     private void expandNode( DefaultMutableTreeNode node ) {
-        
         if( node.getChildCount() > 0 && node.getDepth() > 1 ) {
             tree.expandPath( new TreePath( node.getPath() ) ) ;
-            
             Enumeration<TreeNode> children = node.children() ;
             while( children.hasMoreElements() ) {
                 DefaultMutableTreeNode child = (DefaultMutableTreeNode)children.nextElement() ;

@@ -182,7 +182,12 @@ public abstract class QID {
         if( isLCT() ) {
             sb.append( lctSequence ).append( '/' ) ;
         }
-        sb.append( questionNumber ) ;
+        if( !isLCTContext ) {
+            sb.append( questionNumber ) ;
+        }
+        else {
+            sb.append( "Ctx" ) ;
+        }
         return sb.toString() ;
     }
 }

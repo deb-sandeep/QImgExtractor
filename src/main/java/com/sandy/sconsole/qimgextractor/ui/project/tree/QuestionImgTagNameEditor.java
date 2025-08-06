@@ -54,7 +54,7 @@ public class QuestionImgTagNameEditor extends DefaultTreeCellEditor {
             Object userObject = node.getUserObject() ;
             if( userObject instanceof QuestionImage qImg ){
                 this.questionImg = qImg ;
-                editorField.setText( qImg.getSelRegionMetadata().getTag() ) ;
+                editorField.setText( qImg.getImgRegionMetadata().getTag() ) ;
                 return editorField;
             }
         }

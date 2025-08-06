@@ -71,14 +71,6 @@ public class ProjectModel {
         }
     }
     
-    public void addListener( ProjectModelListener listener ) {
-        listeners.add( listener ) ;
-    }
-    
-    public void removeListener( ImgExtractorPanel panel ) {
-        listeners.remove( panel ) ;
-    }
-    
     // Assumption: Once a project has been loaded, no new pages can be added
     // to the project. The page images existing in the pages folder form the
     // domain of pages on which the project will operate.
@@ -114,7 +106,7 @@ public class ProjectModel {
     // in the question-images folder which are not associated with sub image meta-data
     // for a page.
     private void repairProjectArtefacts() {
-    
+        
         File[] files = extractedImgDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
         if( files == null || files.length == 0 ) {
             return ;
@@ -122,7 +114,7 @@ public class ProjectModel {
         
         ArrayList<File> toDelete = new ArrayList<>( List.of( files ) ) ;
         for( PageImage pageImg : pageImages ) {
-            List<File> subImgFiles = pageImg.getSubImgFiles() ;
+            List<File> subImgFiles = pageImg.getQuestionImgFiles() ;
             for( File subImgFile : subImgFiles ) {
                 toDelete.remove( subImgFile ) ;
             }
@@ -137,26 +129,42 @@ public class ProjectModel {
         }
     }
     
+    public void addListener( ProjectModelListener listener ) {
+        listeners.add( listener ) ;
+    }
+    
+    public void removeListener( ImgExtractorPanel panel ) {
+        listeners.remove( panel ) ;
+    }
+    
     public void notifyListenersNewQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
         listeners.forEach( l -> l.newQuestionImgAdded( pageImage, qImg ) ) ;
     }
     
+    private void notifyListenersTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) {
+        listeners.forEach( l -> l.questionTagNameChanged( qImg, oldTagName, newTagName ) ) ;
+    }
+    
+    private void notifyListenersQuestionImgDeleted( QuestionImage qImg ) {
+        listeners.forEach( l -> l.questionImgDeleted( qImg ) ) ;
+    }
+    
     public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
         try {
-            String oldTagName = qImg.getSelRegionMetadata().getTag() ;
+            String oldTagName = qImg.getImgRegionMetadata().getTag() ;
             
             // Update qImg with the new tag name
             qImg.setNewTagName( newTagName ) ;
-            qImg.getSelRegionMetadata().setTag( qImg.getShortFileNameWithoutExtension() ) ;
-            qImg.getPageImg().saveSubImgInfoList() ;
+            qImg.getImgRegionMetadata().setTag( qImg.getShortFileNameWithoutExtension() ) ;
+            qImg.getPageImg().saveQuestionImgMetadata() ;
             
             // Change the file name
-            File oldFile = qImg.getQImgFile() ;
+            File oldFile = qImg.getImgFile() ;
             File newFile = new File( oldFile.getParentFile(), qImg.getLongFileName() ) ;
             FileUtils.moveFile( oldFile, newFile ) ;
             
             // Notify the listeners
-            listeners.forEach( l -> l.questionTagNameChanged( qImg, oldTagName, newTagName ) ) ;
+            notifyListenersTagNameChanged( qImg, oldTagName, newTagName ) ;
         }
         catch( IOException e ) {
             log.error( "Error renaming question image file.", e ) ;
@@ -164,4 +172,20 @@ public class ProjectModel {
         }
     }
     
+    public void questionImgDeleted( QuestionImage qImg ) {
+        // Delete from the model
+        qImg.getPageImg().deleteQuestionImg( qImg ) ;
+        
+        // Notify the listeners - the tree model and the image canvas
+        notifyListenersQuestionImgDeleted( qImg ) ;
+        
+        // Physically delete the file.
+        File imgFile = qImg.getImgFile() ;
+        if( imgFile.delete() ) {
+            log.info( "Deleted question image file: <img-dir>/{}", imgFile.getName() ) ;
+        }
+        else {
+            log.warn( "Failed to delete question image file: <img-dir>/{}", imgFile.getName() ) ;
+        }
+    }
 }

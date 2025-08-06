@@ -120,7 +120,7 @@ public class ImgExtractorPanel extends JPanel
             this.pageImg = pageImg ;
             
             BufferedImage img = ImageIO.read( pageImg.getImgFile() ) ;
-            imgCanvas.setOriginalImage( img, pageImg.getSubImgInfoList() ) ;
+            imgCanvas.setOriginalImage( img, pageImg.getSelectedRegionsMetadataList() ) ;
             
             double sf = ( double )preferredImgWidth / img.getWidth() ;
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
@@ -217,18 +217,22 @@ public class ImgExtractorPanel extends JPanel
         curSelTagNameStatus.clear() ;
     }
     
-    public void deleteSelectedRegion( String tag ) {
-        imgCanvas.deleteSelectedRegion( tag ) ;
-    }
-    
-    @Override
     // Ignore this - this class is the one updating the model on addition of question images.
+    @Override
     public void newQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {}
     
     @Override
     public void questionTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) {
         if( pageImg.getQImgList().contains( qImg ) ) {
             imgCanvas.renameSelectedRegion( oldTagName, newTagName ) ;
+        }
+    }
+    
+    @Override
+    public void questionImgDeleted( QuestionImage qImg ) {
+        String tagName = qImg.getImgRegionMetadata().getTag() ;
+        if( imgCanvas.containsTag( tagName ) ) {
+            imgCanvas.deleteSelectedRegion( qImg.getImgRegionMetadata().getTag() ) ;
         }
     }
 }

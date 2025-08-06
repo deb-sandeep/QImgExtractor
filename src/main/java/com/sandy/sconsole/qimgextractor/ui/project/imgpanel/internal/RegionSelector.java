@@ -122,4 +122,13 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             canvas.selectionEnded() ;
         }
     }
+    
+    public boolean containsTag( String tagName ) {
+        for( SelectedRegion region : oldRegions ) {
+            if( region.getTag().equals( tagName ) ) {
+                return true ;
+            }
+        }
+        return false ;
+    }
 }

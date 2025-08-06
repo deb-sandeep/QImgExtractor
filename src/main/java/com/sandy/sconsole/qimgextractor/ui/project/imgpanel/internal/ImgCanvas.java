@@ -144,6 +144,10 @@ public class ImgCanvas extends JLabel {
         }
     }
     
+    public boolean containsTag( String tagName ) {
+        return regionSelector.containsTag( tagName ) ;
+    }
+    
     public void deleteSelectedRegion( String tag ) {
         regionSelector.deleteSelectedRegion( tag ) ;
     }

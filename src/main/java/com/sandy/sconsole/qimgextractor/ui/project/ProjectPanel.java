@@ -205,7 +205,7 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         
         QuestionImage qImg = new QuestionImage( pageImage, imgFile, regionMeta );
         
-        pageImage.addQImg( qImg, true ) ;
+        pageImage.addQuestionImg( qImg, true ) ;
         projectModel.getContext().setLastSavedImage( qImg ) ;
         projectModel.notifyListenersNewQuestionImgAdded( pageImage, qImg ) ;
     }
@@ -228,8 +228,8 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         imgPanel.clearCurSelTagName() ;
     }
     
-    public void questionImgDeleted( SelectedRegionMetadata selRegionMetadata ) {
-        // TODO:
+    public void questionImgDeleted( QuestionImage qImg ) {
+        projectModel.questionImgDeleted( qImg ) ;
     }
     
     public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {

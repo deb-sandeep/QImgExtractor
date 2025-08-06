@@ -15,8 +15,8 @@ import java.util.Stack;
 import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.*;
 
 @Data
-@EqualsAndHashCode( callSuper = false )
 @Slf4j
+@EqualsAndHashCode( callSuper = false )
 public class QuestionImage implements Comparable<QuestionImage> {
     
     private String srcId       = null ;
@@ -25,22 +25,23 @@ public class QuestionImage implements Comparable<QuestionImage> {
     private int    pageNumber  = -1 ;
     private QID    qId         = null ;
     
-    private final PageImage pageImg ;
-    private final File qImgFile ;
+    private final PageImage pageImg ; // Injected
+    private final File imgFile ; // Injected
     
     @Getter
-    private final SelectedRegionMetadata selRegionMetadata;
+    private final SelectedRegionMetadata imgRegionMetadata;
     
-    public QuestionImage( PageImage pageImg, File qImgFile, SelectedRegionMetadata selRegionMetadata )  {
+    public QuestionImage( PageImage pageImg,
+                          File questionImgFile,
+                          SelectedRegionMetadata imgRegionMetadata )  {
         this.pageImg = pageImg ;
-        this.qImgFile = qImgFile ;
-        this.selRegionMetadata = selRegionMetadata;
-        parseFileName( qImgFile.getName() ) ;
+        this.imgFile = questionImgFile;
+        this.imgRegionMetadata = imgRegionMetadata;
+        parseFileName( questionImgFile.getName() ) ;
     }
     
     public QuestionImage getClone() {
-        File file = new File( pageImg.getImgFile().getParentFile(), getLongFileName() ) ;
-        return new QuestionImage( pageImg, file, selRegionMetadata ) ;
+        return new QuestionImage( pageImg, imgFile, imgRegionMetadata ) ;
     }
     
     private void parseFileName( String fileName )
@@ -48,13 +49,10 @@ public class QuestionImage implements Comparable<QuestionImage> {
         
         String fName = fileName ;
         
-        fName = stripFileExtension( fName ) ;
+        fName = stripFileExtension( fName ) ;// Returns the file name without the extension
         fName = collectPartNumber( fName ) ; // Returns the file name without the part number
-        fName = collectSrcId( fName ) ;
-        fName = collectPageNumber( fName ) ;
-        
-        // At this point, the file name has been stripped off any file extension,
-        // any part numbers (if present) and source id.
+        fName = collectSrcId( fName ) ;      // Returns the file name without the source id
+        fName = collectPageNumber( fName ) ; // Returns the file name without the page number
         
         // Tokenize the remaining string into parts
         Stack<String> parts = parseToStack( fName ) ;
@@ -66,8 +64,17 @@ public class QuestionImage implements Comparable<QuestionImage> {
                               .getNewQIDInstance( this ) ;
         this.qId.parse( parts ) ;
     }
-    
+
+    // A question image file name is of the format:
+    // <srcId>.<pageNumber>.<tagName>[(<partNumber>)].png
+    //
+    // This function expects the tagName (with optional part number) to be
+    // passed as parameter. If a file extension and part number are present,
+    // they are ignored.
     public boolean isValidTagName( String tagName ) {
+        
+        // String off file extension if present
+        tagName = stripFileExtension( tagName ) ;
         
         // Strip off the part number if present. QID doesn't
         // deal with part number.
@@ -98,6 +105,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
         this.qId.parse( parts ) ;
     }
     
+    // Returns <tagName>[(<partNumber>)]
     public String getShortFileNameWithoutExtension() {
         
         StringBuilder sb = new StringBuilder() ;
@@ -113,10 +121,12 @@ public class QuestionImage implements Comparable<QuestionImage> {
         return sb.toString() ;
     }
     
+    // Returns <tagName>[(<partNumber>)].png
     public String getShortFileName() {
         return getShortFileNameWithoutExtension() + ".png" ;
     }
     
+    // Returns <srcId>.<pageNum>.<tagName>[(<partNumber>)].png
     public String getLongFileName() {
         return srcId + "." +
                String.format( "%03d", pageNumber ) + "." +
@@ -197,9 +207,9 @@ public class QuestionImage implements Comparable<QuestionImage> {
         return q ;
     }
     
-    public void rollSubjectCode( boolean reverse ) {
+    public void rollSubjectCode( boolean backward ) {
         int idx = SUBJECT_SEQ.indexOf( this.subjectCode ) ;
-        if( !reverse ) {
+        if( !backward ) {
             if( idx == SUBJECT_SEQ.size() - 1 ) {
                 this.subjectCode = SUBJECT_SEQ.get( 0 ) ;
             }
@@ -218,8 +228,8 @@ public class QuestionImage implements Comparable<QuestionImage> {
         this.partNumber = -1 ;
     }
     
-    public void mutatePartSequence( boolean end ) {
-        if( end ) {
+    public void mutatePartSequence( boolean endSequence ) {
+        if( endSequence ) {
             this.partNumber = -1 ;
         }
         else {
@@ -234,8 +244,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     
     @Override
     public int compareTo( QuestionImage img ) {
-        return (int)(this.qImgFile.lastModified() -
-                img.qImgFile.lastModified()) ;
+        return (int)( this.imgFile.lastModified() - img.imgFile.lastModified() ) ;
     }
     
     public String toString() {

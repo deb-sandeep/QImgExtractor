@@ -19,6 +19,11 @@ import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 @Slf4j
 public class PageImage implements Comparable<PageImage> {
     
+    // A mix-in class to exclude the Rectangle.class from the JSON serialization
+    // Why? Jackson queries the getter methods to get dynamic information about
+    // the object. If the Rectangle class is included in the JSON serialization,
+    // Jackson will try to invoke the Rectangle.getBounds() method, which recurses
+    // resulting in a StackOverflowError. Fix suggested by ChatGPT :)
     @JsonAutoDetect(
         fieldVisibility = JsonAutoDetect.Visibility.ANY,
         getterVisibility = JsonAutoDetect.Visibility.NONE,
@@ -27,10 +32,10 @@ public class PageImage implements Comparable<PageImage> {
     )
     abstract static class RectangleMixIn {}
     
-    private final ProjectModel projectModel ;
+    private final ProjectModel projectModel ; // Injected
     
-    @Getter private final File imgFile ;
-    @Getter private final int pageNumber ;
+    @Getter private final File imgFile ; // Injected
+    @Getter private final int pageNumber ; // Derived
     
     @Getter private final List<QuestionImage> qImgList = new ArrayList<>() ;
     
@@ -39,21 +44,21 @@ public class PageImage implements Comparable<PageImage> {
         this.imgFile = imgFile ;
         this.pageNumber = extractPageNumber( imgFile ) ;
         
-        this.loadQuestionImgList() ;
+        this.loadQuestionImages() ;
     }
     
-    private void loadQuestionImgList() {
-        File imgInfoFile = getImgInfoFile() ;
-        if( imgInfoFile.exists() ) {
+    private void loadQuestionImages() {
+        File qImgMetaFile = getQuestionImgMetadataFile() ;
+        if( qImgMetaFile.exists() ) {
             try {
-                ObjectMapper                 mapper   = new ObjectMapper();
-                List<SelectedRegionMetadata> infoList = mapper.readValue( imgInfoFile, new TypeReference<>() {} );
+                ObjectMapper mapper = new ObjectMapper();
+                List<SelectedRegionMetadata> regionMetaList = mapper.readValue( qImgMetaFile, new TypeReference<>() {} );
                 
-                for( SelectedRegionMetadata info : infoList ) {
-                    addQImg( info ) ;
+                for( SelectedRegionMetadata metadata : regionMetaList ) {
+                    addQuestionImg( metadata ) ;
                 }
                 Collections.sort( qImgList ) ;
-                saveSubImgInfoList() ;
+                saveQuestionImgMetadata() ;
             }
             catch( Exception e ) {
                 log.error( "Error reading image info.", e ) ;
@@ -62,51 +67,61 @@ public class PageImage implements Comparable<PageImage> {
         }
     }
     
-    private void addQImg( SelectedRegionMetadata selRegionMetadata ) {
-        if( isSubImgInfoValid( selRegionMetadata ) ) {
-            File subImgFile = getSubImgFile( selRegionMetadata ) ;
-            QuestionImage questionImage = new QuestionImage( this, subImgFile, selRegionMetadata ) ;
-            addQImg( questionImage, false ) ;
+    private File getQuestionImgMetadataFile() {
+        return new File( projectModel.getWorkDir(),
+                         stripExtension( imgFile ) + ".regions.json" );
+    }
+    
+    private void addQuestionImg( SelectedRegionMetadata imgRegionMetadata ) {
+        if( isQuestionMetadataValid( imgRegionMetadata ) ) {
+            File imgFile = getQuestionImgFile( imgRegionMetadata ) ;
+            QuestionImage qImg = new QuestionImage( this, imgFile, imgRegionMetadata ) ;
+            addQuestionImg( qImg, false ) ;
         }
     }
     
-    public void addQImg( QuestionImage qImg, boolean persist ) {
+    public void addQuestionImg( QuestionImage qImg, boolean persistMetadata ) {
         qImgList.add( qImg ) ;
-        if( persist ) {
-            saveSubImgInfoList() ;
+        if( persistMetadata ) {
+            saveQuestionImgMetadata() ;
         }
     }
     
+    public void deleteQuestionImg( QuestionImage qImg ) {
+        qImgList.remove( qImg ) ;
+        saveQuestionImgMetadata() ;
+    }
+
     // Sub-image information is valid when
     // 1 - The corresponding file exists
     // 2 - The name of the corresponding file is of valid syntax
-    private boolean isSubImgInfoValid( SelectedRegionMetadata selRegionMetadata ) {
+    private boolean isQuestionMetadataValid( SelectedRegionMetadata regionMetadata ) {
         
-        // Validation 1: The file for this sub-image exists
-        File subImgFile = getSubImgFile( selRegionMetadata ) ;
-        if( !subImgFile.exists() ) {
-            log.error( "Sub image does not exist: {}", subImgFile.getName() ) ;
+        // Validation 1: The file for this question-image exists
+        File qImgFile = getQuestionImgFile( regionMetadata ) ;
+        if( !qImgFile.exists() ) {
+            log.error( "Question image does not exist: {}", qImgFile.getName() ) ;
             return false ;
         }
         
         // Validation 2: The name of the file is syntactically valid
         try {
-            new QuestionImage( this, subImgFile, selRegionMetadata ) ;
+            new QuestionImage( this, qImgFile, regionMetadata ) ;
         }
         catch( Exception e ) {
-            log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName(), e ) ;
+            log.error( "Sub image name is not syntactically valid: {}", qImgFile.getName(), e ) ;
             return false ;
         }
         return true ;
     }
     
-    public void saveSubImgInfoList() {
-        File imgInfoFile = getImgInfoFile() ;
+    public void saveQuestionImgMetadata() {
+        File metadataFile = getQuestionImgMetadataFile() ;
         try {
             ObjectMapper mapper = new ObjectMapper() ;
             mapper.enable( SerializationFeature.INDENT_OUTPUT ) ;
             mapper.addMixIn( Rectangle.class, RectangleMixIn.class) ;
-            mapper.writeValue( imgInfoFile, getSubImgInfoList() ) ;
+            mapper.writeValue( metadataFile, getSelectedRegionsMetadataList() ) ;
         }
         catch( Exception e ) {
             log.error( "Error saving image info.", e ) ;
@@ -114,24 +129,19 @@ public class PageImage implements Comparable<PageImage> {
         }
     }
     
-    public List<SelectedRegionMetadata> getSubImgInfoList() {
+    public List<SelectedRegionMetadata> getSelectedRegionsMetadataList() {
         List<SelectedRegionMetadata> list = new ArrayList<>() ;
         for( QuestionImage qImg : qImgList ) {
-            list.add( qImg.getSelRegionMetadata() ) ;
+            list.add( qImg.getImgRegionMetadata() ) ;
         }
         return list ;
     }
     
-    private File getSubImgFile( SelectedRegionMetadata selRegionMetadata ) {
+    private File getQuestionImgFile( SelectedRegionMetadata selRegionMetadata ) {
         String fqFileName = getFQFileName( projectModel.getProjectName(),
                                            this.pageNumber,
                                            selRegionMetadata.getTag() + ".png" ) ;
         return new File( projectModel.getExtractedImgDir(), fqFileName ) ;
-    }
-    
-    private File getImgInfoFile() {
-        return new File( projectModel.getWorkDir(),
-                         stripExtension( imgFile ) + ".regions.json" );
     }
     
     @Override
@@ -139,12 +149,12 @@ public class PageImage implements Comparable<PageImage> {
         return this.pageNumber - page.pageNumber ;
     }
     
-    public List<File> getSubImgFiles() {
-        List<File> subImgFiles = new ArrayList<>() ;
+    public List<File> getQuestionImgFiles() {
+        List<File> files = new ArrayList<>() ;
         for( QuestionImage qImg : qImgList ) {
-            subImgFiles.add( qImg.getQImgFile() ) ;
+            files.add( qImg.getImgFile() ) ;
         }
-        return subImgFiles ;
+        return files ;
     }
     
     public QuestionImage getLastQuestionImg() {
