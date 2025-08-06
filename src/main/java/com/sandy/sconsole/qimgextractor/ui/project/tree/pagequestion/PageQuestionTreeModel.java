@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.tree;
+package com.sandy.sconsole.qimgextractor.ui.project.tree.pagequestion;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
@@ -13,7 +13,7 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 @Slf4j
-public class ProjectTreeModel extends DefaultTreeModel
+public class PageQuestionTreeModel extends DefaultTreeModel
     implements ProjectModelListener {
     
     private final JTree tree ; // Injected
@@ -21,7 +21,7 @@ public class ProjectTreeModel extends DefaultTreeModel
     
     private final DefaultMutableTreeNode rootNode ;
     
-    public ProjectTreeModel( ProjectModel projectModel, JTree tree ) {
+    public PageQuestionTreeModel( ProjectModel projectModel, JTree tree ) {
         
         super( new DefaultMutableTreeNode( projectModel.getProjectName() ) );
         this.projectModel = projectModel;

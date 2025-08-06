@@ -1,6 +1,6 @@
 * Document scenarios  
     * DONE - Region is being added
-    * Region renamed
     * Region deleted
+    * Region renamed
     * Tab selected
     * Activate tab

@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.tree;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.tree.pagequestion.PageQuestionTree;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -15,15 +16,14 @@ import static javax.swing.BorderFactory.*;
 @Slf4j
 public class QuestionImgTagNameEditor extends DefaultTreeCellEditor {
 
-    private final ProjectTreePanel treePanel ;
+    private final PageQuestionTree tree ;
     
     private JTextField editorField ;
     private QuestionImage questionImg ;
     
-    public QuestionImgTagNameEditor( ProjectTreePanel treePanel ) {
-        super( treePanel.getTree(), ( DefaultTreeCellRenderer )treePanel.getTree().getCellRenderer() ) ;
-        this.treePanel = treePanel ;
-        
+    public QuestionImgTagNameEditor( PageQuestionTree tree ) {
+        super( tree, (DefaultTreeCellRenderer)tree.getCellRenderer() ) ;
+        this.tree = tree ;
         initEditorComponent() ;
     }
 
@@ -36,11 +36,11 @@ public class QuestionImgTagNameEditor extends DefaultTreeCellEditor {
         editorField.addActionListener( e -> {
             boolean validEdit = questionImg.isValidTagName( editorField.getText() ) ;
             if( validEdit ) {
-                treePanel.questionImgTagNameChanged( questionImg, editorField.getText() ) ;
+                tree.getProjectPanel().questionImgTagNameChanged( questionImg, editorField.getText() ) ;
                 stopCellEditing() ;
             }
             else {
-                showErrorMsg( treePanel, "Invalid sub image tag name!" ) ;
+                showErrorMsg( tree.getProjectPanel(), "Invalid sub image tag name!" ) ;
             }
         } ) ;
     }
