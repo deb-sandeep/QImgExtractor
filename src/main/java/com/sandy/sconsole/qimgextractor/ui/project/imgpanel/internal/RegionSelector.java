@@ -39,7 +39,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             canvas.selectionStarted() ;
         }
         else {
-            handleAreaSelectedEnded( event ) ;
+            handleRegionSelectedEnded( event ) ;
         }
         canvas.requestFocus() ;
     }
@@ -82,23 +82,34 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         }
     }
 
-    private void handleAreaSelectedEnded( MouseEvent event ) {
+    private void handleRegionSelectedEnded( MouseEvent event ) {
         try {
             if( activeRegion != null ) {
-                int selectionFlag = event.getButton() ;
-                String tag = canvas.subImageSelected( activeRegion.getRegionBounds(), selectionFlag ) ;
+                log.debug( "## Region selected: {}", activeRegion.getRegionBounds() ) ;
+                
+                int selectionEndAction = event.getButton() ;
+                log.debug( "  Selection flag (mouse button): {}", selectionEndAction ) ;
+                
+                String tag = canvas.subImageSelected( activeRegion.getRegionBounds(), selectionEndAction ) ;
+                log.debug( "  Question image tag: {}", tag ) ;
+                
                 if( tag != null ) {
+                    log.debug( "  Adding active region to the list of selected regions." ) ;
                     activeRegion.setTag( tag ) ;
                     oldRegions.add( activeRegion ) ;
+                    
+                    log.debug( "  Informing the canvas that a new region has been selected." ) ;
                     canvas.selectedRegionAdded( activeRegion.getRegionInfo() ) ;
                     canvas.logActiveRegionSize( null ) ;
                 }
+                log.debug( "  Clearing the active region." ) ;
                 clearActiveSelection() ;
             }
         }
         catch( Exception e1 ) {
             log.error( "Raster exception.", e1 ) ;
         }
+        log.debug( "== Region selected ended." ) ;
     }
     
     public void paintSelectedRegions( Graphics2D g ) {

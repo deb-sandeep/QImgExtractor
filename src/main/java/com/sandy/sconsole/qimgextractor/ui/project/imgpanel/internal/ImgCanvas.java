@@ -120,19 +120,22 @@ public class ImgCanvas extends JLabel {
         return scaledImg ;
     }
     
-    String subImageSelected( Rectangle viewRect, int selectionFlag ) {
+    String subImageSelected( Rectangle viewRect, int selectionEndAction ) {
         
         // Reverse scale the view bounds to model bounds.
+        log.debug( "  Scaling the view rectangle to model coordinates" ) ;
         Rectangle modelRect = new Rectangle( viewRect ) ;
         modelRect.x = (int)( viewRect.x / scaleFactor ) ;
         modelRect.y = (int)( viewRect.y / scaleFactor ) ;
         modelRect.width = (int)( viewRect.width / scaleFactor ) ;
         modelRect.height = (int)( viewRect.height / scaleFactor ) ;
+        log.debug( "    Model rectangle: {}. Scale factor: {}", modelRect, scaleFactor ) ;
         
+        log.debug( "  Extracting the sub-image" ) ;
         BufferedImage subImg = originalImage.getSubimage( modelRect.x, modelRect.y,
                                                           modelRect.width, modelRect.height ) ;
         
-        return parent.subImageSelected( subImg, modelRect, selectionFlag ) ;
+        return parent.subImageSelected( subImg, modelRect, selectionEndAction ) ;
     }
     
     public void destroy() {

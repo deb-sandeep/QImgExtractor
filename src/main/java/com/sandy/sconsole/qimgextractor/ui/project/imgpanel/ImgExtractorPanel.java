@@ -170,10 +170,10 @@ public class ImgExtractorPanel extends JPanel
         this.imgCanvas.destroy() ;
     }
     
-    public String subImageSelected( BufferedImage subImg, Rectangle subImgBounds, int selectionFlag ) {
+    public String subImageSelected( BufferedImage subImg, Rectangle subImgBounds, int selectionEndAction ) {
         if( listener != null ) {
             return listener.subImageSelected( pageImg.getImgFile(), subImg,
-                                              subImgBounds, selectionFlag ) ;
+                                              subImgBounds, selectionEndAction ) ;
         }
         else {
             log.warn( "No extracted image listener available." ) ;

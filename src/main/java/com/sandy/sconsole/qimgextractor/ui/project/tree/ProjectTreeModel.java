@@ -53,12 +53,16 @@ public class ProjectTreeModel extends DefaultTreeModel
     
     @Override
     public void newQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
+        log.debug( "   Adding new question image to tree." ) ;
         for( int i = 0; i < rootNode.getChildCount(); i++ ) {
             DefaultMutableTreeNode pageNode = ( DefaultMutableTreeNode )rootNode.getChildAt( i ) ;
             if( pageNode.getUserObject() == pageImage ) {
+                log.debug( "    Found page node for page image." ) ;
+                log.debug( "    Adding question image to page node." ) ;
                 pageNode.add( createQuestionImgNode( qImg ) ) ;
                 nodeStructureChanged( pageNode ) ;
                 
+                log.debug( "    Expanding page node and ensuring it is visible." ) ;
                 TreePath path = new TreePath( pageNode.getPath() ) ;
                 tree.expandPath( path ) ;
                 tree.scrollPathToVisible( path ) ;

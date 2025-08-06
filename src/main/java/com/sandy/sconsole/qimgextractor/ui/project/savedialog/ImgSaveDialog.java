@@ -111,10 +111,15 @@ public class ImgSaveDialog extends JFileChooser {
     }
     
     public void updateRecommendedFileName() {
+        log.debug( "  Updating recommended file name in save dialog." ) ;
         QuestionImage lastSavedImage = projectContext.getLastSavedImg() ;
         if( lastSavedImage != null ) {
             QuestionImage nextQ = lastSavedImage.nextQuestion() ;
-            setSelectedFile( new File( getCurrentDirectory(), nextQ.getShortFileName() ) );
+            setSelectedFile( new File( getCurrentDirectory(), nextQ.getShortFileName() ) ) ;
+            log.debug( "    Recommended file name: {}", nextQ.getShortFileName() ) ;
+        }
+        else {
+            log.debug( "    No last saved image found. Recommended file name will be blank." ) ;
         }
     }
     

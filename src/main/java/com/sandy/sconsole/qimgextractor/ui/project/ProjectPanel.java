@@ -142,48 +142,59 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         selectedFile = saveDialog.getSelectedFile() ;
         
         if( selectedFile == null || selectionEndAction == MouseEvent.BUTTON3 ) {
+            log.debug( "  Recommended file name is null or user has initiated save dialog with right click." ) ;
             int userChoice = saveDialog.showSaveDialog( this ) ;
+            
             if( userChoice == JOptionPane.OK_OPTION ) {
                 selectedFile = saveDialog.getSelectedFile() ;
                 destDir = selectedFile.getParentFile() ;
+                log.debug( "  User accepted file name. {}", selectedFile.getName() ) ;
             }
             else {
+                log.debug( "  User has cancelled the save dialog." ) ;
                 return null ;
             }
         }
         else {
             destDir = selectedFile.getParentFile() ;
+            log.debug( "  Using recommended file name. {}", selectedFile.getName() ) ;
         }
         
         try {
+            log.debug( "  Transforming to fully qualified file name." ) ;
             // 1. Append .png if the user has not specified. Input brevity is allowed.
             String fileName = selectedFile.getName();
             if( !fileName.endsWith( ".png" ) ) {
                 fileName += ".png";
+                log.debug( "    Appending .png to file name." ) ;
             }
             
             // 2. Prepend the source id to make the file name complete
             // and save the image.
             String imgFileName = fileName;
             if( !fileName.startsWith( projectModel.getProjectName() ) ) {
-                imgFileName = getFQFileName( projectModel.getProjectName(), extractPageNumber( imgSrcFile ), fileName );
+                imgFileName = getFQFileName( projectModel.getProjectName(), extractPageNumber( imgSrcFile ), fileName ) ;
+                log.debug( "    Prepending source id '{}' to file name.", projectModel.getProjectName() ) ;
             }
             
-            // 3. Save the image, and other housekeeping tasks.
-            File newImgFile = new File( destDir, imgFileName );
-            ImageIO.write( img, "png", newImgFile );
-            
-            // 4. Parse the file to see if it meets the file name criteria.
+            // 3. Parse the file to see if it meets the file name criteria.
             // If not, then an exception will be thrown.
             // NOTE: THis is a hack - the question image being created is a
             // fake instance with the sole purpose of generating the short
             // file name without the extension - this becomes the tag name
             // which this function returns. DON'T use this qImg instance for
             // anything else.
+            log.debug( "  Parsing file name to see if it meets the file name criteria." ) ;
             PageImage curPageImg = projectModel.getContext().getSelectedPageImg() ;
+            File newImgFile = new File( destDir, imgFileName ) ;
             QuestionImage qImg = new QuestionImage( curPageImg, newImgFile, null );
+
+            // 3. Save the image, and other housekeeping tasks.
+            log.debug( "    File name is valid. Saving image to file '{}'.", newImgFile.getName() ) ;
+            ImageIO.write( img, "png", newImgFile ) ;
             processingId = qImg.getShortFileNameWithoutExtension();
-            mainFrame.logStausMsg( "Saved " + selectedFile.getName() );
+            
+            mainFrame.logStausMsg( "   Saved image file : " + selectedFile.getName() );
             
             nextImgName = qImg.nextQuestion();
         }
@@ -198,6 +209,7 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     @Override
     public void selectedRegionAdded( PageImage pageImage, SelectedRegionMetadata regionMeta ) {
         
+        log.debug( "  Updating the project model with the new question image added." ) ;
         String fqFileName = getFQFileName( projectModel.getProjectName(),
                                            AppUtil.extractPageNumber( pageImage.getImgFile() ),
                                            regionMeta.getTag() + ".png" ) ;
@@ -207,6 +219,8 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         
         pageImage.addQuestionImg( qImg, true ) ;
         projectModel.getContext().setLastSavedImage( qImg ) ;
+        
+        log.debug( "  Notifying the model listeners." ) ;
         projectModel.notifyListenersNewQuestionImgAdded( pageImage, qImg ) ;
     }
     
