@@ -26,7 +26,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     private QID    qId         = null ;
     
     private final PageImage pageImg ; // Injected
-    private final File imgFile ; // Injected
+    private File imgFile ; // Injected
     
     @Getter
     private final SelectedRegionMetadata imgRegionMetadata;

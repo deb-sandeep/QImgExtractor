@@ -163,6 +163,9 @@ public class ProjectModel {
             File newFile = new File( oldFile.getParentFile(), qImg.getLongFileName() ) ;
             FileUtils.moveFile( oldFile, newFile ) ;
             
+            // Set the new file in the question image instance
+            qImg.setImgFile( newFile ) ;
+            
             // Notify the listeners
             notifyListenersTagNameChanged( qImg, oldTagName, newTagName ) ;
         }
@@ -173,7 +176,7 @@ public class ProjectModel {
     }
     
     public void questionImgDeleted( QuestionImage qImg ) {
-        // Delete from the model
+        // Delete it from the model
         qImg.getPageImg().deleteQuestionImg( qImg ) ;
         
         // Notify the listeners - the tree model and the image canvas
