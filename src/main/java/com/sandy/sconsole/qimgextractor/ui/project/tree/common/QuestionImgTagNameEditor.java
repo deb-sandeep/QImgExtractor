@@ -1,7 +1,6 @@
-package com.sandy.sconsole.qimgextractor.ui.project.tree;
+package com.sandy.sconsole.qimgextractor.ui.project.tree.common;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
-import com.sandy.sconsole.qimgextractor.ui.project.tree.pagequestion.PageQuestionTree;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -16,12 +15,12 @@ import static javax.swing.BorderFactory.*;
 @Slf4j
 public class QuestionImgTagNameEditor extends DefaultTreeCellEditor {
 
-    private final PageQuestionTree tree ;
+    private final ProjectBaseTree tree ;
     
     private JTextField editorField ;
     private QuestionImage questionImg ;
     
-    public QuestionImgTagNameEditor( PageQuestionTree tree ) {
+    public QuestionImgTagNameEditor( ProjectBaseTree tree ) {
         super( tree, (DefaultTreeCellRenderer)tree.getCellRenderer() ) ;
         this.tree = tree ;
         initEditorComponent() ;
