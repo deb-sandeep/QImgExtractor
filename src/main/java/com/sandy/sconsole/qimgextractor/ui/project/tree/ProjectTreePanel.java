@@ -1,6 +1,5 @@
 package com.sandy.sconsole.qimgextractor.ui.project.tree;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;

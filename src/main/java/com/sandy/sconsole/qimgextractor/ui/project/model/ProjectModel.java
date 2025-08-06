@@ -1,9 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
-import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -19,15 +17,15 @@ import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 @Slf4j
 public class ProjectModel {
 
-    private final AppConfig appConfig ;
+    private final AppConfig appConfig ; // Injected
     
     @Getter private File baseDir ;
     @Getter private File pagesDir ;
     @Getter private File workDir ;
     @Getter private File extractedImgDir ;
     @Getter private String projectName ;
-    @Getter private ProjectContext context;
-    @Getter private List<PageImage> pageImages ;
+    @Getter private ProjectContext context ;
+    @Getter private final List<PageImage> pageImages = new ArrayList<>() ;
     
     private final List<ProjectModelListener> listeners = new ArrayList<>() ;
     
@@ -36,13 +34,16 @@ public class ProjectModel {
     }
     
     public void initialize( File projectDir ) {
-        log.info( "Initializing project model." ) ;
+        log.info( "  Initializing project model." ) ;
         
         this.baseDir = projectDir ;
         this.pagesDir = new File( baseDir, "pages" ) ;
         this.workDir = new File( projectDir, ".workspace" ) ;
         this.extractedImgDir = new File( projectDir, "question-images" ) ;
+        this.context = new ProjectContext() ;
+        this.pageImages.clear() ;
         this.listeners.clear() ;
+        this.projectName = projectDir.getName() ;
         
         if( !workDir.exists() ) {
             if( workDir.mkdirs() ) {
@@ -56,21 +57,16 @@ public class ProjectModel {
             }
         }
         
-        this.projectName = projectDir.getName() ;
-        
-        context = new ProjectContext() ;
-        
-        log.info( "  Project directory: {}", baseDir.getAbsolutePath() ) ;
-        log.info( "  Pages directory: <project-dir>/{}", pagesDir.getName() ) ;
-        log.info( "  Work directory: <project-dir>/{}", workDir.getName() ) ;
-        log.info( "  Images directory: <project-dir>/{}", extractedImgDir.getName() ) ;
-        log.info( "" ) ;
-        log.info( "  Loading pages...." ) ;
+        log.info( "    Project dir : {}", baseDir.getAbsolutePath() ) ;
+        log.info( "    Pages dir   : <project-dir>/{}", pagesDir.getName() ) ;
+        log.info( "    Work dir    : <project-dir>/{}", workDir.getName() ) ;
+        log.info( "    Images dir  : <project-dir>/{}", extractedImgDir.getName() ) ;
+        log.info( "    Loading pages...." ) ;
         
         loadPageImages() ;
         
         if( appConfig.isRepairProjectOnStartup() ) {
-            log.info( "  Repairing project artefacts...." ) ;
+            log.info( "    Repairing project artefacts...." ) ;
             repairProjectArtefacts() ;
         }
     }
@@ -84,18 +80,17 @@ public class ProjectModel {
     }
     
     // Assumption: Once a project has been loaded, no new pages can be added
-    // to the project. The page images existing in the pages folder forms the
+    // to the project. The page images existing in the pages folder form the
     // domain of pages on which the project will operate.
     private void loadPageImages() {
         
         File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
         assert files != null ;
         
-        pageImages = new ArrayList<>() ;
-        
         QuestionImage lastSavedQImg = null ;
         
         for( File file : files ) {
+            log.info( "      Loading page- {}.", file.getName() + " ..." ) ;
             PageImage pageImg = new PageImage( this, file );
             pageImages.add( pageImg );
             
@@ -136,7 +131,7 @@ public class ProjectModel {
         if( !toDelete.isEmpty() ) {
             for( File file : toDelete ) {
                 if( file.delete() ) {
-                    log.warn( "    Deleted extraneous image file: {}", file.getAbsolutePath() ) ;
+                    log.warn( "      Deleted extraneous image file: <img-dir>/{}", file.getName() ) ;
                 }
             }
         }
@@ -148,11 +143,11 @@ public class ProjectModel {
     
     public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
         try {
-            String oldTagName = qImg.getSubImgInfo().getTag() ;
+            String oldTagName = qImg.getSelRegionMetadata().getTag() ;
             
             // Update qImg with the new tag name
             qImg.setNewTagName( newTagName ) ;
-            qImg.getSubImgInfo().setTag( qImg.getShortFileNameWithoutExtension() ) ;
+            qImg.getSelRegionMetadata().setTag( qImg.getShortFileNameWithoutExtension() ) ;
             qImg.getPageImg().saveSubImgInfoList() ;
             
             // Change the file name

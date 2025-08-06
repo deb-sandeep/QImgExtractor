@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,6 @@ public class PageImage implements Comparable<PageImage> {
     @Getter private final List<QuestionImage> qImgList = new ArrayList<>() ;
     
     PageImage( ProjectModel projectModel, File imgFile ) {
-        log.info( "    Loading page: {}.", imgFile.getName() + " ..." ) ;
         this.projectModel = projectModel ;
         this.imgFile = imgFile ;
         this.pageNumber = extractPageNumber( imgFile ) ;
@@ -47,10 +46,10 @@ public class PageImage implements Comparable<PageImage> {
         File imgInfoFile = getImgInfoFile() ;
         if( imgInfoFile.exists() ) {
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                List<SubImgInfo> infoList = mapper.readValue( imgInfoFile, new TypeReference<>() {} );
+                ObjectMapper                 mapper   = new ObjectMapper();
+                List<SelectedRegionMetadata> infoList = mapper.readValue( imgInfoFile, new TypeReference<>() {} );
                 
-                for( SubImgInfo info : infoList ) {
+                for( SelectedRegionMetadata info : infoList ) {
                     addQImg( info ) ;
                 }
                 Collections.sort( qImgList ) ;
@@ -63,10 +62,10 @@ public class PageImage implements Comparable<PageImage> {
         }
     }
     
-    private void addQImg( SubImgInfo subImgInfo ) {
-        if( isSubImgInfoValid( subImgInfo ) ) {
-            File subImgFile = getSubImgFile( subImgInfo ) ;
-            QuestionImage questionImage = new QuestionImage( this, subImgFile, subImgInfo ) ;
+    private void addQImg( SelectedRegionMetadata selRegionMetadata ) {
+        if( isSubImgInfoValid( selRegionMetadata ) ) {
+            File subImgFile = getSubImgFile( selRegionMetadata ) ;
+            QuestionImage questionImage = new QuestionImage( this, subImgFile, selRegionMetadata ) ;
             addQImg( questionImage, false ) ;
         }
     }
@@ -81,10 +80,10 @@ public class PageImage implements Comparable<PageImage> {
     // Sub-image information is valid when
     // 1 - The corresponding file exists
     // 2 - The name of the corresponding file is of valid syntax
-    private boolean isSubImgInfoValid( SubImgInfo subImgInfo ) {
+    private boolean isSubImgInfoValid( SelectedRegionMetadata selRegionMetadata ) {
         
         // Validation 1: The file for this sub-image exists
-        File subImgFile = getSubImgFile( subImgInfo ) ;
+        File subImgFile = getSubImgFile( selRegionMetadata ) ;
         if( !subImgFile.exists() ) {
             log.error( "Sub image does not exist: {}", subImgFile.getName() ) ;
             return false ;
@@ -92,7 +91,7 @@ public class PageImage implements Comparable<PageImage> {
         
         // Validation 2: The name of the file is syntactically valid
         try {
-            new QuestionImage( this, subImgFile, subImgInfo ) ;
+            new QuestionImage( this, subImgFile, selRegionMetadata ) ;
         }
         catch( Exception e ) {
             log.error( "Sub image name is not syntactically valid: {}", subImgFile.getName(), e ) ;
@@ -115,18 +114,18 @@ public class PageImage implements Comparable<PageImage> {
         }
     }
     
-    public List<SubImgInfo> getSubImgInfoList() {
-        List<SubImgInfo> list = new ArrayList<>() ;
+    public List<SelectedRegionMetadata> getSubImgInfoList() {
+        List<SelectedRegionMetadata> list = new ArrayList<>() ;
         for( QuestionImage qImg : qImgList ) {
-            list.add( qImg.getSubImgInfo() ) ;
+            list.add( qImg.getSelRegionMetadata() ) ;
         }
         return list ;
     }
     
-    private File getSubImgFile( SubImgInfo subImgInfo ) {
+    private File getSubImgFile( SelectedRegionMetadata selRegionMetadata ) {
         String fqFileName = getFQFileName( projectModel.getProjectName(),
                                            this.pageNumber,
-                                           subImgInfo.getTag() + ".png" ) ;
+                                           selRegionMetadata.getTag() + ".png" ) ;
         return new File( projectModel.getExtractedImgDir(), fqFileName ) ;
     }
     

@@ -121,6 +121,7 @@ public class MainFrame extends JFrame {
     }
     
     public void openProject( File projectDir ) {
+        log.info( "## Opening project: {} ...", projectDir.getAbsolutePath() );
         if( isValidProjectDir( projectDir ) ) {
             closeCurrentProject() ;
             

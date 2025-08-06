@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 @Data
 @ToString
-public class SubImgInfo implements Serializable, Cloneable {
+public class SelectedRegionMetadata implements Serializable, Cloneable {
 
     private Point anchorPoint ;
     private String tag ;
@@ -21,8 +21,8 @@ public class SubImgInfo implements Serializable, Cloneable {
     }
     
     @Override
-    public SubImgInfo clone() {
-        SubImgInfo clone = new SubImgInfo();
+    public SelectedRegionMetadata clone() {
+        SelectedRegionMetadata clone = new SelectedRegionMetadata();
         clone.setTag( this.tag );
         clone.setAnchorPoint( new Point( this.anchorPoint ) );
         clone.setRegionBounds( new Rectangle( this.regionBounds ) );

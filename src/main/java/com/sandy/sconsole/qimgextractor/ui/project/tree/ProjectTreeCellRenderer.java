@@ -49,7 +49,7 @@ public class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
     private void renderQuestionImgNode( Component comp, QuestionImage qImg ) {
         DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
         label.setFont( SUB_IMG_FONT ) ;
-        label.setText( qImg.getSubImgInfo().getTag() ) ;
+        label.setText( qImg.getSelRegionMetadata().getTag() ) ;
         label.setIcon( SwingUtils.getIcon( "sub_image" ) );
     }
 }

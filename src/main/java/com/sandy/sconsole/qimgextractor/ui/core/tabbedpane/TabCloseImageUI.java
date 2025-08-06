@@ -79,7 +79,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
     public void mouseDragged( MouseEvent e ) {}
     
     /**
-     * This mouse released method is used for capturing the event of a mouse
+     * This mouse-released method is used for capturing the event of a mouse
      * release over a close button. If the mouse release is over a close
      * button, then the tab is closed.
      * <p>
@@ -93,7 +93,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
         mX = e.getX() ;
         mY = e.getY() ;
         
-        //check if mouse is released over close image
+        //check if the mouse is released over close image
         if ( getMouseOverTabIndex() != -1  && isMouseOnClose() ) {
             int tabIndex = getMouseOverTabIndex() ;
             
@@ -121,7 +121,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
     
     /**
      * This is a private method to change the cursor to a hand in case of
-     * mouse over close button.
+     *  a mouse-over-close button.
      */
     private void setCursor() {
         if ( mouseOverClose ) {
@@ -132,10 +132,10 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
     }
     
     /**
-     * This utility method returns the index of tab on which the mouse is
+     * This utility method returns the index of the tab on which the mouse is
      * hovering.
      *
-     * @return Index of tab mouse of over or -1 if mouse is not over any
+     * @return Index of tab mouse of over or -1 if the mouse is not over any
      *         tab.
      */
     private int getMouseOverTabIndex() {

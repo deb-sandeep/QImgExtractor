@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-public interface SubImgListener {
+public interface ImgCanvasListener {
     /**
      * Returns a not null tag for the image if the image is successfully
      * processed, else null.
@@ -16,22 +16,22 @@ public interface SubImgListener {
      *        unscaled extract from the original image raster data.
      * @param subImgBounds The bounds of the selected image as per the
      *        original image coordinate frame.
-     * @param selectionModifier The mouse button that was pressed to
+     * @param selectionEndAction The mouse button that was pressed to
      *        end the selection.
      */
     String subImageSelected( File imgFile, BufferedImage image,
-                             Rectangle subImgBounds, int selectionModifier );
+                             Rectangle subImgBounds, int selectionEndAction );
     
     /**
      * Called with meta-data of all the selected regions every time
      * a newly selected region is successfully processed.
      */
     void selectedRegionAdded( PageImage pageImg,
-                              SubImgInfo newRegionInfo ) ;
+                              SelectedRegionMetadata regionMeta ) ;
     
     /**
      * If the image extractor canvas is in COMMAND mode and a key other than
-     * Escape is pressed, it is propagated to the listener as command key.
+     * Escape is pressed, it is propagated to the listener as a command key.
      */
     void processCommandKey( int keyCode ) ;
     
@@ -40,9 +40,9 @@ public interface SubImgListener {
     
     /**
      * Called once the image selection is completed. Note that this method is
-     * called even if the selection is cancelled. The subImageSelected()
+     * called even if the selection is canceled. The subImageSelected()
      * method is also called at the completion of selection but only if
-     * the selection was not cancelled by the user.
+     * the selection was not canceled by the user.
      */
     void selectionEnded() ;
 }

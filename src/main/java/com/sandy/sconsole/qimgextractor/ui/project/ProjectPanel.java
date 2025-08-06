@@ -3,8 +3,8 @@ package com.sandy.sconsole.qimgextractor.ui.project;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgListener;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgCanvasListener;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
@@ -29,7 +29,7 @@ import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 import static javax.swing.SwingUtilities.invokeLater;
 
 @Slf4j
-public class ProjectPanel extends JPanel implements SubImgListener {
+public class ProjectPanel extends JPanel implements ImgCanvasListener {
     
     private final MainFrame mainFrame ;
     private final ImgSaveDialog saveDialog ;
@@ -132,7 +132,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     
     @Override
     public String subImageSelected( File imgSrcFile, BufferedImage img,
-                                    Rectangle subImgBounds, int selectionModifier ) {
+                                    Rectangle subImgBounds, int selectionEndAction ) {
         
         String processingId = null ;
         File selectedFile ;
@@ -141,7 +141,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         saveDialog.updateRecommendedFileName() ;
         selectedFile = saveDialog.getSelectedFile() ;
         
-        if( selectedFile == null || selectionModifier == MouseEvent.BUTTON3 ) {
+        if( selectedFile == null || selectionEndAction == MouseEvent.BUTTON3 ) {
             int userChoice = saveDialog.showSaveDialog( this ) ;
             if( userChoice == JOptionPane.OK_OPTION ) {
                 selectedFile = saveDialog.getSelectedFile() ;
@@ -196,14 +196,14 @@ public class ProjectPanel extends JPanel implements SubImgListener {
     }
     
     @Override
-    public void selectedRegionAdded( PageImage pageImage, SubImgInfo newRegionInfo ) {
+    public void selectedRegionAdded( PageImage pageImage, SelectedRegionMetadata regionMeta ) {
         
         String fqFileName = getFQFileName( projectModel.getProjectName(),
                                            AppUtil.extractPageNumber( pageImage.getImgFile() ),
-                                           newRegionInfo.getTag() + ".png" ) ;
+                                           regionMeta.getTag() + ".png" ) ;
         File imgFile = new File( projectModel.getExtractedImgDir(), fqFileName ) ;
         
-        QuestionImage qImg = new QuestionImage( pageImage, imgFile, newRegionInfo );
+        QuestionImage qImg = new QuestionImage( pageImage, imgFile, regionMeta );
         
         pageImage.addQImg( qImg, true ) ;
         projectModel.getContext().setLastSavedImage( qImg ) ;
@@ -228,7 +228,7 @@ public class ProjectPanel extends JPanel implements SubImgListener {
         imgPanel.clearCurSelTagName() ;
     }
     
-    public void questionImgDeleted( SubImgInfo subImgInfo ) {
+    public void questionImgDeleted( SelectedRegionMetadata selRegionMetadata ) {
         // TODO:
     }
     

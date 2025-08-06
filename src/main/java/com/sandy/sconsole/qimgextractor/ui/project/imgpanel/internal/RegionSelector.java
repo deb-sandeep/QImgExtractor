@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
@@ -14,7 +14,7 @@ import java.util.List;
 @Slf4j
 class RegionSelector extends MouseAdapter implements MouseMotionListener {
     
-    private final ImageCanvas canvas ;
+    private final ImgCanvas canvas ;
     
     // Region select mode is when the canvas is in the process of drawing a bounding
     // rectangle. If the mouse is pressed when the canvas is not in marking
@@ -28,7 +28,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     
     private final List<SelectedRegion> oldRegions = new ArrayList<>() ;
     
-    RegionSelector( ImageCanvas canvas ) {
+    RegionSelector( ImgCanvas canvas ) {
         this.canvas = canvas ;
     }
     
@@ -54,7 +54,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         canvas.logMousePosition( event.getPoint() ) ;
     }
     
-    public void setSelectedRegions( List<SubImgInfo> infoList ) {
+    public void setSelectedRegions( List<SelectedRegionMetadata> infoList ) {
         oldRegions.clear() ;
         if( infoList != null ) {
             infoList.forEach( info -> oldRegions.add( new SelectedRegion( info ) ) ) ;

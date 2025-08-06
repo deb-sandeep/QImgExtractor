@@ -3,7 +3,6 @@ package com.sandy.sconsole.qimgextractor.util;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +15,11 @@ public class AppState implements Serializable {
 
     @JsonIgnore
     @Setter
-    private QImgExtractor app ;
+    private transient File persistenceFile ;
     
     @JsonIgnore
     @Setter
-    private boolean isInitialized = false ;
+    private transient boolean isInitialized = false ;
     
     @Getter
     private String lastOpenedProjectDir ;
@@ -33,10 +32,9 @@ public class AppState implements Serializable {
     private void saveAppState() {
         if( isInitialized ) {
             try {
-                File stateFile = new File( app.getAppConfig().getAppWorkspaceDir(), "app-state.json" ) ;
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.enable( SerializationFeature.INDENT_OUTPUT ) ;
-                mapper.writeValue( stateFile, this );
+                mapper.writeValue( persistenceFile, this );
             }
             catch( Exception e ) {
                 log.error( "Error saving app state", e );

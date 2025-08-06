@@ -5,7 +5,7 @@
         <encoder>
             <pattern>
                 <!--%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{15}.%M - %msg%n-->
-                %d{dd-MM HH:mm:ss} %-5level %-3.3L %-30.30logger{0} - %M - %msg%n
+                %-5level %-3.3L %-25.25logger{0} : %msg%n
             </pattern>
         </encoder>
     </appender>

@@ -42,9 +42,9 @@ public class QImgExtractor
     // ---------------- Instance methods start ---------------------------------
     
     @Getter
-    private final AppConfig appConfig ;
+    private final AppConfig appConfig ; // Injected
     
-    private final MainFrame mainFrame ;
+    private final MainFrame mainFrame ; // Injected
     
     private AppState appState ;
     
@@ -60,27 +60,26 @@ public class QImgExtractor
     }
     
     private void initialize() {
+        log.debug( "## Initializing QImgExtractor app." ) ;
         
-        log.debug( "## Initializing QImgExtractor app. >" ) ;
+        log.debug( "  Initializing AppState" ) ;
+        loadAppState() ;
         
-        log.debug( "- Initializing AppState" ) ;
-        this.loadAppState() ;
-        
-        log.debug( "- Initializing MainFrame" ) ;
+        log.debug( "  Initializing MainFrame" ) ;
         SwingUtilities.invokeLater( () -> {
             mainFrame.setVisible( true ) ;
-            openLastOpenedProject() ;
+            openMostRecentProject() ;
         } ) ;
         
-        log.debug( "<< ## QImgExtractor initialization complete" ) ;
+        log.debug( "  QImgExtractor initialization complete" ) ;
     }
     
-    private void openLastOpenedProject() {
-        String lastOpenedProjectDirPath = appState.getLastOpenedProjectDir() ;
-        if( lastOpenedProjectDirPath != null ) {
-            File lastOpenedProjectDir = new File( lastOpenedProjectDirPath ) ;
-            if( lastOpenedProjectDir.exists() ) {
-                mainFrame.openProject( lastOpenedProjectDir ) ;
+    private void openMostRecentProject() {
+        String dirPath = appState.getLastOpenedProjectDir() ;
+        if( dirPath != null ) {
+            File dir = new File( dirPath ) ;
+            if( dir.exists() ) {
+                mainFrame.openProject( dir ) ;
             }
         }
     }
@@ -100,7 +99,7 @@ public class QImgExtractor
         else {
             this.appState = new AppState() ;
         }
-        this.appState.setApp( this ) ;
+        this.appState.setPersistenceFile( appStateFile ) ;
         this.appState.setInitialized( true ) ;
     }
     
@@ -112,9 +111,9 @@ public class QImgExtractor
         System.setProperty( "java.awt.headless", "false" ) ;
         SpringApplication.run( QImgExtractor.class, args ) ;
         
-        log.debug( "Starting QImgExtractor.." ) ;
-        QImgExtractor app = getBean( QImgExtractor.class ) ;
+        log.debug( "Starting QImgExtractor application.." ) ;
         try {
+            QImgExtractor app = getBean( QImgExtractor.class ) ;
             app.initialize() ;
         }
         catch( Exception e ) {

@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,18 +29,18 @@ public class QuestionImage implements Comparable<QuestionImage> {
     private final File qImgFile ;
     
     @Getter
-    private final SubImgInfo subImgInfo ;
+    private final SelectedRegionMetadata selRegionMetadata;
     
-    public QuestionImage( PageImage pageImg, File qImgFile, SubImgInfo subImgInfo )  {
+    public QuestionImage( PageImage pageImg, File qImgFile, SelectedRegionMetadata selRegionMetadata )  {
         this.pageImg = pageImg ;
         this.qImgFile = qImgFile ;
-        this.subImgInfo = subImgInfo ;
+        this.selRegionMetadata = selRegionMetadata;
         parseFileName( qImgFile.getName() ) ;
     }
     
     public QuestionImage getClone() {
         File file = new File( pageImg.getImgFile().getParentFile(), getLongFileName() ) ;
-        return new QuestionImage( pageImg, file, subImgInfo ) ;
+        return new QuestionImage( pageImg, file, selRegionMetadata ) ;
     }
     
     private void parseFileName( String fileName )

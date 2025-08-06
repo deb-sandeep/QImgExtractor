@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ class SelectedRegion {
         repaintBounds = new Rectangle( anchorPoint ) ;
     }
     
-    SelectedRegion( SubImgInfo regionInfo ) {
+    SelectedRegion( SelectedRegionMetadata regionInfo ) {
         anchorPoint = regionInfo.getAnchorPoint() ;
         tag = regionInfo.getTag() ;
         regionBounds = regionInfo.getRegionBounds() ;
@@ -36,8 +36,8 @@ class SelectedRegion {
                                        regionBounds.width + 2, regionBounds.height + 2 ) ;
     }
     
-    public SubImgInfo getRegionInfo() {
-        SubImgInfo info = new SubImgInfo() ;
+    public SelectedRegionMetadata getRegionInfo() {
+        SelectedRegionMetadata info = new SelectedRegionMetadata() ;
         info.setAnchorPoint( anchorPoint ) ;
         info.setTag( tag ) ;
         info.setRegionBounds( regionBounds ) ;

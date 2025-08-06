@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal.ImageCanvas;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal.ImgCanvas;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.CustomWidgetStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
@@ -24,8 +24,8 @@ public class ImgExtractorPanel extends JPanel
     
     private static final double MAX_SCALE = 2.5 ;
     
-    private ImageCanvas imgCanvas ;
-    private JSlider imgScaleSlider = null ;
+    private ImgCanvas imgCanvas ;
+    private JSlider   imgScaleSlider = null ;
     private JLabel sliderValueLabel = null ;
     private JScrollPane imgScrollPane = null ;
     private StatusBar statusBar = null ;
@@ -38,9 +38,9 @@ public class ImgExtractorPanel extends JPanel
     
     @Getter private PageImage pageImg = null ;
     
-    private SubImgListener listener = null ;
+    private ImgCanvasListener listener = null ;
     
-    public ImgExtractorPanel( SubImgListener listener ) {
+    public ImgExtractorPanel( ImgCanvasListener listener ) {
         super( new BorderLayout() ) ;
         setUpUI() ;
         this.listener = listener ;
@@ -48,7 +48,7 @@ public class ImgExtractorPanel extends JPanel
     
     private void setUpUI() {
         
-        imgCanvas = new ImageCanvas( this ) ;
+        imgCanvas = new ImgCanvas( this ) ;
         imgCanvas.setOpaque( true ) ;
         imgCanvas.setBackground( new Color( 240, 240, 240 ) ) ;
         imgCanvas.setHorizontalTextPosition( JLabel.LEFT ) ;
@@ -181,7 +181,7 @@ public class ImgExtractorPanel extends JPanel
         return null ;
     }
     
-    public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
+    public void selectedRegionAdded( SelectedRegionMetadata newRegionInfo ) {
         listener.selectedRegionAdded( pageImg, newRegionInfo ) ;
     }
     

@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SubImgInfo;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 @Slf4j
-public class ImageCanvas extends JLabel {
+public class ImgCanvas extends JLabel {
     
     public enum OpMode { EDITOR, COMMAND }
     
@@ -29,7 +29,7 @@ public class ImageCanvas extends JLabel {
     
     @Getter private double scaleFactor = 1.0f ;
 
-    public ImageCanvas( ImgExtractorPanel parent ) {
+    public ImgCanvas( ImgExtractorPanel parent ) {
         
         this.parent = parent ;
         
@@ -70,12 +70,12 @@ public class ImageCanvas extends JLabel {
     }
     
     public void setOriginalImage( BufferedImage img,
-                                  List<SubImgInfo> subImgInfoList  ) {
+                                  List<SelectedRegionMetadata> selRegionMetadataList ) {
         originalImage = img ;
         scaledImg = img ;
         scaleFactor = 1.0f ;
         regionSelector.clearActiveSelection() ;
-        regionSelector.setSelectedRegions( subImgInfoList ) ;
+        regionSelector.setSelectedRegions( selRegionMetadataList ) ;
     }
     
     public void scaleImage( double factor ) {
@@ -152,7 +152,7 @@ public class ImageCanvas extends JLabel {
         regionSelector.renameSelectedRegion( oldTag, newTag ) ;
     }
     
-    public void selectedRegionAdded( SubImgInfo newRegionInfo ) {
+    public void selectedRegionAdded( SelectedRegionMetadata newRegionInfo ) {
         // The region info returned is in the image coordinates of the view. The view
         // is/might be scaled. So before returning information which is relative to original
         // image coordinates, we have to apply a reverse scaling factor.
