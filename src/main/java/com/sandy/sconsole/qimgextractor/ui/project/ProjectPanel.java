@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -111,6 +112,7 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         if( selectedPanel != null ) {
             projectModel.getContext()
                         .setSelectedPageImg( selectedPanel.getPageImg() ) ;
+            selectedPanel.requestFocus() ;
         }
     }
     
@@ -228,7 +230,10 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     
     @Override
     public void processImgCanvasCommandKey( int keyCode ) {
-    
+        switch( keyCode ) {
+            case KeyEvent.VK_N -> showNextTab() ;
+            case KeyEvent.VK_X -> closeCurrentTab() ;
+        }
     }
     
     @Override
@@ -269,5 +274,19 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
                 invokeLater( () -> tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ) ;
             }
         }) ;
+    }
+
+    public void showNextTab() {
+        int curTabIndex = tabPane.getSelectedIndex() ;
+        if( curTabIndex < tabPane.getTabCount()-1 ) {
+            tabPane.setSelectedIndex( curTabIndex + 1 ) ;
+        }
+    }
+    
+    public void closeCurrentTab() {
+        int curTabIndex = tabPane.getSelectedIndex() ;
+        if( curTabIndex >= 0 ) {
+            tabPane.removeTabAt( curTabIndex ) ;
+        }
     }
 }

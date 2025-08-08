@@ -1,6 +1,5 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgCanvasListener;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
@@ -42,11 +41,10 @@ public class ImgCanvas extends JLabel {
         
         setBackground( Color.WHITE ) ;
         
-        regionSelector = new RegionSelector( this ) ;
+        regionSelector = new RegionSelector( this, listener ) ;
         addMouseListener( regionSelector ) ;
         addMouseMotionListener( regionSelector ) ;
         addEventListeners() ;
-        parent.requestFocus() ;
     }
     
     private void addEventListeners() {
@@ -69,7 +67,7 @@ public class ImgCanvas extends JLabel {
                         setOpMode( OpMode.EDITOR ) ;
                     }
                     else {
-                        parent.emitCommandKey( keyCode ) ;
+                        listener.processImgCanvasCommandKey( keyCode ) ;
                     }
                 }
             }
@@ -196,13 +194,5 @@ public class ImgCanvas extends JLabel {
     public void logMousePosition( Point point ) {
         parent.logMousePosition( (int)(point.x/scaleFactor),
                                  (int)(point.y/scaleFactor) ) ;
-    }
-    
-    public void selectionStarted() {
-        parent.selectionStarted() ;
-    }
-    
-    public void selectionEnded() {
-        parent.selectionEnded() ;
     }
 }

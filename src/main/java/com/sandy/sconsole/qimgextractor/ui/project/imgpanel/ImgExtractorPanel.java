@@ -201,18 +201,6 @@ public class ImgExtractorPanel extends JPanel
         mousePosStatus.log( x + ", " + y ) ;
     }
     
-    public void emitCommandKey( int keyCode ) {
-        listener.processImgCanvasCommandKey( keyCode ) ;
-    }
-    
-    public void selectionStarted() {
-        listener.selectionStarted() ;
-    }
-    
-    public void selectionEnded() {
-        listener.selectionEnded() ;
-    }
-    
     public void setCurSelTagName( String tagName ) {
         curSelTagNameStatus.log( tagName ) ;
     }
@@ -247,6 +235,14 @@ public class ImgExtractorPanel extends JPanel
         }
         else {
             partModeSBComponent.clear() ;
+        }
+    }
+    
+    @Override
+    public void requestFocus() {
+        super.requestFocus() ;
+        if( imgCanvas != null ) {
+            SwingUtilities.invokeLater( () -> imgCanvas.requestFocus() ) ;
         }
     }
 }

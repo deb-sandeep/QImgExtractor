@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgCanvasListener;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,9 +28,11 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     private SelectedRegion activeRegion = null ;
     
     private final List<SelectedRegion> oldRegions = new ArrayList<>() ;
+    private final ImgCanvasListener    listener ;
     
-    RegionSelector( ImgCanvas canvas ) {
+    RegionSelector( ImgCanvas canvas, ImgCanvasListener listener ) {
         this.canvas = canvas ;
+        this.listener = listener ;
     }
     
     public void mousePressed( MouseEvent event ) {
@@ -37,7 +40,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             if( !inRegionSelectMode ) {
                 inRegionSelectMode = true ;
                 activeRegion = new SelectedRegion( event.getPoint() ) ;
-                canvas.selectionStarted() ;
+                listener.selectionStarted() ;
             }
             else {
                 handleRegionSelectedEnded( event ) ;
@@ -132,7 +135,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             canvas.repaint( activeRegion.getRepaintBounds() ) ;
             activeRegion = null ;
             canvas.logActiveRegionSize( null ) ;
-            canvas.selectionEnded() ;
+            listener.selectionEnded() ;
         }
     }
     
