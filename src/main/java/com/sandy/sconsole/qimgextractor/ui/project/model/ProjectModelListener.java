@@ -7,4 +7,6 @@ public interface ProjectModelListener {
     void questionTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) ;
     
     void questionImgDeleted( QuestionImage qImg ) ;
+    
+    void partSelectionModeUpdated( boolean newMode ) ;
 }

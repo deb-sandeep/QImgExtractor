@@ -39,6 +39,10 @@ public class QImgExtractor
         return APP_CTX.getBean( QImgExtractor.class ).appState ;
     }
     
+    public static void logStatusMsg( String msg ) {
+        APP_CTX.getBean( MainFrame.class ).logStausMsg( msg ) ;
+    }
+    
     // ---------------- Instance methods start ---------------------------------
     
     @Getter

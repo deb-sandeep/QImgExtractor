@@ -33,13 +33,15 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     }
     
     public void mousePressed( MouseEvent event ) {
-        if( !inRegionSelectMode ) {
-            inRegionSelectMode = true ;
-            activeRegion = new SelectedRegion( event.getPoint() ) ;
-            canvas.selectionStarted() ;
-        }
-        else {
-            handleRegionSelectedEnded( event ) ;
+        if( canvas.isInEditMode() ) {
+            if( !inRegionSelectMode ) {
+                inRegionSelectMode = true ;
+                activeRegion = new SelectedRegion( event.getPoint() ) ;
+                canvas.selectionStarted() ;
+            }
+            else {
+                handleRegionSelectedEnded( event ) ;
+            }
         }
         canvas.requestFocus() ;
     }

@@ -99,4 +99,7 @@ public class PageQuestionTreeModel extends DefaultTreeModel
             }
         }
     }
+    
+    @Override
+    public void partSelectionModeUpdated( boolean newMode ) {/* Ignore */}
 }

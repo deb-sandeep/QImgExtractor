@@ -1,7 +1,10 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
+import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgCanvasListener;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,12 +17,15 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
+import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
+
 @Slf4j
 public class ImgCanvas extends JLabel {
     
     public enum OpMode { EDITOR, COMMAND }
     
     private final ImgExtractorPanel parent ;
+    private final ImgCanvasListener listener ;
     private final RegionSelector regionSelector;
     
     private BufferedImage originalImage = null ;
@@ -29,9 +35,10 @@ public class ImgCanvas extends JLabel {
     
     @Getter private double scaleFactor = 1.0f ;
 
-    public ImgCanvas( ImgExtractorPanel parent ) {
+    public ImgCanvas( ImgExtractorPanel parent, ImgCanvasListener listener ) {
         
         this.parent = parent ;
+        this.listener = listener ;
         
         setBackground( Color.WHITE ) ;
         
@@ -45,11 +52,16 @@ public class ImgCanvas extends JLabel {
     private void addEventListeners() {
         super.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
+                
+                ProjectContext ctx = getProjectModel().getContext() ;
+                
                 int keyCode = e.getKeyCode() ;
                 if( opMode == OpMode.EDITOR ) {
                     switch ( keyCode ) {
                         case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.COMMAND ) ;
                         case KeyEvent.VK_BACK_SPACE -> regionSelector.clearActiveSelection() ;
+                        case KeyEvent.VK_P -> ctx.setPartSelectionModeEnabled( !ctx.isPartSelectionModeEnabled() ) ;
+                        case KeyEvent.VK_E -> ctx.setForceNextImgFlag( true ) ;
                     }
                 }
                 else if( opMode == OpMode.COMMAND ) {
@@ -76,6 +88,10 @@ public class ImgCanvas extends JLabel {
         scaleFactor = 1.0f ;
         regionSelector.clearActiveSelection() ;
         regionSelector.setSelectedRegions( selRegionMetadataList ) ;
+    }
+    
+    public boolean isInEditMode() {
+        return opMode == OpMode.EDITOR ;
     }
     
     public void scaleImage( double factor ) {

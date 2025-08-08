@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public interface ImgCanvasListener {
+    
     /**
      * Returns a not null tag for the image if the image is successfully
      * processed, else null.
@@ -33,7 +34,7 @@ public interface ImgCanvasListener {
      * If the image extractor canvas is in COMMAND mode and a key other than
      * Escape is pressed, it is propagated to the listener as a command key.
      */
-    void processCommandKey( int keyCode ) ;
+    void processImgCanvasCommandKey( int keyCode ) ;
     
     /** Called once the image selection is initiated. */
     void selectionStarted() ;

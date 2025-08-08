@@ -25,7 +25,7 @@ public class ImgExtractorPanel extends JPanel
     private static final double MAX_SCALE = 2.5 ;
     
     private ImgCanvas imgCanvas ;
-    private JSlider   imgScaleSlider = null ;
+    private JSlider imgScaleSlider = null ;
     private JLabel sliderValueLabel = null ;
     private JScrollPane imgScrollPane = null ;
     private StatusBar statusBar = null ;
@@ -35,20 +35,21 @@ public class ImgExtractorPanel extends JPanel
     private MessageStatusComponent fileNameStatus = null ;
     private MessageStatusComponent mousePosStatus = null ;
     private MessageStatusComponent curSelTagNameStatus = null ;
+    private MessageStatusComponent partModeSBComponent = null ;
+    
+    private final ImgCanvasListener listener ;
     
     @Getter private PageImage pageImg = null ;
     
-    private ImgCanvasListener listener = null ;
-    
     public ImgExtractorPanel( ImgCanvasListener listener ) {
         super( new BorderLayout() ) ;
-        setUpUI() ;
         this.listener = listener ;
+        setUpUI() ;
     }
     
     private void setUpUI() {
         
-        imgCanvas = new ImgCanvas( this ) ;
+        imgCanvas = new ImgCanvas( this, listener ) ;
         imgCanvas.setOpaque( true ) ;
         imgCanvas.setBackground( new Color( 240, 240, 240 ) ) ;
         imgCanvas.setHorizontalTextPosition( JLabel.LEFT ) ;
@@ -85,6 +86,8 @@ public class ImgExtractorPanel extends JPanel
         modeStatus = new MessageStatusComponent() ;
         modeStatus.log( "EDITOR MODE" ) ;
         
+        partModeSBComponent = new MessageStatusComponent() ;
+        
         fileNameStatus = new MessageStatusComponent() ;
         fileNameStatus.setForeground( Color.GRAY ) ;
         
@@ -99,6 +102,7 @@ public class ImgExtractorPanel extends JPanel
         CustomWidgetStatusComponent zoomStatusWidget = new CustomWidgetStatusComponent( getSliderWidget() );
         
         statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( partModeSBComponent, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( curSelTagNameStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( mousePosStatus, StatusBar.Direction.EAST ) ;
@@ -198,7 +202,7 @@ public class ImgExtractorPanel extends JPanel
     }
     
     public void emitCommandKey( int keyCode ) {
-        listener.processCommandKey( keyCode ) ;
+        listener.processImgCanvasCommandKey( keyCode ) ;
     }
     
     public void selectionStarted() {
@@ -233,6 +237,16 @@ public class ImgExtractorPanel extends JPanel
         String tagName = qImg.getImgRegionMetadata().getTag() ;
         if( imgCanvas.containsTag( tagName ) ) {
             imgCanvas.deleteSelectedRegion( qImg.getImgRegionMetadata().getTag() ) ;
+        }
+    }
+    
+    @Override
+    public void partSelectionModeUpdated( boolean newMode ) {
+        if( newMode ) {
+            partModeSBComponent.log( "PART MODE" ) ;
+        }
+        else {
+            partModeSBComponent.clear() ;
         }
     }
 }

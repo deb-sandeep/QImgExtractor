@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Stack;
 
+import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
 import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.*;
 
 @Data
@@ -192,17 +193,28 @@ public class QuestionImage implements Comparable<QuestionImage> {
     
     public QuestionImage nextQuestion() {
         QuestionImage q = this.getClone() ;
+        ProjectContext context = getProjectModel().getContext() ;
+        
         if( q.isPart() ) {
-            if( q.partNumber >= 2 ) {
-                q.partNumber = -1 ;
-                q.getQId().incrementQuestionNumber() ;
+            if( context.isPartSelectionModeEnabled() ) {
+                if( context.isForceNextImgFlag() ) {
+                    q.partNumber = 1 ;
+                    q.getQId().incrementQuestionNumber() ;
+                }
+                else {
+                    q.partNumber++ ;
+                }
             }
             else {
-                q.partNumber++ ;
+                q.partNumber = -1 ;
+                q.getQId().incrementQuestionNumber() ;
             }
         }
         else {
             q.getQId().incrementQuestionNumber() ;
+            if( context.isPartSelectionModeEnabled() ) {
+                q.partNumber = 1 ;
+            }
         }
         return q ;
     }
@@ -225,16 +237,23 @@ public class QuestionImage implements Comparable<QuestionImage> {
                 this.subjectCode = SUBJECT_SEQ.get( idx-1 ) ;
             }
         }
+        
         this.partNumber = -1 ;
+        ProjectContext context = getProjectModel().getContext() ;
+        context.setPartSelectionModeEnabled( false ) ;
     }
     
     public void mutatePartSequence( boolean endSequence ) {
+        
+        ProjectContext context = getProjectModel().getContext() ;
         if( endSequence ) {
             this.partNumber = -1 ;
+            context.setPartSelectionModeEnabled( false ) ;
         }
         else {
             if( this.partNumber == -1 ) {
                 this.partNumber = 1 ;
+                context.setPartSelectionModeEnabled( true ) ;
             }
             else {
                 this.partNumber++ ;

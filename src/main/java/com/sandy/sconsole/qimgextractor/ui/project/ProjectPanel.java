@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project;
 
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
@@ -33,43 +34,32 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     
     private final MainFrame mainFrame ;
     private final ImgSaveDialog saveDialog ;
-    
-    private CloseableTabbedPane tabPane;
-    private ProjectTreePanel pageTree ;
+    private final CloseableTabbedPane tabPane;
     
     @Getter
     private final ProjectModel projectModel ;
     
     private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>();
     
-    private transient QuestionImage nextImgName = null ;
-
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         
         this.projectModel = model ;
         this.mainFrame = mainFrame ;
         this.saveDialog = new ImgSaveDialog( model ) ;
-        
-        QuestionImage lastSavedImg = model.getContext().getLastSavedImg() ;
-        if( lastSavedImg != null ) {
-            this.nextImgName = lastSavedImg.nextQuestion() ;
-        }
+        this.tabPane = new CloseableTabbedPane() ;
         
         setUpUI() ;
         new Thread( this::loadPageImages ).start() ;
     }
     
     private void setUpUI() {
-        setLayout( new BorderLayout() );
+        setLayout( new BorderLayout() ) ;
         
-        tabPane = new CloseableTabbedPane() ;
         tabPane.addChangeListener( e -> tabSelectionChanged() ) ;
         tabPane.addTabCloseListener( (tabIndex, component ) -> tabClosing( component ) ) ;
         
-        pageTree = new ProjectTreePanel( this ) ;
-        
         add( tabPane, BorderLayout.CENTER ) ;
-        add( pageTree, BorderLayout.WEST ) ;
+        add( new ProjectTreePanel( this ), BorderLayout.WEST ) ;
     }
     
     private void loadPageImages() {
@@ -187,16 +177,28 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
             log.debug( "  Parsing file name to see if it meets the file name criteria." ) ;
             PageImage curPageImg = projectModel.getContext().getSelectedPageImg() ;
             File newImgFile = new File( destDir, imgFileName ) ;
-            QuestionImage qImg = new QuestionImage( curPageImg, newImgFile, null );
+            QuestionImage qImg = new QuestionImage( curPageImg, newImgFile, null ) ;
+            
+            // 4. If the file name is valid, check if the user has turned off part mode
+            // while naming the file. If so, update the context accordingly.
+            ProjectContext ctx = projectModel.getContext() ;
+            if( ctx.isPartSelectionModeEnabled() ) {
+                if( !qImg.isPart() ) ctx.setPartSelectionModeEnabled( false ) ;
+            }
+            else {
+                if( qImg.isPart() ) ctx.setPartSelectionModeEnabled( true ) ;
+            }
+            
 
-            // 3. Save the image, and other housekeeping tasks.
+            // 5. Save the image, and other housekeeping tasks.
             log.debug( "    File name is valid. Saving image to file '{}'.", newImgFile.getName() ) ;
             ImageIO.write( img, "png", newImgFile ) ;
-            processingId = qImg.getShortFileNameWithoutExtension();
+            processingId = qImg.getShortFileNameWithoutExtension() ;
+            
+            // 6. Reset the force next question flag
+            projectModel.getContext().setForceNextImgFlag( false ) ;
             
             mainFrame.logStausMsg( "   Saved image file : " + selectedFile.getName() );
-            
-            nextImgName = qImg.nextQuestion();
         }
         catch( Exception e ) {
             log.error( "Error saving image.", e );
@@ -225,14 +227,18 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     }
     
     @Override
-    public void processCommandKey( int keyCode ) {
+    public void processImgCanvasCommandKey( int keyCode ) {
+    
     }
     
     @Override
     public void selectionStarted() {
         ImgExtractorPanel imgPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
-        if( nextImgName != null ) {
-            imgPanel.setCurSelTagName( nextImgName.getShortFileNameWithoutExtension() ) ;
+        QuestionImage lastSavedImg = projectModel.getContext().getLastSavedImg() ;
+        
+        if( lastSavedImg != null ) {
+            QuestionImage nextQ = lastSavedImg.nextQuestion() ;
+            imgPanel.setCurSelTagName( nextQ.getShortFileNameWithoutExtension() ) ;
         }
     }
     

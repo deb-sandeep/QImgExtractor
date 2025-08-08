@@ -40,7 +40,7 @@ public class ProjectModel {
         this.pagesDir = new File( baseDir, "pages" ) ;
         this.workDir = new File( projectDir, ".workspace" ) ;
         this.extractedImgDir = new File( projectDir, "question-images" ) ;
-        this.context = new ProjectContext() ;
+        this.context = new ProjectContext( this ) ;
         this.pageImages.clear() ;
         this.listeners.clear() ;
         this.projectName = projectDir.getName() ;
@@ -149,6 +149,10 @@ public class ProjectModel {
         listeners.forEach( l -> l.questionImgDeleted( qImg ) ) ;
     }
     
+    public void notifyListenersPartSelectionModeUpdated( boolean value ) {
+        listeners.forEach( l -> l.partSelectionModeUpdated( value ) ) ;
+    }
+
     public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
         try {
             String oldTagName = qImg.getImgRegionMetadata().getTag() ;
@@ -191,4 +195,5 @@ public class ProjectModel {
             log.warn( "Failed to delete question image file: <img-dir>/{}", imgFile.getName() ) ;
         }
     }
+    
 }

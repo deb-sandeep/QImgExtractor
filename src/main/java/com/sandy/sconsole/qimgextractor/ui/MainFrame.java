@@ -28,7 +28,6 @@ public class MainFrame extends JFrame {
     private JFileChooser projectDirChooser ;
     private ProjectPanel currentProjectPanel ;
     
-    private MessageStatusComponent projectNameSBComponent ;
     private MessageStatusComponent messageSBComponent ;
     
     public MainFrame( AppConfig appConfig, ProjectModel projectModel ) {
@@ -50,7 +49,7 @@ public class MainFrame extends JFrame {
         
         Container contentPane = getContentPane() ;
         contentPane.setLayout( new BorderLayout() ) ;
-        contentPane.add( createStatusBar(), BorderLayout.NORTH ) ;
+        contentPane.add( createStatusBar(), BorderLayout.SOUTH ) ;
     }
     
     private void setUpProjectDirChooser() {
@@ -63,19 +62,12 @@ public class MainFrame extends JFrame {
     
     private StatusBar createStatusBar() {
         
-        projectNameSBComponent = new MessageStatusComponent() ;
-        projectNameSBComponent.setBorder( null ) ;
-        projectNameSBComponent.setForeground( Color.BLUE ) ;
-        projectNameSBComponent.setFont( UITheme.STATUS_FONT );
-        projectNameSBComponent.log( "Choose project directory" ) ;
-        
         messageSBComponent = new MessageStatusComponent() ;
         messageSBComponent.setForeground( Color.DARK_GRAY ) ;
         messageSBComponent.setFont( UITheme.STATUS_FONT ) ;
         messageSBComponent.setBorder( null );
         
         StatusBar statusBar = new StatusBar() ;
-        statusBar.addStatusBarComponent( projectNameSBComponent, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( messageSBComponent, StatusBar.Direction.EAST ) ;
         statusBar.initialize() ;
         return statusBar ;
@@ -132,7 +124,6 @@ public class MainFrame extends JFrame {
             revalidate() ;
             repaint() ;
             
-            projectNameSBComponent.log( projectModel.getProjectName() ) ;
             QImgExtractor.getAppState().setLastOpenedProjectDir( projectDir ) ;
         }
         else {
@@ -149,7 +140,6 @@ public class MainFrame extends JFrame {
             getContentPane().remove( currentProjectPanel ) ;
             currentProjectPanel.destroy() ;
             currentProjectPanel = null ;
-            projectNameSBComponent.log( "Choose project directory" ) ;
             revalidate() ;
             repaint() ;
         }

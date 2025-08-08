@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import static com.sandy.sconsole.qimgextractor.QImgExtractor.logStatusMsg;
+
 @Slf4j
 public class ProjectContext {
     
@@ -19,8 +21,18 @@ public class ProjectContext {
     
     @Getter
     private int selectedPageNumber = -1 ;
+    
+    @Getter
+    private boolean partSelectionModeEnabled = false ;
+    
+    @Getter
+    private boolean forceNextImgFlag = false ;
 
-    ProjectContext() {}
+    private final ProjectModel projectModel ;
+    
+    ProjectContext( ProjectModel projectModel ) {
+        this.projectModel = projectModel ;
+    }
     
     public void setLastSavedImage( QuestionImage qImg ) {
         lastSavedImg = qImg ;
@@ -32,5 +44,17 @@ public class ProjectContext {
     public void setSelectedPageImg( PageImage pageImg ) {
         this.selectedPageImg = pageImg ;
         this.selectedPageNumber = AppUtil.extractPageNumber( pageImg.getImgFile() ) ;
+    }
+    
+    public void setPartSelectionModeEnabled( boolean value ) {
+        this.partSelectionModeEnabled = value ;
+        projectModel.notifyListenersPartSelectionModeUpdated( value ) ;
+    }
+    
+    public void setForceNextImgFlag( boolean value ) {
+        this.forceNextImgFlag = value ;
+        if( value ) {
+            logStatusMsg( "ForceNextImgFlag set" ) ;
+        }
     }
 }
