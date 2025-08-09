@@ -2,8 +2,6 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import lombok.Data;
 
-import java.io.File;
-
 @Data
 public class PageImageState {
 

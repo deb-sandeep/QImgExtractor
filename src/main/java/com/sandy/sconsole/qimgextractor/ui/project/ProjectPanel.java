@@ -66,10 +66,12 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     private void loadPageImages() {
         
         List<PageImage> pageImages = projectModel.getPageImages() ;
+        
         for( int i=0; i<pageImages.size(); i++ ) {
             PageImage pageImg = pageImages.get( i ) ;
             File file = pageImg.getImgFile() ;
             mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
+            
             if( pageImg.getState().isVisible() ) {
                 loadPageImg( pageImg ) ;
             }
