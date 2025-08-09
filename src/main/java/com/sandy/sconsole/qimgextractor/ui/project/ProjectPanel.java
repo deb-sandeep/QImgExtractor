@@ -26,6 +26,8 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 import static javax.swing.SwingUtilities.invokeLater;
@@ -40,7 +42,8 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     @Getter
     private final ProjectModel projectModel ;
     
-    private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>();
+    private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>() ;
+    private final ExecutorService executor = Executors.newFixedThreadPool( 1 ) ;
     
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         
@@ -90,19 +93,18 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     }
     
     public void destroy() {
-        invokeLater( () -> {
-            int numberOfTabs = tabPane.getTabCount() ;
-            for( int i=numberOfTabs-1; i>=0; i-- ) {
-                ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getTabComponentAt( i ) ;
-                if( panel != null ) {
-                    panel.destroy() ;
-                    tabPane.removeTabAt( i ) ;
-                }
+        int numberOfTabs = tabPane.getTabCount() ;
+        for( int i=numberOfTabs-1; i>=0; i-- ) {
+            ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getTabComponentAt( i ) ;
+            if( panel != null ) {
+                panel.destroy() ;
+                tabPane.removeTabAt( i ) ;
             }
-        } ) ;
+        }
+        executor.shutdown() ;
     }
     
-    private void loadPageImg( PageImage pageImg ) {
+    private synchronized void loadPageImg( PageImage pageImg ) {
         
         File file = pageImg.getImgFile() ;
         
@@ -112,6 +114,9 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         
         panelMap.put( pageImg, imgPanel ) ;
         projectModel.addListener( imgPanel ) ;
+        
+        pageImg.getState().setVisible( true ) ;
+        projectModel.savePageState() ;
         
         invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
     }
@@ -297,6 +302,36 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         int curTabIndex = tabPane.getSelectedIndex() ;
         if( curTabIndex >= 0 ) {
             tabPane.removeTabAt( curTabIndex ) ;
+        }
+    }
+    
+    public void closePageImageTab( PageImage pageImage ) {
+        ImgExtractorPanel panel = panelMap.get( pageImage );
+        if( panel != null ) {
+            int index = tabPane.indexOfComponent( panel );
+            if( index >= 0 ) {
+                tabPane.removeTabAt( index );
+            }
+        }
+    }
+    
+    public void closeAllRemainingTabs( PageImage pageImage ) {
+        int targetPageNum = pageImage.getPageNumber();
+        for( PageImage pi : new HashMap<>( panelMap ).keySet() ) {
+            if( pi.getPageNumber() >= targetPageNum ) {
+                closePageImageTab( pi );
+            }
+        }
+    }
+    
+    public void openAllRemainingTabs( PageImage pageImage ) {
+        int targetPageNum = pageImage.getPageNumber() ;
+        for( PageImage pi : projectModel.getPageImages() ) {
+            if( pi.getPageNumber() >= targetPageNum ) {
+                if( !panelMap.containsKey( pi ) ) {
+                    executor.submit( () -> loadPageImg( pi ) );
+                }
+            }
         }
     }
 }

@@ -56,10 +56,21 @@ public class ProjectBaseTree extends JTree
         super.addTreeSelectionListener( this ) ;
         super.addMouseListener( new MouseAdapter() {
             public void mouseClicked( MouseEvent e ) {
-                TreePath path = getPathForLocation( e.getX(), e.getY() );
-                if( path != null ) {
-                    setSelectionPath( path ) ;
-                    handleMouseClickOnNode( path, e.getClickCount() ) ;
+                
+                if( SwingUtilities.isRightMouseButton( e ) ) {
+                    int row = getClosestRowForLocation( e.getX(), e.getY() );
+                    setSelectionRow( row );
+                    DefaultMutableTreeNode node = ( DefaultMutableTreeNode )getLastSelectedPathComponent();
+                    if( node != null ) {
+                        handleRightClickOnNode( node, e ) ;
+                    }
+                }
+                else {
+                    TreePath path = getPathForLocation( e.getX(), e.getY() );
+                    if( path != null ) {
+                        setSelectionPath( path ) ;
+                        handleMouseClickOnNode( path, e.getClickCount() ) ;
+                    }
                 }
             }
         } ) ;
@@ -73,6 +84,8 @@ public class ProjectBaseTree extends JTree
             }
         } ) ;
     }
+    
+    protected void handleRightClickOnNode( DefaultMutableTreeNode node, MouseEvent e ) {}
     
     @Override
     public boolean isPathEditable( TreePath path ) {
