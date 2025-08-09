@@ -70,12 +70,19 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
             PageImage pageImg = pageImages.get( i ) ;
             File file = pageImg.getImgFile() ;
             mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
-            loadPageImg( pageImg ) ;
+            if( pageImg.getState().isVisible() ) {
+                loadPageImg( pageImg ) ;
+            }
         }
         mainFrame.clearStatusMsg() ;
         
         QuestionImage lastSavedQImg = projectModel.getContext().getLastSavedImg() ;
-        if( lastSavedQImg != null ) {
+        PageImage lastSelectedPageImg = projectModel.getSelectedPageImg() ;
+        
+        if( lastSelectedPageImg != null ) {
+            activatePageImg( lastSelectedPageImg ) ;
+        }
+        else if ( lastSavedQImg != null ) {
             activatePageImg( lastSavedQImg.getPageImg() ) ;
         }
     }
@@ -110,16 +117,18 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
     private void tabSelectionChanged() {
         ImgExtractorPanel selectedPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
         if( selectedPanel != null ) {
-            projectModel.getContext()
-                        .setSelectedPageImg( selectedPanel.getPageImg() ) ;
+            PageImage selectedPageImg = selectedPanel.getPageImg() ;
+            projectModel.setSelectedPageImg( selectedPageImg ) ;
             selectedPanel.requestFocus() ;
         }
     }
     
     private void tabClosing( Component component ) {
+        log.debug( "Tab closing event detected." ) ;
         ImgExtractorPanel panel = ( ImgExtractorPanel )component ;
         panelMap.remove( panel.getPageImg() ) ;
         projectModel.removeListener( panel ) ;
+        projectModel.setPageImgClosed( panel.getPageImg() ) ;
     }
     
     @Override
@@ -190,7 +199,6 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
             else {
                 if( qImg.isPart() ) ctx.setPartSelectionModeEnabled( true ) ;
             }
-            
 
             // 5. Save the image, and other housekeeping tasks.
             log.debug( "    File name is valid. Saving image to file '{}'.", newImgFile.getName() ) ;

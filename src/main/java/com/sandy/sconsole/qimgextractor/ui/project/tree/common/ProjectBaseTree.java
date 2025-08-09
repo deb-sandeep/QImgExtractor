@@ -6,6 +6,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.TreeUtil;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -23,6 +24,7 @@ import java.util.Enumeration;
 import static com.sandy.sconsole.qimgextractor.ui.project.tree.TreeUtil.getUserObject;
 import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
 
+@Slf4j
 public class ProjectBaseTree extends JTree
         implements TreeSelectionListener {
     

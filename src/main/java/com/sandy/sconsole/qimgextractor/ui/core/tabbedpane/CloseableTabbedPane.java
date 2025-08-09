@@ -40,6 +40,18 @@ public class CloseableTabbedPane extends HighlightableTabbedPane {
         }
     }
     
+    @Override
+    public void removeTabAt( int index ) {
+        notifyTabCloseListeners( index ) ;
+        super.removeTabAt( index ) ;
+    }
+    
+    @Override
+    public void remove( int index ) {
+        notifyTabCloseListeners( index ) ;
+        super.remove( index ) ;
+    }
+    
     public void removeTabCloseListener( TabCloseListener l ) {
         this.listeners.remove( l ) ;
     }

@@ -1,11 +1,14 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,13 +80,23 @@ public class ProjectModel {
     private void loadPageImages() {
         
         File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
+        Map<String, PageImageState> pageStateMap = loadPageState() ;
+        
         assert files != null ;
         
         QuestionImage lastSavedQImg = null ;
         
         for( File file : files ) {
             log.info( "      Loading page- {}.", file.getName() + " ..." ) ;
-            PageImage pageImg = new PageImage( this, file );
+            PageImage pageImg = new PageImage( this, file ) ;
+            PageImageState state ;
+            if( pageStateMap.containsKey( file.getName() ) ) {
+                state = pageStateMap.get( file.getName() ) ;
+            }
+            else {
+                state = new PageImageState( file.getName() ) ;
+            }
+            pageImg.setState( state ) ;
             pageImages.add( pageImg );
             
             QuestionImage lastQImg = pageImg.getLastQuestionImg() ;
@@ -98,6 +111,46 @@ public class ProjectModel {
         }
         context.setLastSavedImage( lastSavedQImg ) ;
         Collections.sort( pageImages ) ;
+    }
+    
+    // Key is the file name
+    private Map<String, PageImageState> loadPageState() {
+        
+        File file = new File( this.getWorkDir(), "page-states.json" ) ;
+        
+        Map<String, PageImageState> stateMap = new HashMap<>();
+        if( file.exists() ) {
+            try {
+                ObjectMapper mapper = new ObjectMapper() ;
+                PageImageState[] states = mapper.readValue( file, PageImageState[].class );
+                for( PageImageState state : states ) {
+                    stateMap.put( state.getFileName(), state ) ;
+                }
+            }
+            catch( IOException e ) {
+                log.error( "Error loading page states", e );
+            }
+        }
+        return stateMap;
+    }
+    
+    public void savePageState() {
+        
+        File file = new File( this.getWorkDir(), "page-states.json" );
+        List<PageImageState> states = new ArrayList<>();
+        
+        for( PageImage pageImage : pageImages ) {
+            states.add( pageImage.getState() );
+        }
+        
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable( SerializationFeature.INDENT_OUTPUT );
+            mapper.writeValue( file, states );
+        }
+        catch( IOException e ) {
+            log.error( "Error saving page states", e );
+        }
     }
     
     // This function is driven by the configuration 'repairProjectOnStartup'.
@@ -196,4 +249,28 @@ public class ProjectModel {
         }
     }
     
+    public void setSelectedPageImg( PageImage selectedPageImg ) {
+        context.setSelectedPageImg( selectedPageImg ) ;
+        for( PageImage pageImage : pageImages ) {
+            pageImage.getState().setSelected( pageImage == selectedPageImg );
+        }
+        savePageState() ;
+    }
+    
+    public void setPageImgClosed( PageImage closedPageImg ) {
+        for( PageImage pageImage : pageImages ) {
+            if( pageImage == closedPageImg ) {
+                pageImage.getState().setVisible( false ) ;
+            }
+        }
+        savePageState() ;
+    }
+    
+    public PageImage getSelectedPageImg() {
+        for( PageImage pageImage : pageImages ) {
+            if( pageImage.getState().isSelected() )
+                return pageImage ;
+        }
+        return null ;
+    }
 }

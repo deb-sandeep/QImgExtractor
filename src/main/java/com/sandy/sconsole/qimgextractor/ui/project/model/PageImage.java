@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
@@ -38,6 +39,9 @@ public class PageImage implements Comparable<PageImage> {
     @Getter private final int pageNumber ; // Derived
     
     @Getter private final List<QuestionImage> qImgList = new ArrayList<>() ;
+    
+    @Getter @Setter
+    private PageImageState state = null ;
     
     PageImage( ProjectModel projectModel, File imgFile ) {
         this.projectModel = projectModel ;
