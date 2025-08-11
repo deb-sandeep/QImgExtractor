@@ -25,14 +25,19 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     // that a sub-image has been marked.
     private boolean inRegionSelectMode = false ;
     
-    private SelectedRegion activeRegion = null ;
+    private boolean inVMarkSelectionMode = false ;
+    
+    private transient SelectedRegion activeRegion = null ;
+    private transient int curVMarkPos = -1 ;
     
     private final List<SelectedRegion> oldRegions = new ArrayList<>() ;
-    private final ImgCanvasListener    listener ;
+    private final ImgCanvasListener listener ;
+    private final VerticalGuides verticalGuides ;
     
     RegionSelector( ImgCanvas canvas, ImgCanvasListener listener ) {
         this.canvas = canvas ;
         this.listener = listener ;
+        this.verticalGuides = new VerticalGuides( canvas ) ;
     }
     
     public void mousePressed( MouseEvent event ) {
@@ -46,6 +51,13 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
                 handleRegionSelectedEnded( event ) ;
             }
         }
+        else if( canvas.isInCommandMode() ) {
+            if( inVMarkSelectionMode ) {
+                if( curVMarkPos > 0 ) {
+                    verticalGuides.addGuide( event.getX() ) ;
+                }
+            }
+        }
         canvas.requestFocus() ;
     }
     
@@ -55,6 +67,16 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             Rectangle paintArea = activeRegion.updateRegion( event.getPoint() ) ;
             this.canvas.repaint( paintArea ) ;
             canvas.logActiveRegionSize( activeRegion.getRegionBounds() ) ;
+        }
+        else if( inVMarkSelectionMode ) {
+            if( curVMarkPos != event.getX() ) {
+                int oldX = curVMarkPos ;
+                if( oldX >= 0 ) {
+                    repaintVMarkerRegion( oldX ) ;
+                }
+                curVMarkPos = event.getX() ;
+                repaintVMarkerRegion( curVMarkPos ) ;
+            }
         }
         canvas.logMousePosition( event.getPoint() ) ;
     }
@@ -119,9 +141,28 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     
     public void paintSelectedRegions( Graphics2D g ) {
         oldRegions.forEach( region -> region.paintAsOldRegion( g ) ) ;
+        verticalGuides.getGuidePositions().forEach( pos -> paintVMarker( pos, g, Color.GREEN ) ) ;
+        
         if( activeRegion != null ) {
             activeRegion.paint( g ) ;
         }
+        
+        if( inVMarkSelectionMode && curVMarkPos >= 0 ) {
+            paintVMarker( curVMarkPos, g, Color.LIGHT_GRAY ) ;
+        }
+    }
+    
+    private void repaintVMarkerRegion( int vMarkPos ) {
+        if( vMarkPos >= 0 ) {
+            canvas.repaint( vMarkPos - 1, 0, 3, canvas.getHeight() ) ;
+        }
+    }
+    
+    private void paintVMarker( Integer xPos, Graphics2D g, Color color ) {
+        float[] dash = { 3.0f };
+        g.setColor( color ) ;
+        g.setStroke( new BasicStroke( 1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f ) );
+        g.drawLine( xPos, 0, xPos, canvas.getHeight() ) ;
     }
     
     public void scaleSelectedRegions( double scaleFactor ) {
@@ -146,5 +187,14 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             }
         }
         return false ;
+    }
+    
+    public void toggleBoundaryMode() {
+        if( inVMarkSelectionMode && curVMarkPos >= 0 ) {
+            int oldX = curVMarkPos ;
+            curVMarkPos = -1 ;
+            canvas.repaint( oldX - 1, 0, 3, canvas.getHeight() ) ;
+        }
+        this.inVMarkSelectionMode = !this.inVMarkSelectionMode ;
     }
 }

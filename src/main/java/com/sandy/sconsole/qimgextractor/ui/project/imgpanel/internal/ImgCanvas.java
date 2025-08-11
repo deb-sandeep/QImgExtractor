@@ -63,11 +63,10 @@ public class ImgCanvas extends JLabel {
                     }
                 }
                 else if( opMode == OpMode.COMMAND ) {
-                    if( keyCode == KeyEvent.VK_ESCAPE ) {
-                        setOpMode( OpMode.EDITOR ) ;
-                    }
-                    else {
-                        listener.processImgCanvasCommandKey( keyCode ) ;
+                    switch ( keyCode ) {
+                        case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.EDITOR ) ;
+                        case KeyEvent.VK_B -> regionSelector.toggleBoundaryMode() ;
+                        default -> listener.processImgCanvasCommandKey( keyCode ) ;
                     }
                 }
             }
@@ -77,6 +76,7 @@ public class ImgCanvas extends JLabel {
     private void setOpMode( OpMode opMode ) {
         this.opMode = opMode ;
         parent.setModeStatus( opMode.toString() + " MODE" ) ;
+        regionSelector.clearActiveSelection() ;
     }
     
     public void setOriginalImage( BufferedImage img,
@@ -90,6 +90,10 @@ public class ImgCanvas extends JLabel {
     
     public boolean isInEditMode() {
         return opMode == OpMode.EDITOR ;
+    }
+    
+    public boolean isInCommandMode() {
+        return opMode == OpMode.COMMAND ;
     }
     
     public void scaleImage( double factor ) {

@@ -18,8 +18,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import javax.swing.*;
 import java.io.File;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Slf4j
 @SpringBootApplication
 public class QImgExtractor
@@ -67,7 +65,7 @@ public class QImgExtractor
         log.debug( "## Initializing QImgExtractor app." ) ;
         
         log.debug( "  Initializing AppState" ) ;
-        loadAppState() ;
+        appState = new AppState( appConfig ) ;
         
         log.debug( "  Initializing MainFrame" ) ;
         SwingUtilities.invokeLater( () -> {
@@ -86,25 +84,6 @@ public class QImgExtractor
                 mainFrame.openProject( dir ) ;
             }
         }
-    }
-    
-    private void loadAppState() {
-        File appStateFile = new File( appConfig.getAppWorkspaceDir(), "app-state.json" ) ;
-        if( appStateFile.exists() ) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                this.appState = mapper.readValue( appStateFile, AppState.class );
-            }
-            catch( Exception e ) {
-                log.error( "Error loading app state", e );
-                this.appState = new AppState();
-            }
-        }
-        else {
-            this.appState = new AppState() ;
-        }
-        this.appState.setPersistenceFile( appStateFile ) ;
-        this.appState.setInitialized( true ) ;
     }
     
     // --------------------- Main method ---------------------------------------
