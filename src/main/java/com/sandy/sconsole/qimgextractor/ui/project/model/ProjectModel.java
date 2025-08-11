@@ -2,6 +2,9 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,7 @@ public class ProjectModel {
     @Getter private File extractedImgDir ;
     @Getter private String projectName ;
     @Getter private ProjectContext context ;
+    @Getter private ProjectState state ;
     @Getter private final List<PageImage> pageImages = new ArrayList<>() ;
     
     private final List<ProjectModelListener> listeners = new ArrayList<>() ;
@@ -44,6 +48,7 @@ public class ProjectModel {
         this.workDir = new File( projectDir, ".workspace" ) ;
         this.extractedImgDir = new File( projectDir, "question-images" ) ;
         this.context = new ProjectContext( this ) ;
+        this.state = new ProjectState( this ) ;
         this.pageImages.clear() ;
         this.listeners.clear() ;
         this.projectName = projectDir.getName() ;
@@ -79,7 +84,7 @@ public class ProjectModel {
     // domain of pages on which the project will operate.
     private void loadPageImages() {
         
-        File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
+        File[]                      files        = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
         Map<String, PageImageState> pageStateMap = loadPageState() ;
         
         assert files != null ;

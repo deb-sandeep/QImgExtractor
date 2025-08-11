@@ -3,7 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgCanvasListener;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
-import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

@@ -73,4 +73,13 @@ public class AppUtil {
         String fileName = file.getName() ;
         return fileName.substring( 0, fileName.lastIndexOf( '.' ) ) ;
     }
+    
+    public static boolean isValidProjectDir( File projectDir ) {
+        File pagesDir = new File( projectDir, "pages" ) ;
+        if( pagesDir.exists() ) {
+            File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
+            return null != files && files.length > 0 ;
+        }
+        return false ;
+    }
 }

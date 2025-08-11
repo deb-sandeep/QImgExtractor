@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.model;
+package com.sandy.sconsole.qimgextractor.ui.project.model.state;
 
 import lombok.Data;
 

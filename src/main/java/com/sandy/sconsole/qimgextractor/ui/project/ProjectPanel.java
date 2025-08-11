@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project;
 
-import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
@@ -10,6 +10,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.core.tabbedpane.CloseableTabbedPane;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.tree.ProjectTreePanel;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
@@ -214,6 +215,7 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
             
             // 6. Reset the force next question flag
             projectModel.getContext().setForceNextImgFlag( false ) ;
+            projectModel.getState().setImgCuttingWip( true ) ;
             
             mainFrame.logStausMsg( "   Saved image file : " + selectedFile.getName() );
         }

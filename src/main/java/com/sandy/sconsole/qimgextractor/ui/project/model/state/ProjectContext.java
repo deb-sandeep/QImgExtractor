@@ -1,5 +1,8 @@
-package com.sandy.sconsole.qimgextractor.ui.project.model;
+package com.sandy.sconsole.qimgextractor.ui.project.model.state;
 
+import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +33,7 @@ public class ProjectContext {
 
     private final ProjectModel projectModel ;
     
-    ProjectContext( ProjectModel projectModel ) {
+    public ProjectContext( ProjectModel projectModel ) {
         this.projectModel = projectModel ;
     }
     

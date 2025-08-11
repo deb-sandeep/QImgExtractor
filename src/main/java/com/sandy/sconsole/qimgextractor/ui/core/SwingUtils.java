@@ -28,6 +28,9 @@ public class SwingUtils {
     
     public static ImageIcon getIcon( String iconName ) {
         URL url = getResource( "/icons/" + iconName + ".png" ) ;
+        if( url == null ) {
+            log.error( "Icon not found: {}", iconName ) ;
+        }
         Image image = Toolkit.getDefaultToolkit().getImage( url ) ;
         return new ImageIcon( image ) ;
     }

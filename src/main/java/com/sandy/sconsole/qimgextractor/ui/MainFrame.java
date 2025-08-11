@@ -6,6 +6,8 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
+import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ProjectDirectoryView;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;
@@ -17,6 +19,9 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.Optional;
+
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.isValidProjectDir;
 
 @Slf4j
 @Component
@@ -58,6 +63,7 @@ public class MainFrame extends JFrame {
         projectDirChooser.setCurrentDirectory( appConfig.getSourceBaseDir() ) ;
         projectDirChooser.setAcceptAllFileFilterUsed( false ) ;
         projectDirChooser.setMultiSelectionEnabled( false ) ;
+        projectDirChooser.setFileView( new ProjectDirectoryView() ) ;
     }
     
     private StatusBar createStatusBar() {
@@ -76,6 +82,7 @@ public class MainFrame extends JFrame {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar() ;
         menuBar.add( getFileMenu() ) ;
+        menuBar.add( getProjectStateMenu() ) ;
         return menuBar ;
     }
     
@@ -95,6 +102,39 @@ public class MainFrame extends JFrame {
         fileMenu.addSeparator() ;
         fileMenu.add( exitMenuItem ) ;
         return fileMenu ;
+    }
+    
+    private JMenu getProjectStateMenu() {
+        JMenuItem imgCuttingCompleteMI = new JMenuItem( "Set Image Cutting Complete" );
+        imgCuttingCompleteMI.addActionListener( e ->
+                getProjectState().ifPresent( ps -> ps.setImgCuttingComplete( true ) ) ) ;
+        
+        JMenuItem answersMappedMI = new JMenuItem( "Set Answers Mapped" );
+        answersMappedMI.addActionListener( e ->
+                getProjectState().ifPresent( ps -> ps.setAnswersMapped( true ) ) ) ;
+        
+        JMenuItem topicsMappedMI = new JMenuItem( "Set Topics Mapped" );
+        topicsMappedMI.addActionListener( e ->
+                getProjectState().ifPresent( ps -> ps.setTopicsMapped( true ) ) ) ;
+        
+        JMenuItem serverSyncedMI = new JMenuItem( "Set Server Synced" );
+        serverSyncedMI.addActionListener( e ->
+                getProjectState().ifPresent( ps -> ps.setSavedToServer( true ) ) ) ;
+        
+        JMenu stateMenu = new JMenu( "Project State" );
+        stateMenu.add( imgCuttingCompleteMI );
+        stateMenu.add( answersMappedMI );
+        stateMenu.add( topicsMappedMI );
+        stateMenu.add( serverSyncedMI );
+        return stateMenu;
+    }
+    
+    private Optional<ProjectState> getProjectState() {
+        ProjectState val = null ;
+        if( currentProjectPanel != null ) {
+            val = currentProjectPanel.getProjectModel().getState() ;
+        }
+        return Optional.ofNullable( val ) ;
     }
     
     private void processWindowClosing() {
@@ -143,15 +183,6 @@ public class MainFrame extends JFrame {
             revalidate() ;
             repaint() ;
         }
-    }
-    
-    private boolean isValidProjectDir( File projectDir ) {
-        File pagesDir = new File( projectDir, "pages" ) ;
-        if( pagesDir.exists() ) {
-            File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
-            return null != files && files.length > 0 ;
-        }
-        return false ;
     }
     
     public void logStausMsg( String message ) {

@@ -3,6 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -192,7 +193,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     }
     
     public QuestionImage nextQuestion() {
-        QuestionImage q = this.getClone() ;
+        QuestionImage  q       = this.getClone() ;
         ProjectContext context = getProjectModel().getContext() ;
         
         if( q.isPart() ) {

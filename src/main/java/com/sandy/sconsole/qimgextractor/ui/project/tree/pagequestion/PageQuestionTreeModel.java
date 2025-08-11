@@ -62,10 +62,12 @@ public class PageQuestionTreeModel extends DefaultTreeModel
                 pageNode.add( createQuestionImgNode( qImg ) ) ;
                 nodeStructureChanged( pageNode ) ;
                 
-                log.debug( "    Expanding page node and ensuring it is visible." ) ;
-                TreePath path = new TreePath( pageNode.getPath() ) ;
-                tree.expandPath( path ) ;
-                tree.scrollPathToVisible( path ) ;
+                SwingUtilities.invokeLater( () -> {
+                    log.debug( "    Expanding page node and ensuring it is visible." ) ;
+                    TreePath path = new TreePath( pageNode.getPath() ) ;
+                    tree.expandPath( path ) ;
+                    tree.scrollPathToVisible( path ) ;
+                } ) ;
                 break;
             }
         }

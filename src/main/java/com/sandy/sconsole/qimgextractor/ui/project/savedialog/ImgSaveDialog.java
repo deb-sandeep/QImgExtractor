@@ -2,7 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
-import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectContext;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

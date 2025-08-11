@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
