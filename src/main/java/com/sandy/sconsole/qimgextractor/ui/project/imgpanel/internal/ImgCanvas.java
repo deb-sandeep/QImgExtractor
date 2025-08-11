@@ -65,7 +65,8 @@ public class ImgCanvas extends JLabel {
                 else if( opMode == OpMode.COMMAND ) {
                     switch ( keyCode ) {
                         case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.EDITOR ) ;
-                        case KeyEvent.VK_B -> regionSelector.toggleBoundaryMode() ;
+                        case KeyEvent.VK_B -> regionSelector.toggleVMarkSelectionMode() ;
+                        case KeyEvent.VK_C -> regionSelector.clearVerticalMarkers() ;
                         default -> listener.processImgCanvasCommandKey( keyCode ) ;
                     }
                 }

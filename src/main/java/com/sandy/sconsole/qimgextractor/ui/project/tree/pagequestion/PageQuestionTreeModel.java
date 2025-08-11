@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 @Slf4j
@@ -47,7 +46,7 @@ public class PageQuestionTreeModel extends DefaultTreeModel
         return node ;
     }
     
-    private MutableTreeNode createQuestionImgNode( QuestionImage qImg ) {
+    private DefaultMutableTreeNode createQuestionImgNode( QuestionImage qImg ) {
         return new DefaultMutableTreeNode( qImg ) ;
     }
     
@@ -59,12 +58,15 @@ public class PageQuestionTreeModel extends DefaultTreeModel
             if( pageNode.getUserObject() == pageImage ) {
                 log.debug( "    Found page node for page image." ) ;
                 log.debug( "    Adding question image to page node." ) ;
-                pageNode.add( createQuestionImgNode( qImg ) ) ;
+                DefaultMutableTreeNode qImgNode = createQuestionImgNode( qImg ) ;
+                pageNode.add( qImgNode ) ;
                 nodeStructureChanged( pageNode ) ;
                 
                 SwingUtilities.invokeLater( () -> {
                     log.debug( "    Expanding page node and ensuring it is visible." ) ;
-                    TreePath path = new TreePath( pageNode.getPath() ) ;
+                    try {Thread.sleep( 500 ) ;} catch( InterruptedException ignored ) {}
+                    
+                    TreePath path = new TreePath( qImgNode.getPath() ) ;
                     tree.expandPath( path ) ;
                     tree.scrollPathToVisible( path ) ;
                 } ) ;

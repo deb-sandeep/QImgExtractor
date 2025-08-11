@@ -29,6 +29,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     
     private transient SelectedRegion activeRegion = null ;
     private transient int curVMarkPos = -1 ;
+    private transient int curHMarkPos = -1 ;
     
     private final List<SelectedRegion> oldRegions = new ArrayList<>() ;
     private final ImgCanvasListener listener ;
@@ -44,7 +45,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         if( canvas.isInEditMode() ) {
             if( !inRegionSelectMode ) {
                 inRegionSelectMode = true ;
-                activeRegion = new SelectedRegion( event.getPoint() ) ;
+                activeRegion = new SelectedRegion( verticalGuides.getStartSnapPoint( event ) ) ;
                 listener.selectionStarted() ;
             }
             else {
@@ -63,8 +64,11 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     
     @Override
     public void mouseMoved( MouseEvent event ) {
+        
+        redrawHMarkerOnMouseMove( event.getY() ) ;
+        
         if( inRegionSelectMode ) {
-            Rectangle paintArea = activeRegion.updateRegion( event.getPoint() ) ;
+            Rectangle paintArea = activeRegion.updateRegion( verticalGuides.getEndSnapPoint( event ) ) ;
             this.canvas.repaint( paintArea ) ;
             canvas.logActiveRegionSize( activeRegion.getRegionBounds() ) ;
         }
@@ -78,7 +82,28 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
                 repaintVMarkerRegion( curVMarkPos ) ;
             }
         }
+        
         canvas.logMousePosition( event.getPoint() ) ;
+    }
+    
+    private void redrawHMarkerOnMouseMove( int mouseY ) {
+        if( canvas.isInEditMode() ) {
+            if( curHMarkPos != mouseY ) {
+                int oldY = curHMarkPos ;
+                if( oldY >= 0 ) {
+                    repaintHMarkerRegion( oldY ) ;
+                }
+                curHMarkPos = mouseY ;
+                repaintHMarkerRegion( curHMarkPos ) ;
+            }
+        }
+        else {
+            if( curHMarkPos >= 0 ) {
+                int oldY = curHMarkPos ;
+                this.curHMarkPos = -1 ;
+                repaintHMarkerRegion( oldY ) ;
+            }
+        }
     }
     
     public void setSelectedRegions( List<SelectedRegionMetadata> infoList ) {
@@ -150,6 +175,10 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         if( inVMarkSelectionMode && curVMarkPos >= 0 ) {
             paintVMarker( curVMarkPos, g, Color.LIGHT_GRAY ) ;
         }
+        
+        if( curHMarkPos >= 0 ) {
+            paintHMarker( curHMarkPos, g ) ;
+        }
     }
     
     private void repaintVMarkerRegion( int vMarkPos ) {
@@ -163,6 +192,19 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         g.setColor( color ) ;
         g.setStroke( new BasicStroke( 1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f ) );
         g.drawLine( xPos, 0, xPos, canvas.getHeight() ) ;
+    }
+    
+    private void repaintHMarkerRegion( int hMarkPos ) {
+        if( hMarkPos >= 0 ) {
+            canvas.repaint( 0, hMarkPos - 1, canvas.getWidth(), 3 ) ;
+        }
+    }
+    
+    private void paintHMarker( Integer yPos, Graphics2D g ) {
+        float[] dash = { 3.0f };
+        g.setColor( Color.LIGHT_GRAY ) ;
+        g.setStroke( new BasicStroke( 1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f ) );
+        g.drawLine( 0, yPos, canvas.getWidth(), yPos ) ;
     }
     
     public void scaleSelectedRegions( double scaleFactor ) {
@@ -189,12 +231,22 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         return false ;
     }
     
-    public void toggleBoundaryMode() {
-        if( inVMarkSelectionMode && curVMarkPos >= 0 ) {
-            int oldX = curVMarkPos ;
-            curVMarkPos = -1 ;
-            canvas.repaint( oldX - 1, 0, 3, canvas.getHeight() ) ;
+    public void toggleVMarkSelectionMode() {
+        if( inVMarkSelectionMode ) {
+            // Going from vMark selection mode to editor mode
+            // Remove the vMark position. This will erase the vertical
+            // marker on the next paint.
+            if( curVMarkPos >= 0 ) {
+                int oldX = curVMarkPos;
+                curVMarkPos = -1;
+                repaintVMarkerRegion( oldX );
+            }
         }
         this.inVMarkSelectionMode = !this.inVMarkSelectionMode ;
+    }
+    
+    public void clearVerticalMarkers() {
+        verticalGuides.clear() ;
+        canvas.repaint() ;
     }
 }
