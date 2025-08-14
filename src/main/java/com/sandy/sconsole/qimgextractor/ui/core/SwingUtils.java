@@ -26,6 +26,11 @@ public class SwingUtils {
         return screenSz.width ;
     }
     
+    public static int getScreenHeight() {
+        Dimension screenSz = Toolkit.getDefaultToolkit().getScreenSize() ;
+        return screenSz.height ;
+    }
+    
     public static ImageIcon getIcon( String iconName ) {
         URL url = getResource( "/icons/" + iconName + ".png" ) ;
         if( url == null ) {

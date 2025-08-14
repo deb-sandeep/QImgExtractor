@@ -45,7 +45,7 @@
     
     <files>
         <file>
-          <source>${project.basedir}/src/main/resources/config/application.package</source>
+          <source>${project.basedir}/src/main/resources/config/application.properties</source>
           <outputDirectory>/config</outputDirectory>
           <destName>application.properties</destName>
         </file>

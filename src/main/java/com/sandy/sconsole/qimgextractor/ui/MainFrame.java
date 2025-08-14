@@ -48,7 +48,8 @@ public class MainFrame extends JFrame {
     
     @PostConstruct
     public void init() {
-        SwingUtils.setMaximized( this ) ;
+        //SwingUtils.setMaximized( this ) ;
+        setBounds( 0, 0, 1400, SwingUtils.getScreenHeight() ) ;
         setJMenuBar( createMenuBar() ) ;
         setUpProjectDirChooser() ;
         

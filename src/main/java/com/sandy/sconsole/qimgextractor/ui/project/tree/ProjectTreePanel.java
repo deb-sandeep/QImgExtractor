@@ -14,7 +14,7 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 @Slf4j
 public class ProjectTreePanel extends JPanel {
     
-    public static final int PREFERRED_WIDTH = 400 ;
+    public static final int PREFERRED_WIDTH = 300 ;
     
     @Getter
     private final ProjectPanel projectPanel ;

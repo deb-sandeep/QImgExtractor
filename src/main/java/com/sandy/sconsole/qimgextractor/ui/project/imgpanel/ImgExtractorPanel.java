@@ -130,7 +130,7 @@ public class ImgExtractorPanel extends JPanel
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
             this.imgScaleSlider.setValue( sliderVal ) ;
             
-            fileNameStatus.log( pageImg.getImgFile().getAbsolutePath() );
+            fileNameStatus.log( pageImg.getImgFile().getName() ) ;
         }
         catch( IOException e ) {
             log.error( "Error setting image." , e ) ;

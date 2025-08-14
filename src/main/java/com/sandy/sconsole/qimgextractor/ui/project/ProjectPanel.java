@@ -109,7 +109,7 @@ public class ProjectPanel extends JPanel implements ImgCanvasListener {
         
         File file = pageImg.getImgFile() ;
         
-        int initialDisplayWidth = SwingUtils.getScreenWidth() - ProjectTreePanel.PREFERRED_WIDTH - 10 ;
+        int initialDisplayWidth = mainFrame.getWidth() - ProjectTreePanel.PREFERRED_WIDTH - 10 ;
         ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
         imgPanel.setImage( pageImg, initialDisplayWidth ) ;
         
