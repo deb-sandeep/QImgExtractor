@@ -6,11 +6,11 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
-import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
 import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ProjectDirectoryView;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,6 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.Optional;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.isValidProjectDir;
 
@@ -29,8 +28,11 @@ public class MainFrame extends JFrame {
     
     private final AppConfig appConfig ;
     private final ProjectModel projectModel ;
+    private final MenuBar menuBar ;
     
     private JFileChooser projectDirChooser ;
+    
+    @Getter
     private ProjectPanel currentProjectPanel ;
     
     private MessageStatusComponent messageSBComponent ;
@@ -38,6 +40,7 @@ public class MainFrame extends JFrame {
     public MainFrame( AppConfig appConfig, ProjectModel projectModel ) {
         this.appConfig = appConfig ;
         this.projectModel = projectModel ;
+        this.menuBar = new MenuBar( this ) ;
         
         addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
@@ -50,7 +53,7 @@ public class MainFrame extends JFrame {
     public void init() {
         //SwingUtils.setMaximized( this ) ;
         setBounds( 0, 0, 1400, SwingUtils.getScreenHeight() ) ;
-        setJMenuBar( createMenuBar() ) ;
+        setJMenuBar( menuBar ) ;
         setUpProjectDirChooser() ;
         
         Container contentPane = getContentPane() ;
@@ -68,7 +71,6 @@ public class MainFrame extends JFrame {
     }
     
     private StatusBar createStatusBar() {
-        
         messageSBComponent = new MessageStatusComponent() ;
         messageSBComponent.setForeground( Color.DARK_GRAY ) ;
         messageSBComponent.setFont( UITheme.STATUS_FONT ) ;
@@ -80,69 +82,11 @@ public class MainFrame extends JFrame {
         return statusBar ;
     }
     
-    private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar() ;
-        menuBar.add( getFileMenu() ) ;
-        menuBar.add( getProjectStateMenu() ) ;
-        return menuBar ;
-    }
-    
-    private JMenu getFileMenu() {
-        JMenuItem openMenuItem = new JMenuItem( "Open..." ) ;
-        openMenuItem.addActionListener( e -> openProject() ) ;
-        
-        JMenuItem closeMenuItem = new JMenuItem( "Close..." ) ;
-        closeMenuItem.addActionListener( e -> closeCurrentProject() ) ;
-        
-        JMenuItem exitMenuItem = new JMenuItem( "Exit" ) ;
-        exitMenuItem.addActionListener( e -> processWindowClosing() ) ;
-        
-        JMenu fileMenu = new JMenu( "File" ) ;
-        fileMenu.add( openMenuItem ) ;
-        fileMenu.add( closeMenuItem ) ;
-        fileMenu.addSeparator() ;
-        fileMenu.add( exitMenuItem ) ;
-        return fileMenu ;
-    }
-    
-    private JMenu getProjectStateMenu() {
-        JMenuItem imgCuttingCompleteMI = new JMenuItem( "Set Image Cutting Complete" );
-        imgCuttingCompleteMI.addActionListener( e ->
-                getProjectState().ifPresent( ps -> ps.setImgCuttingComplete( true ) ) ) ;
-        
-        JMenuItem answersMappedMI = new JMenuItem( "Set Answers Mapped" );
-        answersMappedMI.addActionListener( e ->
-                getProjectState().ifPresent( ps -> ps.setAnswersMapped( true ) ) ) ;
-        
-        JMenuItem topicsMappedMI = new JMenuItem( "Set Topics Mapped" );
-        topicsMappedMI.addActionListener( e ->
-                getProjectState().ifPresent( ps -> ps.setTopicsMapped( true ) ) ) ;
-        
-        JMenuItem serverSyncedMI = new JMenuItem( "Set Server Synced" );
-        serverSyncedMI.addActionListener( e ->
-                getProjectState().ifPresent( ps -> ps.setSavedToServer( true ) ) ) ;
-        
-        JMenu stateMenu = new JMenu( "Project State" );
-        stateMenu.add( imgCuttingCompleteMI );
-        stateMenu.add( answersMappedMI );
-        stateMenu.add( topicsMappedMI );
-        stateMenu.add( serverSyncedMI );
-        return stateMenu;
-    }
-    
-    private Optional<ProjectState> getProjectState() {
-        ProjectState val = null ;
-        if( currentProjectPanel != null ) {
-            val = currentProjectPanel.getProjectModel().getState() ;
-        }
-        return Optional.ofNullable( val ) ;
-    }
-    
-    private void processWindowClosing() {
+    void processWindowClosing() {
         System.exit( 0 ) ;
     }
     
-    private void openProject() {
+    void openProject() {
     
         int userAction = projectDirChooser.showOpenDialog( this ) ;
         if( userAction == JFileChooser.APPROVE_OPTION ) {
@@ -160,6 +104,7 @@ public class MainFrame extends JFrame {
             
             projectModel.initialize( projectDir ) ;
             currentProjectPanel = new ProjectPanel( this, projectModel ) ;
+            menuBar.setCurrentProjectPanel( currentProjectPanel ) ;
             
             getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
             revalidate() ;
@@ -176,11 +121,12 @@ public class MainFrame extends JFrame {
         }
     }
     
-    private void closeCurrentProject() {
+    void closeCurrentProject() {
         if( currentProjectPanel != null ) {
             getContentPane().remove( currentProjectPanel ) ;
             currentProjectPanel.destroy() ;
             currentProjectPanel = null ;
+            menuBar.setCurrentProjectPanel( null ) ;
             revalidate() ;
             repaint() ;
         }
