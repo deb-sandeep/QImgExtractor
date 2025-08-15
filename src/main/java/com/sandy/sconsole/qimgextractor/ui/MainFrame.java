@@ -28,9 +28,11 @@ public class MainFrame extends JFrame {
     
     private final AppConfig appConfig ;
     private final ProjectModel projectModel ;
-    private final MenuBar menuBar ;
     
     private JFileChooser projectDirChooser ;
+    
+    @Getter
+    private final MenuBar appMenuBar;
     
     @Getter
     private ProjectPanel currentProjectPanel ;
@@ -40,7 +42,7 @@ public class MainFrame extends JFrame {
     public MainFrame( AppConfig appConfig, ProjectModel projectModel ) {
         this.appConfig = appConfig ;
         this.projectModel = projectModel ;
-        this.menuBar = new MenuBar( this ) ;
+        this.appMenuBar = new MenuBar( this ) ;
         
         addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
@@ -52,7 +54,7 @@ public class MainFrame extends JFrame {
     @PostConstruct
     public void init() {
         SwingUtils.setMaximized( this ) ;
-        setJMenuBar( menuBar ) ;
+        setJMenuBar( appMenuBar ) ;
         setUpProjectDirChooser() ;
         
         Container contentPane = getContentPane() ;
@@ -103,7 +105,7 @@ public class MainFrame extends JFrame {
             
             projectModel.initialize( projectDir ) ;
             currentProjectPanel = new ProjectPanel( this, projectModel ) ;
-            menuBar.setCurrentProjectPanel( currentProjectPanel ) ;
+            appMenuBar.setCurrentProjectPanel( currentProjectPanel ) ;
             
             Container contentPane = getContentPane() ;
             contentPane.add( currentProjectPanel, BorderLayout.CENTER ) ;
@@ -128,7 +130,7 @@ public class MainFrame extends JFrame {
             getContentPane().remove( currentProjectPanel ) ;
             currentProjectPanel.destroy() ;
             currentProjectPanel = null ;
-            menuBar.setCurrentProjectPanel( null ) ;
+            appMenuBar.setCurrentProjectPanel( null ) ;
             revalidate() ;
             repaint() ;
         }

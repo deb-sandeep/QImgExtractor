@@ -2,10 +2,12 @@ package com.sandy.sconsole.qimgextractor.ui;
 
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.util.Optional;
 
+@Slf4j
 public class MenuBar extends JMenuBar {
     
     private final MainFrame mainFrame ;
@@ -13,7 +15,7 @@ public class MenuBar extends JMenuBar {
     private ProjectPanel currentProjectPanel ;
     
     private JMenuItem closeMenuItem;
-    private JMenuItem questionScrapersMI;
+    private JMenuItem imageScrapersMI;
     private JMenuItem ansMappingUI;
     private JMenuItem imgCuttingCompleteMI;
     private JMenuItem answersMappedMI;
@@ -62,15 +64,16 @@ public class MenuBar extends JMenuBar {
     
     private void addUIChangeMenuItems( JMenu menu ) {
         
-        questionScrapersMI = new JMenuItem( "Open Question Scraper" );
-        questionScrapersMI.addActionListener( e ->
+        imageScrapersMI = new JMenuItem( "Open Question Scraper" );
+        imageScrapersMI.setEnabled( false ) ;
+        imageScrapersMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::activateQuestionScraperUI ) );
         
         ansMappingUI = new JMenuItem( "Open Answer Mapper" );
-        questionScrapersMI.addActionListener( e ->
+        ansMappingUI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::activateAnswerMapperUI ) ) ;
         
-        menu.add( questionScrapersMI ) ;
+        menu.add( imageScrapersMI ) ;
         menu.add( ansMappingUI ) ;
     }
     
@@ -115,12 +118,27 @@ public class MenuBar extends JMenuBar {
         
         boolean enabled = currentProjectPanel != null ;
         
+        imageScrapersMI.setEnabled( false ) ;
         closeMenuItem.setEnabled( enabled ) ;
-        questionScrapersMI.setEnabled( enabled ) ;
         ansMappingUI.setEnabled( enabled ) ;
         imgCuttingCompleteMI.setEnabled( enabled ) ;
         answersMappedMI.setEnabled( enabled ) ;
         topicsMappedMI.setEnabled( enabled ) ;
         serverSyncedMI.setEnabled( enabled ) ;
+    }
+    
+    public void setEditorMode( ProjectPanel.EditorMode mode ) {
+        
+        imageScrapersMI.setEnabled( false ) ;
+        ansMappingUI.setEnabled( false ) ;
+        
+        switch( mode ) {
+            case IMAGE_SCRAPER:
+                ansMappingUI.setEnabled( true ) ;
+                break ;
+            case ANSWER_MAPPER:
+                imageScrapersMI.setEnabled( true ) ;
+                break ;
+        }
     }
 }
