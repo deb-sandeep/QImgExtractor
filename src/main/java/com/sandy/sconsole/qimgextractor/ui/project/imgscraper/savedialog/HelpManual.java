@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog;
 
 import javax.swing.*;
 import java.awt.*;

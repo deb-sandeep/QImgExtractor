@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import lombok.Data;

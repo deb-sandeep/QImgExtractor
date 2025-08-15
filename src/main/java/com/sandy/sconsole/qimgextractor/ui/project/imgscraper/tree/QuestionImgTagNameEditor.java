@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.tree.common;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +15,12 @@ import static javax.swing.BorderFactory.*;
 @Slf4j
 public class QuestionImgTagNameEditor extends DefaultTreeCellEditor {
 
-    private final ProjectBaseTree tree ;
+    private final PageQuestionTree tree ;
     
     private JTextField editorField ;
     private QuestionImage questionImg ;
     
-    public QuestionImgTagNameEditor( ProjectBaseTree tree ) {
+    public QuestionImgTagNameEditor( PageQuestionTree tree ) {
         super( tree, (DefaultTreeCellRenderer)tree.getCellRenderer() ) ;
         this.tree = tree ;
         initEditorComponent() ;
@@ -35,11 +35,11 @@ public class QuestionImgTagNameEditor extends DefaultTreeCellEditor {
         editorField.addActionListener( e -> {
             boolean validEdit = questionImg.isValidTagName( editorField.getText() ) ;
             if( validEdit ) {
-                tree.getProjectPanel().questionImgTagNameChanged( questionImg, editorField.getText() ) ;
+                tree.getParentPanel().questionImgTagNameChanged( questionImg, editorField.getText() ) ;
                 stopCellEditing() ;
             }
             else {
-                showErrorMsg( tree.getProjectPanel(), "Invalid sub image tag name!" ) ;
+                showErrorMsg( tree.getParentPanel(), "Invalid sub image tag name!" ) ;
             }
         } ) ;
     }

@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.savedialog;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;

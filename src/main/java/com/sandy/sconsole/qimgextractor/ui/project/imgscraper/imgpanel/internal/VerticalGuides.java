@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.internal;
 
 import com.sandy.sconsole.qimgextractor.util.AppState;
 

@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.tree.common;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
@@ -12,7 +12,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 
 @Slf4j
-public class PageTreeCellRenderer extends DefaultTreeCellRenderer {
+public class PageQuestionTreeCellRenderer extends DefaultTreeCellRenderer {
     
     public static final Font PAGE_FONT  = new Font( "Helvetica", Font.BOLD, 12 ) ;
     public static final Font SUB_IMG_FONT  = new Font( "Helvetica", Font.PLAIN, 11 ) ;

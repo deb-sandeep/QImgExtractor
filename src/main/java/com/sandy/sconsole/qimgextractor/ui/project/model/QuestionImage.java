@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcFactory;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import lombok.Data;

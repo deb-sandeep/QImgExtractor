@@ -6,7 +6,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
-import com.sandy.sconsole.qimgextractor.ui.project.savedialog.ProjectDirectoryView;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog.ProjectDirectoryView;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;

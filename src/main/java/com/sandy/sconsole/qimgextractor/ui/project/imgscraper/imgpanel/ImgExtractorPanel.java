@@ -1,6 +1,6 @@
-package com.sandy.sconsole.qimgextractor.ui.project.imgpanel;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal.ImgCanvas;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.internal.ImgCanvas;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.CustomWidgetStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;

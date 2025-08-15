@@ -1,7 +1,7 @@
-package com.sandy.sconsole.qimgextractor.ui.project.imgpanel.internal;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.internal;
 
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgCanvasListener;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.SelectedRegionMetadata;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgCanvasListener;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.SelectedRegionMetadata;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;

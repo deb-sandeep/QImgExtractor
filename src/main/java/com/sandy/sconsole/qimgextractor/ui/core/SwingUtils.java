@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -66,5 +68,21 @@ public class SwingUtils {
                 scale( r.y, scaleFactor ),
                 scale( r.width, scaleFactor ),
                 scale( r.height, scaleFactor ) ) ;
+    }
+    
+    public static Object getUserObject( TreePath path ) {
+        DefaultMutableTreeNode node = ( DefaultMutableTreeNode )path.getLastPathComponent() ;
+        return node.getUserObject() ;
+    }
+    
+    public static JButton getToolbarButton( String iconName ) {
+        JButton btn = new JButton() ;
+        btn.setIcon( getIcon( iconName ) ) ;
+        btn.setFocusPainted( false ) ;
+        btn.setBorder( BorderFactory.createEmptyBorder() ) ;
+        btn.setContentAreaFilled( false ) ;
+        btn.setOpaque( false ) ;
+        btn.setMargin( new Insets( 5, 0, 5, 0 ) ) ;
+        return btn ;
     }
 }

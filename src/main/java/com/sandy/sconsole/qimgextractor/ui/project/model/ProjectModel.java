@@ -1,7 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandy.sconsole.qimgextractor.ui.project.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;

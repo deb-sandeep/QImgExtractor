@@ -3,7 +3,7 @@ package com.sandy.sconsole.qimgextractor.qsrc.aits;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.qsrc.QSrcComponentFactory;
-import com.sandy.sconsole.qimgextractor.ui.project.savedialog.SaveFnKeyHandler;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog.SaveFnKeyHandler;
 
 import javax.swing.*;
 import java.util.List;

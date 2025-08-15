@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.tree.pagequestion;
+package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
