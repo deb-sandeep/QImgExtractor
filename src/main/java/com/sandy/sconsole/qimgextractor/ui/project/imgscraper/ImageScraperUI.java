@@ -81,7 +81,6 @@ public class ImageScraperUI extends JPanel
                 for( int i=0; i<pageImages.size(); i++ ) {
                     PageImage pageImg = pageImages.get( i ) ;
                     File file = pageImg.getImgFile() ;
-                    log.debug( "Loading page image : {}", file.getName() ) ;
                     mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
                     
                     if( pageImg.getState().isVisible() ) {
@@ -123,7 +122,7 @@ public class ImageScraperUI extends JPanel
         
         File file = pageImg.getImgFile() ;
         
-        int initialDisplayWidth = mainFrame.getWidth() - PageQuestionTreePanel.PREFERRED_WIDTH - 10 ;
+        int initialDisplayWidth = 1100 ;
         ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
         imgPanel.setImage( pageImg, initialDisplayWidth ) ;
         

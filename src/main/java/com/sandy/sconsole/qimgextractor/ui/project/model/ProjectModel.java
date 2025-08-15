@@ -95,7 +95,6 @@ public class ProjectModel {
         QuestionImage lastSavedQImg = null ;
         
         for( File file : files ) {
-            log.info( "      Loading page- {}.", file.getName() + " ..." ) ;
             PageImage pageImg = new PageImage( this, file ) ;
             PageImageState state ;
             if( pageStateMap.containsKey( file.getName() ) ) {
