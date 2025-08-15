@@ -106,11 +106,14 @@ public class MainFrame extends JFrame {
             currentProjectPanel = new ProjectPanel( this, projectModel ) ;
             menuBar.setCurrentProjectPanel( currentProjectPanel ) ;
             
-            getContentPane().add( currentProjectPanel, BorderLayout.CENTER ) ;
+            Container contentPane = getContentPane() ;
+            contentPane.add( currentProjectPanel, BorderLayout.CENTER ) ;
+            
             revalidate() ;
             repaint() ;
             
             QImgExtractor.getAppState().setLastOpenedProjectDir( projectDir ) ;
+            currentProjectPanel.performPostInitOperations() ;
         }
         else {
             JOptionPane.showMessageDialog( this,

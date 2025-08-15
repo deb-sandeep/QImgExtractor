@@ -22,7 +22,7 @@ public abstract class QID {
     private static final String NVT = "NVT" ;
     private static final String MMT = "MMT" ;
     
-    static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, MCA, LCT, IVT, NVT, MMT ) ;
+    public static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, MCA, LCT, IVT, NVT, MMT ) ;
 
     @Getter
     protected QuestionImage parent ;
@@ -132,6 +132,10 @@ public abstract class QID {
         return this.questionType.equals( LCT ) ;
     }
     
+    public String getSubjectCode() {
+        return this.parent.getSubjectCode() ;
+    }
+    
     public void rollQType( boolean reverse ) {
         
         int idx = Q_TYPE_SEQ.indexOf( this.questionType ) ;
@@ -178,6 +182,7 @@ public abstract class QID {
     
     public String toString() {
         StringBuilder sb = new StringBuilder() ;
+        sb.append( getSubjectCode() ).append( "/" ) ;
         sb.append( questionType ).append( '/' ) ;
         if( isLCT() ) {
             sb.append( lctSequence ).append( '/' ) ;

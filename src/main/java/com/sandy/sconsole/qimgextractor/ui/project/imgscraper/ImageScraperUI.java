@@ -60,7 +60,6 @@ public class ImageScraperUI extends JPanel
         this.tabPane = new CloseableTabbedPane() ;
         
         setUpUI() ;
-        new Thread( this::loadPageImages ).start() ;
     }
     
     private void setUpUI() {
@@ -73,30 +72,39 @@ public class ImageScraperUI extends JPanel
         add( new PageQuestionTreePanel( this ), BorderLayout.WEST ) ;
     }
     
-    private void loadPageImages() {
-        
-        List<PageImage> pageImages = projectModel.getPageImages() ;
-        
-        for( int i=0; i<pageImages.size(); i++ ) {
-            PageImage pageImg = pageImages.get( i ) ;
-            File      file    = pageImg.getImgFile() ;
-            mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
-            
-            if( pageImg.getState().isVisible() ) {
-                loadPageImg( pageImg ) ;
+    public void loadPageImages() {
+        new SwingWorker<Void, PageImage>() {
+            @Override
+            protected Void doInBackground() {
+                List<PageImage> pageImages = projectModel.getPageImages() ;
+                
+                for( int i=0; i<pageImages.size(); i++ ) {
+                    PageImage pageImg = pageImages.get( i ) ;
+                    File file = pageImg.getImgFile() ;
+                    log.debug( "Loading page image : {}", file.getName() ) ;
+                    mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
+                    
+                    if( pageImg.getState().isVisible() ) {
+                        loadPageImg( pageImg ) ;
+                    }
+                }
+                return null ;
             }
-        }
-        mainFrame.clearStatusMsg() ;
-        
-        QuestionImage lastSavedQImg       = projectModel.getContext().getLastSavedImg() ;
-        PageImage     lastSelectedPageImg = projectModel.getSelectedPageImg() ;
-        
-        if( lastSelectedPageImg != null ) {
-            activatePageImg( lastSelectedPageImg ) ;
-        }
-        else if ( lastSavedQImg != null ) {
-            activatePageImg( lastSavedQImg.getPageImg() ) ;
-        }
+            
+            @Override
+            protected void done() {
+                QuestionImage lastSavedQImg = projectModel.getContext().getLastSavedImg() ;
+                PageImage lastSelectedPageImg = projectModel.getSelectedPageImg() ;
+                
+                if( lastSelectedPageImg != null ) {
+                    activatePageImg( lastSelectedPageImg ) ;
+                }
+                else if ( lastSavedQImg != null ) {
+                    activatePageImg( lastSavedQImg.getPageImg() ) ;
+                }
+                mainFrame.logStausMsg( "Page images loaded." ) ;
+            }
+        }.execute() ;
     }
     
     public void destroy() {
@@ -242,7 +250,7 @@ public class ImageScraperUI extends JPanel
                 regionMeta.getTag() + ".png" ) ;
         File imgFile = new File( projectModel.getExtractedImgDir(), fqFileName ) ;
         
-        QuestionImage qImg = new QuestionImage( pageImage, imgFile, regionMeta );
+        QuestionImage qImg = new QuestionImage( pageImage, imgFile, regionMeta ) ;
         
         pageImage.addQuestionImg( qImg, true ) ;
         projectModel.getContext().setLastSavedImage( qImg ) ;

@@ -268,7 +268,7 @@ public class QuestionImage implements Comparable<QuestionImage> {
     }
     
     public String toString() {
-        StringBuilder sb = new StringBuilder( srcId + "//" + subjectCode + "/" + qId  ) ;
+        StringBuilder sb = new StringBuilder( srcId + "//" + qId  ) ;
         if( partNumber != -1 ) {
             sb.append( "/(" ).append( partNumber ).append( ")" ) ;
         }

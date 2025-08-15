@@ -32,6 +32,7 @@ public class ProjectModel {
     @Getter private String projectName ;
     @Getter private ProjectContext context ;
     @Getter private ProjectState state ;
+    @Getter private QuestionRepo questionRepo ;
     @Getter private final List<PageImage> pageImages = new ArrayList<>() ;
     
     private final List<ProjectModelListener> listeners = new ArrayList<>() ;
@@ -72,11 +73,12 @@ public class ProjectModel {
         log.info( "    Loading pages...." ) ;
         
         loadPageImages() ;
-        
         if( appConfig.isRepairProjectOnStartup() ) {
             log.info( "    Repairing project artefacts...." ) ;
             repairProjectArtefacts() ;
         }
+        
+        this.questionRepo = new QuestionRepo( this ) ;
     }
     
     // Assumption: Once a project has been loaded, no new pages can be added
@@ -84,7 +86,7 @@ public class ProjectModel {
     // domain of pages on which the project will operate.
     private void loadPageImages() {
         
-        File[]                      files        = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
+        File[] files = pagesDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
         Map<String, PageImageState> pageStateMap = loadPageState() ;
         
         assert files != null ;

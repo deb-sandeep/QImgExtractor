@@ -33,6 +33,13 @@ public class ProjectPanel extends JPanel {
         add( imgScraperUI, BorderLayout.CENTER ) ;
     }
     
+    // This is called once the project panel is successfully attached to the
+    // main frame. This is where any long-running operations like loading of
+    // page images etc should be done.
+    public void performPostInitOperations() {
+        imgScraperUI.loadPageImages() ;
+    }
+    
     public void destroy() {
         this.imgScraperUI.destroy() ;
     }
