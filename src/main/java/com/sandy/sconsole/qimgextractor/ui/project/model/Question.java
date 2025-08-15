@@ -1,13 +1,27 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 public class Question extends QuestionImageCluster
     implements Comparable<Question> {
     
     private QuestionImageCluster lctCtxImgCluster = null ;
+    
+    @Setter
+    private String answer = null ;
+    
+    @Setter
+    private Topic topic = null ;
 
     Question( QID qID ) {
         super( qID ) ;
@@ -74,5 +88,32 @@ public class Question extends QuestionImageCluster
     
     public String getQRef() {
         return qID.getParent().getSrcId() + "//" + qID ;
+    }
+    
+    JSONObject getSerializedForm() throws Exception {
+        JSONObject json = new JSONObject() ;
+        json.put( "qid", qID.toString() ) ;
+        json.put( "lctSeq", qID.getLctSequence() ) ;
+        json.put( "lctCtxImages", getImgInfoList( lctCtxImgCluster ) ) ;
+        json.put( "questionImages", getImgInfoList( this ) ) ;
+        json.put( "answer", answer ) ;
+        json.put( "topic", topic ) ;
+        return json ;
+    }
+    
+    private JSONArray getImgInfoList( QuestionImageCluster qImgCluster ) throws Exception {
+        List<QuestionImage> qImgList = qImgCluster != null ? qImgCluster.qImgList : Collections.emptyList() ;
+        JSONArray array = new JSONArray() ;
+        for( QuestionImage qImg : qImgList ) {
+            BufferedImage img = ImageIO.read( qImg.getImgFile() ) ;
+            
+            JSONObject imgInfo = new JSONObject() ;
+            imgInfo.put( "fileName", qImg.getImgFile().getName() ) ;
+            imgInfo.put( "imgWidth", img.getWidth() ) ;
+            imgInfo.put( "imgHeight", img.getHeight() ) ;
+            
+            array.put( imgInfo ) ;
+        }
+        return array ;
     }
 }

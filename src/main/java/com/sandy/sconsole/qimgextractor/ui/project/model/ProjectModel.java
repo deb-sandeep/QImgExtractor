@@ -78,6 +78,7 @@ public class ProjectModel {
             repairProjectArtefacts() ;
         }
         
+        log.info( "    Initializing question repo...." ) ;
         this.questionRepo = new QuestionRepo( this ) ;
     }
     
@@ -198,14 +199,17 @@ public class ProjectModel {
     }
     
     public void notifyListenersNewQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
+        questionRepo.refresh() ;
         listeners.forEach( l -> l.newQuestionImgAdded( pageImage, qImg ) ) ;
     }
     
     private void notifyListenersTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) {
+        questionRepo.refresh() ;
         listeners.forEach( l -> l.questionTagNameChanged( qImg, oldTagName, newTagName ) ) ;
     }
     
     private void notifyListenersQuestionImgDeleted( QuestionImage qImg ) {
+        questionRepo.refresh() ;
         listeners.forEach( l -> l.questionImgDeleted( qImg ) ) ;
     }
     

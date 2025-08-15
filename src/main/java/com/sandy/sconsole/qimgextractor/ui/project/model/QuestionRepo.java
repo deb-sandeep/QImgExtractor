@@ -1,21 +1,29 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.*;
 
 @Slf4j
 public class QuestionRepo {
     
+    private final File persistenceFile ;
     private final ProjectModel projectModel ;
     private final List<Question> questionList = new ArrayList<>() ;
     
     QuestionRepo( ProjectModel projectModel ) {
         this.projectModel = projectModel ;
-        initialize() ;
+        this.persistenceFile = new File( projectModel.getWorkDir(), "question-info.json" ) ;
+        refresh() ;
     }
     
-    private void initialize() {
+    void refresh() {
         Map<String, Question> qImgClusterMap = new HashMap<>() ;
         Map<String, QuestionImageCluster> lctCtxImgClusterMap = new HashMap<>() ;
         
@@ -41,11 +49,72 @@ public class QuestionRepo {
             }
         }
         
+        questionList.clear() ;
         questionList.addAll( qImgClusterMap.values() ) ;
         Collections.sort( questionList ) ;
         
-        for( Question q : questionList ) {
-            q.logContents() ;
+        syncWithPersistedState() ;
+        save() ;
+    }
+    
+    public void save() {
+        
+        try {
+            JSONArray jsonArray = new JSONArray();
+            for( Question question : questionList ) {
+                jsonArray.put( question.getSerializedForm() );
+            }
+            
+            JSONObject json = new JSONObject() ;
+            json.put( "projectName", projectModel.getProjectName() ) ;
+            json.put( "questions", jsonArray ) ;
+            
+            try( FileWriter file = new FileWriter( persistenceFile ) ) {
+                file.write( json.toString( 2 ) );
+                file.flush();
+            }
+            log.debug( "Questions saved to {}", persistenceFile.getAbsolutePath() ) ;
+        }
+        catch( Exception e ) {
+            log.error( "Error saving questions", e ) ;
         }
     }
+    
+    private void syncWithPersistedState() {
+        
+        if( !persistenceFile.exists() ) {
+            return;
+        }
+        
+        try {
+            TopicRepo topicRepo = QImgExtractor.getBean( TopicRepo.class ) ;
+            String content = FileUtils.readFileToString( persistenceFile, "UTF-8" ) ;
+            JSONObject json = new JSONObject( content ) ;
+            JSONArray questions = json.getJSONArray( "questions" );
+            
+            for( int i = 0; i < questions.length(); i++ ) {
+                JSONObject qJson = questions.getJSONObject( i );
+                String qid = qJson.getString( "qid" );
+                
+                for( Question q : questionList ) {
+                    if( q.qID.toString().equals( qid ) ) {
+                        if( !qJson.isNull( "answer" ) ) {
+                            q.setAnswer( qJson.getString( "answer" ) );
+                        }
+                        
+                        if( !qJson.isNull( "topic" ) ) {
+                            JSONObject topicJson = qJson.getJSONObject( "topic" );
+                            int topicId = topicJson.getInt( "id" ) ;
+                            q.setTopic( topicRepo.getTopicById( topicId ) ) ;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        catch( Exception e ) {
+            log.error( "Error synchronizing with persisted state", e );
+        }
+    }
+    
 }
