@@ -54,6 +54,8 @@ public class ImgPanel extends JPanel {
             if( !pageAttached ) {
                 ImgLabel imgLabel = new ImgLabel( this, pageImg ) ;
                 JScrollPane scrollPane = new JScrollPane( imgLabel ) ;
+                scrollPane.getVerticalScrollBar().setUnitIncrement( 10 ) ;
+                scrollPane.getHorizontalScrollBar().setUnitIncrement( 10 ) ;
                 tabbedPane.addTab( pageTitle, scrollPane ) ;
             }
         }

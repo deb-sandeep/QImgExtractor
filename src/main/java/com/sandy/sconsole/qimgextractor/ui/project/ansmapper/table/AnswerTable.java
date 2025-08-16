@@ -4,6 +4,8 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 
 public class AnswerTable extends JTable {
@@ -21,10 +23,12 @@ public class AnswerTable extends JTable {
         super.setShowGrid( true ) ;
         super.setGridColor( Color.LIGHT_GRAY ) ;
         super.setFont( TABLE_FONT ) ;
-        decorateTableHeader() ;
+        super.setModel( answerTableModel ) ;
         
-        setModel( answerTableModel ) ;
-        setDefaultRenderer( Object.class, new AnswerTableCellRenderer( projectModel ) ) ;
+        decorateTableHeader() ;
+        setColumnWidths() ;
+        
+        setDefaultRenderer( Object.class, new AnswerTableCellRenderer( answerTableModel ) ) ;
     }
     
     private void decorateTableHeader() {
@@ -33,6 +37,22 @@ public class AnswerTable extends JTable {
         header.setBackground( Color.DARK_GRAY ) ;
         header.setForeground( Color.WHITE ) ;
         header.setPreferredSize( new Dimension(header.getWidth(), 20 ) ) ;
+        header.setResizingAllowed( false );
+    }
+    
+    private void setColumnWidths() {
+        TableColumnModel columnModel = super.getColumnModel() ;
+        int baseWidth = super.getWidth() / AnswerTableModel.COL_COUNT ;
+        
+        for( int i=0; i<AnswerTableModel.COL_COUNT; i++ ) {
+            TableColumn column = columnModel.getColumn( i ) ;
+            if( i % 2 == 0 ) {
+                column.setPreferredWidth( baseWidth + 75 ) ;
+            }
+            else {
+                column.setPreferredWidth( baseWidth - 75 ) ;
+            }
+        }
     }
     
     public void refreshTable() {

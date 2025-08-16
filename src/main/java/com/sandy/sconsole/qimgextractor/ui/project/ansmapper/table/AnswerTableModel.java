@@ -12,7 +12,7 @@ import java.util.List;
 @Slf4j
 public class AnswerTableModel extends DefaultTableModel {
     
-    private static final int COL_COUNT = 6 ;
+    public static final int COL_COUNT = 6 ;
     
     private final ProjectModel projectModel ;
     private final List<Question> questionList ;
@@ -49,7 +49,6 @@ public class AnswerTableModel extends DefaultTableModel {
         }
         rowCount = Math.max( phyQuestions.size(), Math.max( chemQuestions.size(), mathsQuestions.size() ) ) ;
         fireTableDataChanged() ;
-        log.debug( "AnswerTableModel refreshed. Row count = {}", rowCount ) ;
     }
 
     @Override
