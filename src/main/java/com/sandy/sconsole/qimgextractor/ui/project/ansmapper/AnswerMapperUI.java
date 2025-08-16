@@ -1,15 +1,14 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper;
 
-import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.tree.QuestionTreePanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import lombok.Getter;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class AnswerMapperUI extends JPanel {
-    
-    private final MainFrame mainFrame ; // Injected
     
     @Getter
     private final ProjectPanel projectPanel ; // Injected
@@ -20,6 +19,13 @@ public class AnswerMapperUI extends JPanel {
     public AnswerMapperUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
-        this.mainFrame = projectPanel.getMainFrame() ;
+        
+        setUpUI() ;
     }
+    
+    private void setUpUI() {
+        setLayout( new BorderLayout() ) ;
+        add( new QuestionTreePanel( this ), BorderLayout.WEST ) ;
+    }
+    
 }

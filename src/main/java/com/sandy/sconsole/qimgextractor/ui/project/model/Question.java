@@ -8,6 +8,7 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,19 +41,6 @@ public class Question extends QuestionImageCluster
     
     public void addLCTCtxImgCluster( QuestionImageCluster lctCtxCluster ) {
         this.lctCtxImgCluster = lctCtxCluster ;
-    }
-    
-    public void logContents() {
-//        log.debug( "" ) ;
-        log.debug( "Question: {}", qID.toString() ) ;
-//        if( lctCtxImgCluster != null ) {
-//            for( QuestionImage qImg : lctCtxImgCluster.qImgList ) {
-//                log.debug( "\t" + qImg.getShortFileNameWithoutExtension() ) ;
-//            }
-//        }
-//        for( QuestionImage qImg : qImgList ) {
-//            log.debug( "\t" + qImg.getShortFileNameWithoutExtension() ) ;
-//        }
     }
     
     @Override
@@ -115,5 +103,14 @@ public class Question extends QuestionImageCluster
             array.put( imgInfo ) ;
         }
         return array ;
+    }
+    
+    public List<QuestionImage> getQImgList() {
+        List<QuestionImage> list = new ArrayList<>() ;
+        if( lctCtxImgCluster != null ) {
+            list.addAll( lctCtxImgCluster.qImgList ) ;
+        }
+        list.addAll( super.qImgList ) ;
+        return list ;
     }
 }

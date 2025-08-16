@@ -1,11 +1,13 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
@@ -15,6 +17,8 @@ public class QuestionRepo {
     
     private final File persistenceFile ;
     private final ProjectModel projectModel ;
+    
+    @Getter
     private final List<Question> questionList = new ArrayList<>() ;
     
     QuestionRepo( ProjectModel projectModel ) {
@@ -54,10 +58,15 @@ public class QuestionRepo {
         Collections.sort( questionList ) ;
         
         syncWithPersistedState() ;
-        save() ;
+        new SwingWorker<>() {
+            protected Void doInBackground() {
+                save() ;
+                return null ;
+            }
+        }.execute() ;
     }
     
-    public void save() {
+    private void save() {
         
         try {
             JSONArray jsonArray = new JSONArray();
