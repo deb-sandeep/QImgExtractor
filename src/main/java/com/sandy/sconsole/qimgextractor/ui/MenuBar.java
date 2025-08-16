@@ -21,7 +21,8 @@ public class MenuBar extends JMenuBar {
     private JMenuItem answersMappedMI;
     private JMenuItem topicsMappedMI;
     private JMenuItem serverSyncedMI;
-    
+    private JMenuItem markAnsKeyMI;
+            
     MenuBar( MainFrame mainFrame ) {
         this.mainFrame = mainFrame ;
         super.add( getFileMenu() ) ;
@@ -46,14 +47,25 @@ public class MenuBar extends JMenuBar {
         JMenuItem openMenuItem = new JMenuItem( "Open..." );
         openMenuItem.addActionListener( e -> mainFrame.openProject() );
         
+        markAnsKeyMI = new JMenuItem( "Toggle Ans Marker [Active Page]" ) ;
+        markAnsKeyMI.addActionListener( e ->
+                getCurrentProjectPanel().ifPresent( ProjectPanel::toggleAnswerKeyMarkerForActivePage ) ) ;
+
         closeMenuItem = new JMenuItem( "Close..." );
         closeMenuItem.addActionListener( e -> mainFrame.closeCurrentProject() );
         
         JMenu projectMenu = new JMenu( "Project" ) ;
         projectMenu.add( openMenuItem ) ;
         projectMenu.add( closeMenuItem ) ;
+
+        projectMenu.addSeparator() ;
+        //------------------------------
+        
+        projectMenu.add( markAnsKeyMI ) ;
         
         projectMenu.addSeparator() ;
+        //------------------------------
+
         addUIChangeMenuItems( projectMenu ) ;
         
         projectMenu.addSeparator() ;
@@ -131,10 +143,12 @@ public class MenuBar extends JMenuBar {
         
         imageScrapersMI.setEnabled( false ) ;
         ansMappingUI.setEnabled( false ) ;
+        markAnsKeyMI.setEnabled( false ) ;
         
         switch( mode ) {
             case IMAGE_SCRAPER:
                 ansMappingUI.setEnabled( true ) ;
+                markAnsKeyMI.setEnabled( true ) ;
                 break ;
             case ANSWER_MAPPER:
                 imageScrapersMI.setEnabled( true ) ;

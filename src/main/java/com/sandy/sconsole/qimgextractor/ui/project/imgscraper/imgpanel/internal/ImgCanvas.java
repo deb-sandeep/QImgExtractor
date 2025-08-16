@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.internal;
 
+import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgCanvasListener;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgExtractorPanel;
@@ -103,7 +104,7 @@ public class ImgCanvas extends JLabel {
         regionSelector.scaleSelectedRegions( regionScaleFactor ) ;
         
         scaleFactor = factor ;
-        scaledImg = getScaledImage() ;
+        scaledImg = SwingUtils.getScaledImage( originalImage, scaleFactor ) ;
         
         super.setPreferredSize( new Dimension( scaledImg.getWidth(),
                                                scaledImg.getHeight() ) ) ;
@@ -115,28 +116,6 @@ public class ImgCanvas extends JLabel {
         super.paintComponent( g ) ;
         g.drawImage( this.scaledImg, 0, 0, null ) ;
         regionSelector.paintSelectedRegions( (Graphics2D)g ) ;
-    }
-    
-    private BufferedImage getScaledImage() {
-        
-        if( scaleFactor == 1.0f ) {
-            return originalImage ;
-        }
-        
-        BufferedImage scaledImg ;
-        
-        int w = (int)(originalImage.getWidth()*scaleFactor) ;
-        int h = (int)(originalImage.getHeight()*scaleFactor) ;
-        
-        scaledImg = new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB ) ;
-        
-        AffineTransform at = new AffineTransform() ;
-        at.scale( scaleFactor, scaleFactor ) ;
-        
-        AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BICUBIC ) ;
-        scaledImg = scaleOp.filter( originalImage, scaledImg ) ;
-        
-        return scaledImg ;
     }
     
     String subImageSelected( Rectangle viewRect, int selectionEndAction ) {

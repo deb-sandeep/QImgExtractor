@@ -7,6 +7,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -84,5 +86,27 @@ public class SwingUtils {
         btn.setOpaque( false ) ;
         btn.setMargin( new Insets( 5, 0, 5, 0 ) ) ;
         return btn ;
+    }
+    
+    public static BufferedImage getScaledImage( BufferedImage originalImage, double scaleFactor ) {
+        
+        if( scaleFactor == 1.0f ) {
+            return originalImage ;
+        }
+        
+        BufferedImage scaledImg ;
+        
+        int w = (int)(originalImage.getWidth()*scaleFactor) ;
+        int h = (int)(originalImage.getHeight()*scaleFactor) ;
+        
+        scaledImg = new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB ) ;
+        
+        AffineTransform at = new AffineTransform() ;
+        at.scale( scaleFactor, scaleFactor ) ;
+        
+        AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BICUBIC ) ;
+        scaledImg = scaleOp.filter( originalImage, scaledImg ) ;
+        
+        return scaledImg ;
     }
 }

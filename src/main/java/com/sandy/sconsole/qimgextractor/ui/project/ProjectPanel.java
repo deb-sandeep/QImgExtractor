@@ -60,13 +60,19 @@ public class ProjectPanel extends JPanel {
     
     public void activateQuestionScraperUI() {
         log.debug( "Activating QuestionScraperUI" ) ;
+        imgScraperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.IMAGE_SCRAPER.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.IMAGE_SCRAPER ) ;
     }
     
     public void activateAnswerMapperUI() {
         log.debug( "Activating AnswerMapperUI" ) ;
+        answerMapperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.ANSWER_MAPPER.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.ANSWER_MAPPER ) ;
+    }
+    
+    public void toggleAnswerKeyMarkerForActivePage() {
+        imgScraperUI.toggleAnswerKeyMarkerForActivePage() ;
     }
 }

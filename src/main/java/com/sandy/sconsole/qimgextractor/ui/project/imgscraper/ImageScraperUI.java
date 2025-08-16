@@ -132,7 +132,12 @@ public class ImageScraperUI extends JPanel
         pageImg.getState().setVisible( true ) ;
         projectModel.savePageState() ;
         
-        invokeLater( () -> tabPane.addTab( file.getName(), imgPanel ) ) ;
+        invokeLater( () -> {
+            tabPane.addTab( file.getName(), imgPanel ) ;
+            if( pageImg.getState().isHasAnswerKeys() ) {
+                tabPane.raiseAlert( imgPanel ) ;
+            }
+        } ) ;
     }
     
     private void tabSelectionChanged() {
@@ -348,5 +353,27 @@ public class ImageScraperUI extends JPanel
                 }
             }
         }
+    }
+    
+    public void toggleAnswerKeyMarkerForActivePage() {
+        ImgExtractorPanel curPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
+        if( curPanel != null ) {
+            boolean hasAnswerKeys = curPanel.getPageImg().getState().isHasAnswerKeys() ;
+            curPanel.getPageImg().getState().setHasAnswerKeys( !hasAnswerKeys ) ;
+            projectModel.savePageState() ;
+            
+            if( curPanel.getPageImg().getState().isHasAnswerKeys() ) {
+                tabPane.raiseAlert( curPanel ) ;
+            }
+            else {
+                tabPane.lowerAlert( curPanel ) ;
+            }
+        }
+    }
+
+    // This method is called just before the panel is made visible. Can be used
+    // to update UI state based on any changes that have happened through
+    // other project modules.
+    public void handlePreActivation() {
     }
 }
