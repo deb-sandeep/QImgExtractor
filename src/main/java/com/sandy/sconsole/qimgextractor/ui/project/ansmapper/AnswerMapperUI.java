@@ -33,7 +33,7 @@ public class AnswerMapperUI extends JPanel {
     private void setUpUI() {
         setLayout( new BorderLayout() ) ;
         add( new QuestionTreePanel( this ), BorderLayout.WEST ) ;
-        add( answerTable, BorderLayout.CENTER ) ;
+        add( new JScrollPane( answerTable ), BorderLayout.CENTER ) ;
         add( imgPanel, BorderLayout.EAST ) ;
     }
     
@@ -42,5 +42,6 @@ public class AnswerMapperUI extends JPanel {
     // other project modules.
     public void handlePreActivation() {
         imgPanel.refreshAnswerKeyPages() ;
+        answerTable.refreshTable() ;
     }
 }

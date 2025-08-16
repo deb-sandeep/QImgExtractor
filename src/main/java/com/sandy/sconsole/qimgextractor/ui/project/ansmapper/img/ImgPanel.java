@@ -19,7 +19,7 @@ public class ImgPanel extends JPanel {
         this.projectModel = projectModel ;
         this.tabbedPane = new JTabbedPane() ;
         
-        setPreferredSize( new Dimension( 1100, 300 ) ) ;
+        setPreferredSize( new Dimension( 1000, 300 ) ) ;
         setLayout( new BorderLayout() ) ;
         add( tabbedPane, BorderLayout.CENTER ) ;
     }

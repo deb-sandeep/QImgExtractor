@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
@@ -18,7 +19,7 @@ public class Question extends QuestionImageCluster
     
     private QuestionImageCluster lctCtxImgCluster = null ;
     
-    @Setter
+    @Getter @Setter
     private String answer = null ;
     
     @Setter
