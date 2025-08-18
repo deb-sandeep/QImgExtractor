@@ -78,6 +78,14 @@ public class AnswerTableModel extends DefaultTableModel {
         return "" ;
     }
     
+    public Question getQuestionAt( int row, int column ) {
+        List<Question> questions = getQuestionsForColumn( column ) ;
+        if( row < questions.size() ) {
+            return questions.get( row ) ;
+        }
+        return null ;
+    }
+    
     private List<Question> getQuestionsForColumn( int column ) {
         List<Question> questions ;
         switch( column ) {
@@ -112,8 +120,11 @@ public class AnswerTableModel extends DefaultTableModel {
             StringBuilder ansText = new StringBuilder();
             if( q.getQID().getQuestionType().equals( QID.MMT ) ) {
                 if( ansStack.size() > 3 ) {
-                    for( int i=0; i<3; i++ ) {
-                        ansText.append( ansStack.pop() ).append( "\n" );
+                    for( int i=0; i<4; i++ ) {
+                        ansText.append( ansStack.pop() ).append( "#" );
+                    }
+                    if( ansText.charAt( ansText.length()-1 ) == '#' ) {
+                        ansText.deleteCharAt( ansText.length()-1 ) ;
                     }
                 }
                 else {
@@ -128,7 +139,7 @@ public class AnswerTableModel extends DefaultTableModel {
             fireTableCellUpdated( row, col ) ;
         }
         else {
-            log.error( "Invalid cell. row: {}, column: {}", row, col ) ;
+            throw new Question.InvalidAnswerException( "Invalid row: " + row + ", column: " + col ) ;
         }
     }
 }

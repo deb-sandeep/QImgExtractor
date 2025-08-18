@@ -4,13 +4,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
-public class AnswerTableCellRenderer extends DefaultTableCellRenderer {
+public class AnswerTableDefaultCellRenderer extends DefaultTableCellRenderer {
     
     private Color phyColor = null ;
     private Color chemColor = null ;
     private Color mathsColor = null ;
     
-    public AnswerTableCellRenderer() {
+    public AnswerTableDefaultCellRenderer() {
         setHorizontalAlignment( JLabel.LEFT ) ;
         setVerticalAlignment( JLabel.CENTER ) ;
         setOpaque( true ) ;
@@ -46,9 +46,12 @@ public class AnswerTableCellRenderer extends DefaultTableCellRenderer {
     private void renderAnswer( JLabel label, String value ) {
         label.setBackground( Color.WHITE ) ;
         if( value == null ) {
-            label.setBackground( Color.PINK.brighter() ) ;
+            label.setBackground( Color.PINK ) ;
+            label.setText( "" ) ;
         }
-        label.setText( " " + value ) ;
+        else {
+            label.setText( " " + value ) ;
+        }
         label.setForeground( Color.DARK_GRAY ) ;
     }
     

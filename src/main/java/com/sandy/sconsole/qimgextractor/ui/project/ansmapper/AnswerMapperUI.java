@@ -6,6 +6,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table.AnswerTable;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.tree.QuestionTreePanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,24 +51,28 @@ public class AnswerMapperUI extends JPanel {
         answerTable.refreshTable() ;
     }
     
-    public void setOCRGeneratedAnswers( String text )
-        throws Question.InvalidAnswerException {
+    public void setOCRGeneratedAnswers( String text ) {
         
         if( text == null || text.trim().isEmpty() ) {
             return;
         }
         
-        Stack<String> answerStack = new Stack<>();
-        String[] lines = text.split( "\n" );
-        
-        for( String line : lines ) {
-            String trimmedLine = line.trim();
-            if( !trimmedLine.isEmpty() ) {
-                answerStack.push( trimmedLine ) ;
+        try {
+            Stack<String> answerStack = new Stack<>();
+            String[] lines = text.split( "\n" );
+            
+            for( String line : lines ) {
+                String trimmedLine = line.trim();
+                if( !trimmedLine.isEmpty() ) {
+                    answerStack.push( trimmedLine ) ;
+                }
             }
+            Collections.reverse( answerStack ) ;
+            answerTable.setOCRAnswers( answerStack ) ;
+            projectModel.getQuestionRepo().save() ;
         }
-        Collections.reverse( answerStack ) ;
-        answerTable.setOCRAnswers( answerStack ) ;
-        projectModel.getQuestionRepo().save() ;
+        catch( Question.InvalidAnswerException e ) {
+            AppUtil.showErrorMsg( "Invalid answer found in OCR generated text", e ) ;
+        }
     }
 }

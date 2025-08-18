@@ -129,31 +129,10 @@ public class Question extends QuestionImageCluster
         
         String qType = qID.getQuestionType() ;
         switch( qType ) {
-            case QID.SCA, QID.LCT -> {
-                validateABCD( ans );
-                this.answer = ans.toUpperCase();
-            }
-            case QID.IVT, QID.NVT -> {
-                try {
-                    Double.parseDouble( ans );
-                    this.answer = ans.trim();
-                }
-                catch( Exception e ) {
-                    throw new InvalidAnswerException( "Answer must be a number. Found " + ans + " instead." );
-                }
-            }
-            case QID.MCA -> {
-                String[] parts = ans.split( "," );
-                StringBuilder answerText = new StringBuilder();
-                for( String part : parts ) {
-                    validateABCD( part );
-                    answerText.append( part.toUpperCase() ).append( "," );
-                }
-                if( answerText.charAt( answerText.length() - 1 ) == ',' ) {
-                    answerText.deleteCharAt( answerText.length() - 1 );
-                }
-                this.answer = answerText.toString() ;
-            }
+            case QID.SCA, QID.LCT -> formatAndStoreSCAAnswer( ans ) ;
+            case QID.IVT, QID.NVT -> formatAndStoreNVTAnswer( ans ) ;
+            case QID.MCA -> formatAndStoreMCQAnswer( ans );
+            case QID.MMT -> formatAndStoreMMTAnswer( ans ) ;
         }
     }
     
@@ -161,5 +140,40 @@ public class Question extends QuestionImageCluster
         if( !text.matches( "^[A-Da-d]$" ) ) {
             throw new InvalidAnswerException( "Answer must be either A, B, C or D. Found " + answer + " instead." ) ;
         }
+    }
+    
+    private void formatAndStoreSCAAnswer( String ans ) throws InvalidAnswerException {
+        validateABCD( ans );
+        this.answer = ans.toUpperCase() ;
+    }
+    
+    private void formatAndStoreNVTAnswer( String ans ) throws InvalidAnswerException {
+        try {
+            Double.parseDouble( ans );
+            this.answer = ans.trim();
+        }
+        catch( Exception e ) {
+            throw new InvalidAnswerException( "Answer must be a number. Found " + ans + " instead." );
+        }
+    }
+    
+    private void formatAndStoreMCQAnswer( String ans )
+            throws InvalidAnswerException {
+        
+        String[] parts = ans.split( "," );
+        StringBuilder answerText = new StringBuilder();
+        for( String part : parts ) {
+            validateABCD( part );
+            answerText.append( part.toUpperCase() ).append( "," );
+        }
+        if( answerText.charAt( answerText.length() - 1 ) == ',' ) {
+            answerText.deleteCharAt( answerText.length() - 1 );
+        }
+        this.answer = answerText.toString() ;
+    }
+    
+    private void formatAndStoreMMTAnswer( String ans )
+        throws InvalidAnswerException {
+        log.debug( ans ) ;
     }
 }
