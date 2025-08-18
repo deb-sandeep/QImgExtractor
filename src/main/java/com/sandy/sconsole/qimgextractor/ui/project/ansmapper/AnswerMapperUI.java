@@ -5,11 +5,16 @@ import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.img.ImgPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table.AnswerTable;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.tree.QuestionTreePanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
+import java.util.Stack;
 
+@Slf4j
 public class AnswerMapperUI extends JPanel {
     
     @Getter
@@ -24,8 +29,8 @@ public class AnswerMapperUI extends JPanel {
     public AnswerMapperUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
-        this.answerTable = new AnswerTable( projectModel ) ;
-        this.imgPanel = new ImgPanel( projectModel ) ;
+        this.answerTable = new AnswerTable( this.projectModel ) ;
+        this.imgPanel = new ImgPanel( this ) ;
         
         setUpUI() ;
     }
@@ -43,5 +48,26 @@ public class AnswerMapperUI extends JPanel {
     public void handlePreActivation() {
         imgPanel.refreshAnswerKeyPages() ;
         answerTable.refreshTable() ;
+    }
+    
+    public void setOCRGeneratedAnswers( String text )
+        throws Question.InvalidAnswerException {
+        
+        if( text == null || text.trim().isEmpty() ) {
+            return;
+        }
+        
+        Stack<String> answerStack = new Stack<>();
+        String[] lines = text.split( "\n" );
+        
+        for( String line : lines ) {
+            String trimmedLine = line.trim();
+            if( !trimmedLine.isEmpty() ) {
+                answerStack.push( trimmedLine ) ;
+            }
+        }
+        Collections.reverse( answerStack ) ;
+        answerTable.setOCRAnswers( answerStack ) ;
+        projectModel.getQuestionRepo().save() ;
     }
 }

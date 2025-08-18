@@ -2,12 +2,14 @@ package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 @Slf4j
 public class AnswerTableModel extends DefaultTableModel {
@@ -63,14 +65,7 @@ public class AnswerTableModel extends DefaultTableModel {
     
     @Override
     public Object getValueAt( int row, int column ) {
-        List<Question> questions ;
-        switch( column ) {
-            case 0,1 -> questions = phyQuestions ;
-            case 2,3 -> questions = chemQuestions ;
-            case 4,5 -> questions = mathsQuestions ;
-            default -> questions = Collections.emptyList() ;
-        }
-        
+        List<Question> questions = getQuestionsForColumn( column ) ;
         if( row < questions.size() ) {
             Question q = questions.get( row ) ;
             if( column == 0 || column == 2 || column == 4 ) {
@@ -83,6 +78,17 @@ public class AnswerTableModel extends DefaultTableModel {
         return "" ;
     }
     
+    private List<Question> getQuestionsForColumn( int column ) {
+        List<Question> questions ;
+        switch( column ) {
+            case 0,1 -> questions = phyQuestions ;
+            case 2,3 -> questions = chemQuestions ;
+            case 4,5 -> questions = mathsQuestions ;
+            default -> questions = Collections.emptyList() ;
+        }
+        return questions ;
+    }
+    
     @Override
     public void setValueAt( Object value, int row, int column ) {
         log.debug( "Setting value at row: {}, col: {}, value: {}", row, column, value ) ;
@@ -90,6 +96,39 @@ public class AnswerTableModel extends DefaultTableModel {
     
     @Override
     public boolean isCellEditable( int row, int column ) {
-        return column == 1 || column == 3 || column == 5 ;
+        if( column == 1 || column == 3 || column == 5 ) {
+            List<Question> questions = getQuestionsForColumn( column ) ;
+            return row < questions.size() ;
+        }
+        return false ;
+    }
+    
+    public void setAnswer( int col, int row, Stack<String> ansStack )
+        throws Question.InvalidAnswerException {
+        
+        List<Question> questions = getQuestionsForColumn( col ) ;
+        if( row < questions.size() ) {
+            Question q = questions.get( row ) ;
+            StringBuilder ansText = new StringBuilder();
+            if( q.getQID().getQuestionType().equals( QID.MMT ) ) {
+                if( ansStack.size() > 3 ) {
+                    for( int i=0; i<3; i++ ) {
+                        ansText.append( ansStack.pop() ).append( "\n" );
+                    }
+                }
+                else {
+                    throw new Question.InvalidAnswerException(
+                            "Insufficient text for creating answer to question " + q.getQID() ) ;
+                }
+            }
+            else {
+                ansText.append( ansStack.pop() ) ;
+            }
+            q.setAnswer( ansText.toString() ) ;
+            fireTableCellUpdated( row, col ) ;
+        }
+        else {
+            log.error( "Invalid cell. row: {}, column: {}", row, col ) ;
+        }
     }
 }

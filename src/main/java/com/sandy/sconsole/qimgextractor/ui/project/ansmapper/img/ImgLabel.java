@@ -1,10 +1,9 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.img ;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
+import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import lombok.extern.slf4j.Slf4j;
-import net.sourceforge.tess4j.Tesseract;
-import net.sourceforge.tess4j.TesseractException;
 
 import javax.imageio.ImageIO;
 import javax.swing.* ;
@@ -16,6 +15,7 @@ import java.io.File;
 @Slf4j
 public class ImgLabel extends JLabel {
 
+    private final AnswerMapperUI answerMapperUI ;
     private final JPanel parentPanel ;
     private final PageImage pageImg ;
     
@@ -26,7 +26,8 @@ public class ImgLabel extends JLabel {
     private Point endPoint;
     private boolean selecting = false;
     
-    public ImgLabel( JPanel parentPanel, PageImage pageImg ) {
+    public ImgLabel( JPanel parentPanel, AnswerMapperUI answerMapperUI, PageImage pageImg ) {
+        this.answerMapperUI = answerMapperUI ;
         this.parentPanel = parentPanel ;
         this.pageImg = pageImg ;
         
@@ -34,6 +35,7 @@ public class ImgLabel extends JLabel {
             renderImage() ;
             addMouseListener( createMouseAdapter() );
             addMouseMotionListener( createMouseAdapter() );
+            addKeyListener( createKeyAdapter() ) ;
         }
         catch( Exception e ) {
             log.error( "Error loading image: {}", pageImg.getImgFile().getName(), e ) ;
@@ -52,29 +54,34 @@ public class ImgLabel extends JLabel {
         return new MouseAdapter() {
             @Override
             public void mousePressed( MouseEvent e ) {
-                startPoint = e.getPoint();
-                selecting = true;
+                if( !selecting ) {
+                    selecting = true ;
+                    startPoint = e.getPoint();
+                }
+                else {
+                    handleSelectionEnd( e ) ;
+                }
             }
             
             @Override
-            public void mouseReleased( MouseEvent e ) {
+            public void mouseMoved( MouseEvent e ) {
+                if( selecting ) {
+                    endPoint = e.getPoint();
+                    repaint();
+                }
+            }
+            
+            private void handleSelectionEnd( MouseEvent e ) {
                 selecting = false ;
                 try {
                     BufferedImage selectedImage = getSelectedImage();
                     if( selectedImage != null ) {
-                        selectedImage = cleanHorizontalLines( selectedImage ) ;
-                        File outputFile = new File( System.getProperty( "user.home" ) + "/temp/temp.png" );
-                        ImageIO.write( selectedImage, "png", outputFile );
+                        selectedImage = cleanGridLines( selectedImage ) ;
+                        File outputFile = new File( System.getProperty( "user.home" ) + "/temp/temp.png" ) ;
+                        ImageIO.write( selectedImage, "png", outputFile ) ;
 
-                        System.setProperty("jna.library.path", "/opt/homebrew/lib");
-                        Tesseract tesseract = new Tesseract();
-                        tesseract.setDatapath("/opt/homebrew/opt/tesseract/share/tessdata"); // path to tessdata folder
-                        tesseract.setLanguage("eng"); // English language
-                        tesseract.setVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ()->,");
-                        tesseract.setOcrEngineMode(1);      // 1 = LSTM only
-                        
-                        String text = tesseract.doOCR( selectedImage ) ;
-                        log.info( "OCR Result: \n" + text ) ;
+                        String text = SwingUtils.getOCRText( selectedImage ) ;
+                        answerMapperUI.setOCRGeneratedAnswers( text ) ;
                     }
                 }
                 catch( Exception ex ) {
@@ -82,16 +89,22 @@ public class ImgLabel extends JLabel {
                 }
                 repaint();
             }
-            
-            @Override
-            public void mouseDragged( MouseEvent e ) {
-                endPoint = e.getPoint();
-                repaint();
-            }
         };
     }
     
-    private BufferedImage cleanHorizontalLines( BufferedImage img ) {
+    private KeyAdapter createKeyAdapter() {
+        return new KeyAdapter() {
+            @Override
+            public void keyPressed( KeyEvent e ) {
+                if( e.getKeyCode() == KeyEvent.VK_ESCAPE ) {
+                    selecting = false ;
+                    repaint();
+                }
+            }
+        } ;
+    }
+    
+    private BufferedImage cleanGridLines( BufferedImage img ) {
         int w = img.getWidth() ;
         int h = img.getHeight() ;
         
@@ -101,21 +114,33 @@ public class ImgLabel extends JLabel {
         g2d.drawImage( img, 0, 0, null ) ;
         g2d.dispose() ;
         
-        final int WHITE_THRESHOLD = 250;
         for( int y = 0; y < h; y++ ) {
-            int rgb = newImg.getRGB( 0, y );
-            int r   = ( rgb >> 16 ) & 0xFF;
-            int g   = ( rgb >> 8 ) & 0xFF;
-            int b   = rgb & 0xFF;
-            
-            if( r < WHITE_THRESHOLD || g < WHITE_THRESHOLD || b < WHITE_THRESHOLD ) {
+            if( isPixelNotWhite( 0, y, newImg ) ) {
                 for( int x = 0; x < w; x++ ) {
                     newImg.setRGB( x, y, Color.WHITE.getRGB() );
                 }
             }
         }
         
+        for( int x = 0; x < w; x++ ) {
+            if( isPixelNotWhite( x, 0, newImg ) ) {
+                for( int y = 0; y < h; y++ ) {
+                    newImg.setRGB( x, y, Color.WHITE.getRGB() );
+                }
+            }
+        }
+        
         return newImg ;
+    }
+    
+    private boolean isPixelNotWhite( int x, int y, BufferedImage img ) {
+        int rgb = img.getRGB( x, y );
+        int r   = ( rgb >> 16 ) & 0xFF;
+        int g   = ( rgb >> 8 ) & 0xFF;
+        int b   = rgb & 0xFF;
+        
+        final int WHITE_THRESHOLD = 250;
+        return ( r < WHITE_THRESHOLD || g < WHITE_THRESHOLD || b < WHITE_THRESHOLD ) ;
     }
     
     @Override
@@ -150,6 +175,4 @@ public class ImgLabel extends JLabel {
         
         return originalImage.getSubimage( rect.x, rect.y, rect.width, rect.height ) ;
     }
-    
-    
 }

@@ -17,9 +17,15 @@ import java.util.List;
 public class Question extends QuestionImageCluster
     implements Comparable<Question> {
     
+    public static class InvalidAnswerException extends Exception {
+        public InvalidAnswerException( String message ) {
+            super( message ) ;
+        }
+    }
+    
     private QuestionImageCluster lctCtxImgCluster = null ;
     
-    @Getter @Setter
+    @Getter
     private String answer = null ;
     
     @Setter
@@ -113,5 +119,47 @@ public class Question extends QuestionImageCluster
         }
         list.addAll( super.qImgList ) ;
         return list ;
+    }
+    
+    public void setAnswer( String ans ) throws InvalidAnswerException {
+        
+        if( ans == null || ans.trim().isEmpty() ) {
+            throw new InvalidAnswerException( "Answer cannot be empty" ) ;
+        }
+        
+        String qType = qID.getQuestionType() ;
+        switch( qType ) {
+            case QID.SCA, QID.LCT -> {
+                validateABCD( ans );
+                this.answer = ans.toUpperCase();
+            }
+            case QID.IVT, QID.NVT -> {
+                try {
+                    Double.parseDouble( ans );
+                    this.answer = ans.trim();
+                }
+                catch( Exception e ) {
+                    throw new InvalidAnswerException( "Answer must be a number. Found " + ans + " instead." );
+                }
+            }
+            case QID.MCA -> {
+                String[] parts = ans.split( "," );
+                StringBuilder answerText = new StringBuilder();
+                for( String part : parts ) {
+                    validateABCD( part );
+                    answerText.append( part.toUpperCase() ).append( "," );
+                }
+                if( answerText.charAt( answerText.length() - 1 ) == ',' ) {
+                    answerText.deleteCharAt( answerText.length() - 1 );
+                }
+                this.answer = answerText.toString() ;
+            }
+        }
+    }
+    
+    private void validateABCD( String text ) throws InvalidAnswerException {
+        if( !text.matches( "^[A-Da-d]$" ) ) {
+            throw new InvalidAnswerException( "Answer must be either A, B, C or D. Found " + answer + " instead." ) ;
+        }
     }
 }

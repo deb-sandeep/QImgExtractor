@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.img;
 
+import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
@@ -11,12 +12,14 @@ import java.util.List;
 
 public class ImgPanel extends JPanel {
 
+    private final AnswerMapperUI parent ;
     private final ProjectModel projectModel ;
     
     private final JTabbedPane tabbedPane ;
     
-    public ImgPanel( ProjectModel projectModel ) {
-        this.projectModel = projectModel ;
+    public ImgPanel( AnswerMapperUI parent ) {
+        this.parent = parent ;
+        this.projectModel = parent.getProjectModel() ;
         this.tabbedPane = new JTabbedPane() ;
         
         setPreferredSize( new Dimension( 1000, 300 ) ) ;
@@ -52,7 +55,7 @@ public class ImgPanel extends JPanel {
             }
             
             if( !pageAttached ) {
-                ImgLabel imgLabel = new ImgLabel( this, pageImg ) ;
+                ImgLabel imgLabel = new ImgLabel( this, parent, pageImg ) ;
                 JScrollPane scrollPane = new JScrollPane( imgLabel ) ;
                 scrollPane.getVerticalScrollBar().setUnitIncrement( 10 ) ;
                 scrollPane.getHorizontalScrollBar().setUnitIncrement( 10 ) ;

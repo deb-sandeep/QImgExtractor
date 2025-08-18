@@ -15,12 +15,12 @@ import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.v
 @Slf4j
 public abstract class QID {
     
-    private static final String SCA = "SCA" ;
-    private static final String MCA = "MCA" ;
-    private static final String LCT = "LCT" ;
-    private static final String IVT = "IVT" ;
-    private static final String NVT = "NVT" ;
-    private static final String MMT = "MMT" ;
+    public static final String SCA = "SCA" ;
+    public static final String MCA = "MCA" ;
+    public static final String LCT = "LCT" ;
+    public static final String IVT = "IVT" ;
+    public static final String NVT = "NVT" ;
+    public static final String MMT = "MMT" ;
     
     public static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, MCA, LCT, IVT, NVT, MMT ) ;
 

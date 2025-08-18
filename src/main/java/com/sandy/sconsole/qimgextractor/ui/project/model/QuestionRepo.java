@@ -66,7 +66,7 @@ public class QuestionRepo {
         }.execute() ;
     }
     
-    private void save() {
+    public void save() {
         
         try {
             JSONArray jsonArray = new JSONArray();

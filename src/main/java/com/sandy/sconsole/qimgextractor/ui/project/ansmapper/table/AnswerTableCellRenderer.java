@@ -6,13 +6,11 @@ import java.awt.*;
 
 public class AnswerTableCellRenderer extends DefaultTableCellRenderer {
     
-    private final AnswerTableModel tableModel ;
     private Color phyColor = null ;
     private Color chemColor = null ;
     private Color mathsColor = null ;
     
-    public AnswerTableCellRenderer( AnswerTableModel tableModel ) {
-        this.tableModel = tableModel;
+    public AnswerTableCellRenderer() {
         setHorizontalAlignment( JLabel.LEFT ) ;
         setVerticalAlignment( JLabel.CENTER ) ;
         setOpaque( true ) ;
@@ -24,15 +22,13 @@ public class AnswerTableCellRenderer extends DefaultTableCellRenderer {
                                                     boolean isSelected, boolean hasFocus,
                                                     int row, int column ) {
         Component comp = super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column ) ;
-        String cellValue = ( String )tableModel.getValueAt( row, column ) ;
-        
         if( column == 0 || column == 2 || column == 4 ) {
-            if( !cellValue.isEmpty() ) {
-                renderQID( (JLabel)comp, cellValue ) ;
+            if( !value.toString().isEmpty() ) {
+                renderQID( (JLabel)comp, value.toString() ) ;
             }
         }
         else {
-            comp.setBackground( Color.WHITE ) ;
+            renderAnswer( ( JLabel )comp, (String)value ) ;
         }
         return comp ;
     }
@@ -45,6 +41,15 @@ public class AnswerTableCellRenderer extends DefaultTableCellRenderer {
         cellValue = cellValue.replaceFirst( "/", " " ) ;
         cellValue = cellValue.replace( "/", "." ) ;
         comp.setText( " " + cellValue ) ;
+    }
+    
+    private void renderAnswer( JLabel label, String value ) {
+        label.setBackground( Color.WHITE ) ;
+        if( value == null ) {
+            label.setBackground( Color.PINK.brighter() ) ;
+        }
+        label.setText( " " + value ) ;
+        label.setForeground( Color.DARK_GRAY ) ;
     }
     
     private Color getColor( String cellValue ) {

@@ -92,6 +92,8 @@ public class QImgExtractor
         log.debug( "Starting Spring Boot..." ) ;
         
         System.setProperty( "java.awt.headless", "false" ) ;
+        System.setProperty("jna.library.path", "/opt/homebrew/lib");
+        
         SpringApplication.run( QImgExtractor.class, args ) ;
         
         log.debug( "Starting QImgExtractor application.." ) ;

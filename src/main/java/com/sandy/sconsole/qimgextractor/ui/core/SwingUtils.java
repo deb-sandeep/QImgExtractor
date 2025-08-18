@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.core;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sourceforge.tess4j.Tesseract;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -108,5 +109,16 @@ public class SwingUtils {
         scaledImg = scaleOp.filter( originalImage, scaledImg ) ;
         
         return scaledImg ;
+    }
+    
+    public static String getOCRText( BufferedImage img ) throws Exception {
+        
+        Tesseract tesseract = new Tesseract() ;
+        tesseract.setDatapath( "/opt/homebrew/opt/tesseract/share/tessdata" ) ;
+        tesseract.setLanguage( "eng" ) ;
+        tesseract.setVariable( "tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZpqrst0123456789()->,.-+" ) ;
+        tesseract.setOcrEngineMode( 1 ) ;
+        
+        return tesseract.doOCR( img ) ;
     }
 }
