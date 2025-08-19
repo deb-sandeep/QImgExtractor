@@ -68,11 +68,13 @@ public class AnswerMapperUI extends JPanel {
                 }
             }
             Collections.reverse( answerStack ) ;
-            answerTable.setOCRAnswers( answerStack ) ;
+            answerTable.setRawAnswers( answerStack ) ;
             projectModel.getQuestionRepo().save() ;
         }
         catch( Question.InvalidAnswerException e ) {
-            AppUtil.showErrorMsg( "Invalid answer found in OCR generated text", e ) ;
+            AppUtil.showErrorMsg( "Invalid answer found in OCR generated text.\n" + e.getMessage() ) ;
+            log.error( "Invalid answer found in OCR generated text.", e ) ;
+            log.error( "OCR Text : {} ", text ) ;
         }
     }
 }

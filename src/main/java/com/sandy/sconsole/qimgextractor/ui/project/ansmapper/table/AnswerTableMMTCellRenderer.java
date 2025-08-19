@@ -1,9 +1,12 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
+@Slf4j
 public class AnswerTableMMTCellRenderer extends DefaultTableCellRenderer {
     
     private static final int MARGIN = 2 ;
@@ -20,9 +23,10 @@ public class AnswerTableMMTCellRenderer extends DefaultTableCellRenderer {
                                                     boolean isSelected, boolean hasFocus,
                                                     int row, int column ) {
         
-        Component comp = super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column ) ;
-        comp.setBackground( Color.WHITE ) ;
-        return comp ;
+        JLabel label = (JLabel)super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column ) ;
+        label.setBackground( Color.WHITE ) ;
+        label.setText( "" ) ;
+        return label ;
     }
     
     @Override

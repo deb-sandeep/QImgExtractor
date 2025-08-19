@@ -30,6 +30,9 @@ public class Question extends QuestionImageCluster
     
     @Setter
     private Topic topic = null ;
+    
+    @Getter
+    private MMTAnswer mmtAnswer = null ;
 
     Question( QID qID ) {
         super( qID ) ;
@@ -122,6 +125,13 @@ public class Question extends QuestionImageCluster
     }
     
     public void setAnswer( String ans ) throws InvalidAnswerException {
+        this.answer = ans ;
+        if( qID.getQuestionType().equals( QID.MMT ) ) {
+            this.mmtAnswer = new MMTAnswer( ans ) ;
+        }
+    }
+    
+    public void setRawAnswer( String ans ) throws InvalidAnswerException {
         
         if( ans == null || ans.trim().isEmpty() ) {
             throw new InvalidAnswerException( "Answer cannot be empty" ) ;
@@ -136,14 +146,14 @@ public class Question extends QuestionImageCluster
         }
     }
     
-    private void validateABCD( String text ) throws InvalidAnswerException {
-        if( !text.matches( "^[A-Da-d]$" ) ) {
-            throw new InvalidAnswerException( "Answer must be either A, B, C or D. Found " + answer + " instead." ) ;
+    private void validateSCAChoice( String text ) throws InvalidAnswerException {
+        if( !text.matches( "^[A-Da-d1-4]$" ) ) {
+            throw new InvalidAnswerException( "Answer must be either A, B, C or D. Found " + text + " instead." ) ;
         }
     }
     
     private void formatAndStoreSCAAnswer( String ans ) throws InvalidAnswerException {
-        validateABCD( ans );
+        validateSCAChoice( ans );
         this.answer = ans.toUpperCase() ;
     }
     
@@ -163,7 +173,8 @@ public class Question extends QuestionImageCluster
         String[] parts = ans.split( "," );
         StringBuilder answerText = new StringBuilder();
         for( String part : parts ) {
-            validateABCD( part );
+            part = part.trim() ;
+            validateSCAChoice( part );
             answerText.append( part.toUpperCase() ).append( "," );
         }
         if( answerText.charAt( answerText.length() - 1 ) == ',' ) {
@@ -174,6 +185,24 @@ public class Question extends QuestionImageCluster
     
     private void formatAndStoreMMTAnswer( String ans )
         throws InvalidAnswerException {
-        log.debug( ans ) ;
+        
+        String cleanedAnswer = cleanMMTInputText( ans ) ;
+        this.mmtAnswer = new MMTAnswer( cleanedAnswer ) ;
+        this.answer = this.mmtAnswer.toString() ;
+    }
+    
+    private String cleanMMTInputText( String text ) {
+        final String  VALID_CHARS = "ABCDpqrstPQRSF,#" ;
+        StringBuilder sb = new StringBuilder() ;
+        for( int i = 0; i < text.length(); i++ ) {
+            char c = text.charAt( i ) ;
+            if( VALID_CHARS.indexOf( c ) != -1 ) {
+                if( c == 'F' ) {
+                    c = 'r' ;
+                }
+                sb.append( c ) ;
+            }
+        }
+        return sb.toString().toUpperCase() ;
     }
 }

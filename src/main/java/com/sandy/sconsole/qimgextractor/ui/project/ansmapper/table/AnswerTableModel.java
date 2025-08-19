@@ -72,7 +72,12 @@ public class AnswerTableModel extends DefaultTableModel {
                 return q.getQID().toString() ;
             }
             else {
-                return q.getAnswer() ;
+                if( q.getQID().getQuestionType().equals( QID.MMT ) ) {
+                    return q.getMmtAnswer() ;
+                }
+                else {
+                    return q.getAnswer() ;
+                }
             }
         }
         return "" ;
@@ -111,7 +116,7 @@ public class AnswerTableModel extends DefaultTableModel {
         return false ;
     }
     
-    public void setAnswer( int col, int row, Stack<String> ansStack )
+    public void setRawAnswer( int col, int row, Stack<String> ansStack )
         throws Question.InvalidAnswerException {
         
         List<Question> questions = getQuestionsForColumn( col ) ;
@@ -135,7 +140,7 @@ public class AnswerTableModel extends DefaultTableModel {
             else {
                 ansText.append( ansStack.pop() ) ;
             }
-            q.setAnswer( ansText.toString() ) ;
+            q.setRawAnswer( ansText.toString() ) ;
             fireTableCellUpdated( row, col ) ;
         }
         else {

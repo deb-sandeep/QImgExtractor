@@ -66,16 +66,20 @@ public class AnswerTable extends JTable {
         this.answerTableModel.refreshModel() ;
     }
     
-    public void setOCRAnswers( Stack<String> answerStack )
+    public void setRawAnswers( Stack<String> answerStack )
         throws Question.InvalidAnswerException {
         
         int selectedCol = super.getSelectedColumn() ;
         int selectedRow = super.getSelectedRow() ;
         
-        if( selectedCol > 0 && selectedRow > 0 ) {
+        if( selectedCol >= 0 && selectedRow >= 0 ) {
             while( !answerStack.isEmpty() ) {
-                answerTableModel.setAnswer( selectedCol, selectedRow, answerStack ) ;
+                answerTableModel.setRawAnswer( selectedCol, selectedRow, answerStack ) ;
                 selectedRow++ ;
+            }
+            if( selectedRow < answerTableModel.getRowCount() ) {
+                super.setRowSelectionInterval( selectedRow, selectedRow );
+                super.setColumnSelectionInterval( selectedCol, selectedCol );
             }
         }
         else {

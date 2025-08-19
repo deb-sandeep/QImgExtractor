@@ -116,7 +116,7 @@ public class SwingUtils {
         Tesseract tesseract = new Tesseract() ;
         tesseract.setDatapath( "/opt/homebrew/opt/tesseract/share/tessdata" ) ;
         tesseract.setLanguage( "eng" ) ;
-        tesseract.setVariable( "tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZpqrst0123456789()->,.-+" ) ;
+        tesseract.setVariable( "tessedit_char_whitelist", "ABCDpqrst0123456789()- >,.-+" ) ;
         tesseract.setOcrEngineMode( 1 ) ;
         
         return tesseract.doOCR( img ) ;
