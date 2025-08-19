@@ -64,6 +64,11 @@ public class MMTAnswer {
             rowNames[i] = Character.toString( rowName ) ;
             log.debug( "    Extracted row name: {} ", rowNames[i] ) ;
             
+            if( "ABCD".indexOf( rowName ) < 0 ) {
+                throw new Question.InvalidAnswerException(
+                        "Invalid answer format. Expected row name to be one of [A-D], got " + rowName ) ;
+            }
+            
             String[] subParts = part.substring( 1 ).toLowerCase().split( "," ) ;
             if( subParts.length > 5 ) {
                 throw new Question.InvalidAnswerException(
@@ -74,6 +79,9 @@ public class MMTAnswer {
                 subPart = subPart.trim() ;
                 if( !subPart.isEmpty() && !colNamesList.contains( subPart ) ) {
                     log.debug( "    Extracted column name: {} ", subPart ) ;
+                    if( subPart.length() != 1 && "pqrs".indexOf( subPart.charAt( 0 ) ) < 0 ) {
+                        throw new Question.InvalidAnswerException( "Invalid column name found" + subPart ) ;
+                    }
                     colNamesList.add( subPart ) ;
                 }
             }
@@ -135,15 +143,35 @@ public class MMTAnswer {
             for( int colName = 0; colName < colNames.length; colName++ ) {
                 if( ansMatrix[rowNum][colName] ) {
                     sb.append( colNames[colName] ) ;
-                    if( colName < 3 ) {
-                        sb.append( "," ) ;
-                    }
+                    sb.append( "," ) ;
                 }
             }
+            
+            if( sb.charAt( sb.length()-1 ) == ',' ) {
+                sb.deleteCharAt( sb.length()-1 ) ;
+            }
+            
             if( rowNum < 3 ) {
                 sb.append( "#" ) ;
             }
         }
         return sb.toString() ;
+    }
+    
+    public int getNumCols() {
+        return colNames.length ;
+    }
+    
+    public int getNumRows() {
+        return rowNames.length ;
+    }
+    
+    public boolean isCorrectMapping( int rowNum, int colNum ) {
+        if( rowNum >= 0 && rowNum < rowNames.length ) {
+            if( colNum >= 0 && colNum < colNames.length ) {
+                return ansMatrix[rowNum][colNum] ;
+            }
+        }
+        return false ;
     }
 }

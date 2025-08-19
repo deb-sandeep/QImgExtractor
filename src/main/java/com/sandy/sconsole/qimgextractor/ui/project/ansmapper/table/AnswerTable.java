@@ -26,7 +26,7 @@ public class AnswerTable extends JTable {
     
     public AnswerTable( ProjectModel projectModel ) {
         this.projectModel = projectModel ;
-        this.answerTableModel = new AnswerTableModel( projectModel ) ;
+        this.answerTableModel = new AnswerTableModel( projectModel, this ) ;
         super.setRowHeight( 30 ) ;
         super.setShowGrid( true ) ;
         super.setGridColor( Color.LIGHT_GRAY ) ;
@@ -74,16 +74,21 @@ public class AnswerTable extends JTable {
         
         if( selectedCol >= 0 && selectedRow >= 0 ) {
             while( !answerStack.isEmpty() ) {
-                answerTableModel.setRawAnswer( selectedCol, selectedRow, answerStack ) ;
+                answerTableModel.setRawAnswer( selectedRow, selectedCol, answerStack ) ;
                 selectedRow++ ;
             }
-            if( selectedRow < answerTableModel.getRowCount() ) {
-                super.setRowSelectionInterval( selectedRow, selectedRow );
-                super.setColumnSelectionInterval( selectedCol, selectedCol );
-            }
+            setSelectedCell( selectedRow, selectedCol ) ;
         }
         else {
             throw new Question.InvalidAnswerException( "No selected row or column to set answer for!" ) ;
+        }
+    }
+    
+    public void setSelectedCell( int row, int col ) {
+        if( row < answerTableModel.getRowCount() &&
+            col < answerTableModel.getColumnCount() ) {
+            super.setRowSelectionInterval( row, row );
+            super.setColumnSelectionInterval( col, col );
         }
     }
     

@@ -111,14 +111,31 @@ public class SwingUtils {
         return scaledImg ;
     }
     
+    private static BufferedImage increaseResolution( BufferedImage sourceImage ) {
+        
+        BufferedImage outputImage = new BufferedImage( sourceImage.getWidth() * 2, sourceImage.getHeight() * 2, BufferedImage.TYPE_INT_RGB );
+        
+        Graphics2D graphics = outputImage.createGraphics();
+        graphics.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC );
+        graphics.setRenderingHint( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY );
+        graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
+        
+        graphics.drawImage( sourceImage, 0, 0, sourceImage.getWidth() * 2, sourceImage.getHeight() * 2, null );
+        graphics.dispose();
+        
+        return outputImage;
+    }
+    
     public static String getOCRText( BufferedImage img ) throws Exception {
         
-        Tesseract tesseract = new Tesseract() ;
-        tesseract.setDatapath( "/opt/homebrew/opt/tesseract/share/tessdata" ) ;
-        tesseract.setLanguage( "eng" ) ;
-        tesseract.setVariable( "tessedit_char_whitelist", "ABCDpqrst0123456789()- >,.-+" ) ;
-        tesseract.setOcrEngineMode( 1 ) ;
+        BufferedImage highResImage = increaseResolution( img );
         
-        return tesseract.doOCR( img ) ;
+        Tesseract tesseract = new Tesseract();
+        tesseract.setDatapath( "/opt/homebrew/opt/tesseract/share/tessdata" );
+        tesseract.setLanguage( "eng" );
+        tesseract.setVariable( "tessedit_char_whitelist", "ABCDpqrst0123456789()- >,.-+" );
+        tesseract.setOcrEngineMode( 1 );
+        
+        return tesseract.doOCR( highResImage );
     }
 }

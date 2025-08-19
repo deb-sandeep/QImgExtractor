@@ -192,7 +192,8 @@ public class Question extends QuestionImageCluster
     }
     
     private String cleanMMTInputText( String text ) {
-        final String  VALID_CHARS = "ABCDpqrstPQRSF,#" ;
+        log.debug( "Cleaning MMT input text: {}", text ) ;
+        final String VALID_CHARS = "ABCDpqrstPQRSTF,#" ;
         StringBuilder sb = new StringBuilder() ;
         for( int i = 0; i < text.length(); i++ ) {
             char c = text.charAt( i ) ;
@@ -202,7 +203,11 @@ public class Question extends QuestionImageCluster
                 }
                 sb.append( c ) ;
             }
+            else if( c == '4' ) {
+                sb.append( "q" ) ;
+            }
         }
+        log.debug( "Cleaned MMT input text: {}", sb ) ;
         return sb.toString().toUpperCase() ;
     }
 }

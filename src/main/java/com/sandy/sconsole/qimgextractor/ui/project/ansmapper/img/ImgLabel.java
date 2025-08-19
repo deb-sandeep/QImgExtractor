@@ -67,6 +67,7 @@ public class ImgLabel extends JLabel {
             public void mouseMoved( MouseEvent e ) {
                 if( selecting ) {
                     endPoint = e.getPoint();
+                    requestFocus() ;
                     repaint();
                 }
             }

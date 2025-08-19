@@ -108,7 +108,12 @@ public class QuestionRepo {
                 for( Question q : questionList ) {
                     if( q.qID.toString().equals( qid ) ) {
                         if( !qJson.isNull( "answer" ) ) {
-                            q.setAnswer( qJson.getString( "answer" ) );
+                            try {
+                                q.setAnswer( qJson.getString( "answer" ) );
+                            }
+                            catch( Question.InvalidAnswerException e ) {
+                                log.error( "Invalid answer found in persisted state.", e ) ;
+                            }
                         }
                         
                         if( !qJson.isNull( "topic" ) ) {

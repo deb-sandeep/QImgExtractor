@@ -3,6 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.table.DefaultTableModel;
@@ -18,6 +19,7 @@ public class AnswerTableModel extends DefaultTableModel {
     
     private final ProjectModel projectModel ;
     private final List<Question> questionList ;
+    private final AnswerTable table ;
     
     private final List<Question> phyQuestions = new ArrayList<>() ;
     private final List<Question> chemQuestions = new ArrayList<>() ;
@@ -25,8 +27,9 @@ public class AnswerTableModel extends DefaultTableModel {
     
     private int rowCount = 0 ;
     
-    public AnswerTableModel( ProjectModel projectModel ) {
+    public AnswerTableModel( ProjectModel projectModel, AnswerTable table ) {
         this.projectModel = projectModel ;
+        this.table = table ;
         this.questionList = projectModel.getQuestionRepo().getQuestionList() ;
         super.setColumnIdentifiers( new String[] { "Physics", "Ans", "Chemistry", "Ans", "Maths", "Ans" } ) ;
         refreshModel() ;
@@ -83,6 +86,37 @@ public class AnswerTableModel extends DefaultTableModel {
         return "" ;
     }
     
+    @Override
+    public void setValueAt( Object value, int row, int col ) {
+        if( value instanceof String ansText ) {
+            Stack<String> ansStack = new Stack<>() ;
+            if( ansText.indexOf( ' ' ) != -1 ) {
+                String[] parts = ansText.split( " " ) ;
+                for( int i=parts.length-1; i>=0; i-- ) {
+                    String part = parts[i].trim() ;
+                    if( !part.isEmpty() ) {
+                        ansStack.push( part.trim() ) ;
+                    }
+                }
+            }
+            else {
+                ansStack.push( ansText ) ;
+            }
+            
+            try {
+                while( !ansStack.isEmpty() ) {
+                    setRawAnswer( row, col, ansStack ) ;
+                    row++ ;
+                }
+                table.setSelectedCell( row, col ) ;
+                projectModel.getQuestionRepo().save() ;
+            }
+            catch( Question.InvalidAnswerException e ) {
+                AppUtil.showErrorMsg( e.getMessage() ) ;
+            }
+        }
+    }
+    
     public Question getQuestionAt( int row, int column ) {
         List<Question> questions = getQuestionsForColumn( column ) ;
         if( row < questions.size() ) {
@@ -103,11 +137,6 @@ public class AnswerTableModel extends DefaultTableModel {
     }
     
     @Override
-    public void setValueAt( Object value, int row, int column ) {
-        log.debug( "Setting value at row: {}, col: {}, value: {}", row, column, value ) ;
-    }
-    
-    @Override
     public boolean isCellEditable( int row, int column ) {
         if( column == 1 || column == 3 || column == 5 ) {
             List<Question> questions = getQuestionsForColumn( column ) ;
@@ -116,7 +145,7 @@ public class AnswerTableModel extends DefaultTableModel {
         return false ;
     }
     
-    public void setRawAnswer( int col, int row, Stack<String> ansStack )
+    public void setRawAnswer( int row, int col, Stack<String> ansStack )
         throws Question.InvalidAnswerException {
         
         List<Question> questions = getQuestionsForColumn( col ) ;
@@ -126,7 +155,7 @@ public class AnswerTableModel extends DefaultTableModel {
             if( q.getQID().getQuestionType().equals( QID.MMT ) ) {
                 if( ansStack.size() > 3 ) {
                     for( int i=0; i<4; i++ ) {
-                        ansText.append( ansStack.pop() ).append( "#" );
+                        ansText.append( ansStack.pop().trim() ).append( "#" );
                     }
                     if( ansText.charAt( ansText.length()-1 ) == '#' ) {
                         ansText.deleteCharAt( ansText.length()-1 ) ;
