@@ -26,11 +26,13 @@ public class AnswerMapperUI extends JPanel {
     
     private final AnswerTable answerTable ;
     private final ImgPanel imgPanel ;
+    private final QuestionTreePanel questionTreePanel ;
 
     public AnswerMapperUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
         this.answerTable = new AnswerTable( this.projectModel ) ;
+        this.questionTreePanel = new QuestionTreePanel( this ) ;
         this.imgPanel = new ImgPanel( this ) ;
         
         setUpUI() ;
@@ -38,7 +40,7 @@ public class AnswerMapperUI extends JPanel {
     
     private void setUpUI() {
         setLayout( new BorderLayout() ) ;
-        add( new QuestionTreePanel( this ), BorderLayout.WEST ) ;
+        add( questionTreePanel, BorderLayout.WEST ) ;
         add( new JScrollPane( answerTable ), BorderLayout.CENTER ) ;
         add( imgPanel, BorderLayout.EAST ) ;
     }
@@ -47,6 +49,7 @@ public class AnswerMapperUI extends JPanel {
     // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
+        questionTreePanel.refreshTree() ;
         imgPanel.refreshAnswerKeyPages() ;
         answerTable.refreshTable() ;
     }

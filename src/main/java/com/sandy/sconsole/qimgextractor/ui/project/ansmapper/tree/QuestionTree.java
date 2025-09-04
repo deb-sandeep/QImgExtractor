@@ -60,4 +60,8 @@ public class QuestionTree extends JTree {
             }
         }
     }
+    
+    public void refreshTree() {
+        this.treeModel.reload() ;
+    }
 }

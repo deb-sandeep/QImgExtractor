@@ -64,4 +64,8 @@ public class QuestionTreePanel extends JPanel {
         
         return treePanel ;
     }
+    
+    public void refreshTree() {
+        tree.refreshTree() ;
+    }
 }
