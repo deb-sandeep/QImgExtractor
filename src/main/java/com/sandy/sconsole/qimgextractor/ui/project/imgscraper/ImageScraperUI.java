@@ -165,7 +165,6 @@ public class ImageScraperUI extends JPanel
     @Override
     public String subImageSelected( File imgSrcFile, BufferedImage img,
                                     Rectangle subImgBounds, int selectionEndAction ) {
-        
         String processingId = null ;
         File selectedFile ;
         File destDir ;

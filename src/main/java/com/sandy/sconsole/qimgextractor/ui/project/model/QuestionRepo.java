@@ -130,5 +130,4 @@ public class QuestionRepo {
             log.error( "Error synchronizing with persisted state", e );
         }
     }
-    
 }

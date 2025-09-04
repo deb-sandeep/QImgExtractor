@@ -1,0 +1,98 @@
+package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.tree;
+
+import com.sandy.sconsole.qimgextractor.ui.project.model.*;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
+public class TopicTreeModel extends DefaultTreeModel
+    implements ProjectModelListener {
+    
+    private final ProjectModel projectModel ; // Injected
+    
+    private final DefaultMutableTreeNode rootNode ;
+    
+    private final Map<String, Map<String, List<Question>>> topicQMap = new HashMap<>() ;
+    
+    public TopicTreeModel( ProjectModel projectModel ) {
+        
+        super( new DefaultMutableTreeNode( projectModel.getProjectName() ) );
+        this.projectModel = projectModel;
+        this.projectModel.addListener( this ) ;
+        this.rootNode = ( DefaultMutableTreeNode )super.getRoot() ;
+        buildTree() ;
+    }
+    
+    public void buildTree() {
+        this.refreshTopicQuestionMap() ;
+        this.rootNode.removeAllChildren() ;
+        buildRootNode( "IIT Physics" ) ;
+        buildRootNode( "IIT Chemistry" ) ;
+        buildRootNode( "IIT Maths" ) ;
+        buildRootNode( "Unclassified" ) ;
+        this.reload() ;
+    }
+    
+    private void refreshTopicQuestionMap() {
+        this.topicQMap.clear() ;
+        for( Question question : projectModel.getQuestionRepo().getQuestionList() ) {
+            Topic topic = question.getTopic() ;
+            if( topic == null ) {
+                addQuestionToTopicQMap( "Unclassified", "Unclassified", question ) ;
+            }
+            else {
+                addQuestionToTopicQMap( topic.getSyllabusName(), topic.getName(), question ) ;
+            }
+        }
+    }
+    
+    private void addQuestionToTopicQMap( String syllabusName, String topicName, Question question ) {
+        topicQMap.computeIfAbsent( syllabusName, k -> new HashMap<>() )
+                 .computeIfAbsent( topicName, k -> new ArrayList<>() )
+                 .add( question ) ;
+    }
+    
+    private void buildRootNode( String syllabusName ) {
+        DefaultMutableTreeNode syllabusNode = new DefaultMutableTreeNode( syllabusName ) ;
+        this.rootNode.add( syllabusNode ) ;
+        
+        for( String topicName : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).keySet().stream().sorted().toList() ) {
+            if( !topicName.equals( "Unclassified" ) ) {
+                DefaultMutableTreeNode topicNode = new DefaultMutableTreeNode( topicName ) ;
+                syllabusNode.add( topicNode ) ;
+                for( Question question : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).get( topicName ).stream().sorted().toList() ) {
+                    topicNode.add( new DefaultMutableTreeNode( question ) ) ;
+                }
+            }
+            else {
+                for( Question question : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).get( topicName ).stream().sorted().toList() ) {
+                    syllabusNode.add( new DefaultMutableTreeNode( question ) ) ;
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void newQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
+        buildTree() ;
+    }
+    
+    @Override
+    public void questionTagNameChanged( QuestionImage qImg, String oldTagName, String newTagName ) {
+        buildTree() ;
+    }
+    
+    @Override
+    public void questionImgDeleted( QuestionImage qImg ) {
+        buildTree();
+    }
+    
+    @Override
+    public void partSelectionModeUpdated( boolean newMode ) {/* Ignore */}
+}

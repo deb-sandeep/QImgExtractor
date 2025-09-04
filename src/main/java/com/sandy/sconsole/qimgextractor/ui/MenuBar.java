@@ -153,12 +153,13 @@ public class MenuBar extends JMenuBar {
         imageScrapersMI.setEnabled( false ) ;
         ansMappingMI.setEnabled( false ) ;
         topicMappingMI.setEnabled( false ) ;
+        
         markAnsKeyMI.setEnabled( false ) ;
         
         switch( mode ) {
             case IMAGE_SCRAPER:
                 ansMappingMI.setEnabled( true ) ;
-                topicsMappedMI.setEnabled( true ) ;
+                topicMappingMI.setEnabled( true ) ;
                 markAnsKeyMI.setEnabled( true ) ;
                 break ;
             case ANSWER_MAPPER:

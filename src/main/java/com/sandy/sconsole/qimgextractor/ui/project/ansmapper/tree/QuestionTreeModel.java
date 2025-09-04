@@ -26,7 +26,7 @@ public class QuestionTreeModel extends DefaultTreeModel
         buildTree() ;
     }
     
-    private void buildTree() {
+    public void buildTree() {
         this.rootNode.removeAllChildren() ;
         for( Question question : projectModel.getQuestionRepo().getQuestionList() ) {
             this.rootNode.add( createQuestionNode( question ) );

@@ -28,7 +28,7 @@ public class Question extends QuestionImageCluster
     @Getter
     private String answer = null ;
     
-    @Setter
+    @Setter @Getter
     private Topic topic = null ;
     
     @Getter
