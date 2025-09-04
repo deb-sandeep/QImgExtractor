@@ -82,7 +82,7 @@ public class ImgPanel extends JPanel {
             }
         }
         for( int i=tabsToRemove.size()-1; i>=0; i-- ) {
-            tabbedPane.removeTabAt( tabsToRemove.get( i ) ) ;
+            tabbedPane.remove( tabsToRemove.get( i ) ) ;
         }
     }
 }

@@ -4,6 +4,7 @@ import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.ImageScraperUI;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +29,7 @@ public class ProjectPanel extends JPanel {
     private final CardLayout cardLayout ;
     private final ImageScraperUI imgScraperUI ;
     private final AnswerMapperUI answerMapperUI ;
+    private final TopicMapperUI topicMapperUI ;
     
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         this.projectModel = model ;
@@ -35,6 +37,7 @@ public class ProjectPanel extends JPanel {
         this.cardLayout = new CardLayout() ;
         this.imgScraperUI = new ImageScraperUI( this ) ;
         this.answerMapperUI = new AnswerMapperUI( this ) ;
+        this.topicMapperUI = new TopicMapperUI( this ) ;
         
         setUpUI() ;
     }
@@ -43,6 +46,7 @@ public class ProjectPanel extends JPanel {
         setLayout( cardLayout ) ;
         add( imgScraperUI, EditorMode.IMAGE_SCRAPER.name() ) ;
         add( answerMapperUI, EditorMode.ANSWER_MAPPER.name() ) ;
+        add( topicMapperUI, EditorMode.TOPIC_MAPPER.name() ) ;
         
         activateQuestionScraperUI() ;
     }
@@ -70,6 +74,13 @@ public class ProjectPanel extends JPanel {
         answerMapperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.ANSWER_MAPPER.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.ANSWER_MAPPER ) ;
+    }
+    
+    public void activateTopicMapperUI() {
+        log.debug( "Activating TopicMapperUI" ) ;
+        topicMapperUI.handlePreActivation() ;
+        cardLayout.show( this, EditorMode.TOPIC_MAPPER.name() ) ;
+        mainFrame.getAppMenuBar().setEditorMode( EditorMode.TOPIC_MAPPER ) ;
     }
     
     public void toggleAnswerKeyMarkerForActivePage() {

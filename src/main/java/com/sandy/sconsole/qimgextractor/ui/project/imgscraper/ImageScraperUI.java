@@ -83,6 +83,7 @@ public class ImageScraperUI extends JPanel
                     File file = pageImg.getImgFile() ;
                     mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
                     
+                    projectModel.getContext().setPauseSavePageState( true ) ;
                     if( pageImg.getState().isVisible() ) {
                         loadPageImg( pageImg ) ;
                     }
@@ -102,6 +103,8 @@ public class ImageScraperUI extends JPanel
                     activatePageImg( lastSavedQImg.getPageImg() ) ;
                 }
                 mainFrame.logStausMsg( "Page images loaded." ) ;
+                projectModel.getContext().setPauseSavePageState( false ) ;
+                projectModel.savePageState() ;
             }
         }.execute() ;
     }
@@ -112,13 +115,15 @@ public class ImageScraperUI extends JPanel
             ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getTabComponentAt( i ) ;
             if( panel != null ) {
                 panel.destroy() ;
-                tabPane.removeTabAt( i ) ;
+                tabPane.remove( i ); ;
             }
         }
         executor.shutdown() ;
     }
     
     private synchronized void loadPageImg( PageImage pageImg ) {
+        
+        log.debug( "Loading page image {}.", pageImg.getImgFile().getName() ) ;
         
         File file = pageImg.getImgFile() ;
         
@@ -321,7 +326,7 @@ public class ImageScraperUI extends JPanel
     public void closeCurrentTab() {
         int curTabIndex = tabPane.getSelectedIndex() ;
         if( curTabIndex >= 0 ) {
-            tabPane.removeTabAt( curTabIndex ) ;
+            tabPane.remove( curTabIndex ) ;
         }
     }
     
@@ -330,7 +335,7 @@ public class ImageScraperUI extends JPanel
         if( panel != null ) {
             int index = tabPane.indexOfComponent( panel );
             if( index >= 0 ) {
-                tabPane.removeTabAt( index );
+                tabPane.remove( index );
             }
         }
     }

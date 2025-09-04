@@ -143,6 +143,10 @@ public class ProjectModel {
     
     public void savePageState() {
         
+        if( getContext().isPauseSavePageState() ) {
+            return ;
+        }
+        
         File file = new File( this.getWorkDir(), "page-states.json" );
         List<PageImageState> states = new ArrayList<>();
         
@@ -271,6 +275,7 @@ public class ProjectModel {
         for( PageImage pageImage : pageImages ) {
             if( pageImage == closedPageImg ) {
                 pageImage.getState().setVisible( false ) ;
+                pageImage.getState().setSelected( false ) ;
             }
         }
         savePageState() ;

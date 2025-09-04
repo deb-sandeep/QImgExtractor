@@ -30,6 +30,9 @@ public class ProjectContext {
     
     @Getter
     private boolean forceNextImgFlag = false ;
+    
+    @Getter @Setter
+    private boolean pauseSavePageState = false ;
 
     private final ProjectModel projectModel ;
     

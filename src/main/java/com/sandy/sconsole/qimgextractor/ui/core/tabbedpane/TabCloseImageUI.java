@@ -96,8 +96,6 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
         //check if the mouse is released over close image
         if ( getMouseOverTabIndex() != -1  && isMouseOnClose() ) {
             int tabIndex = getMouseOverTabIndex() ;
-            
-            parent.notifyTabCloseListeners( tabIndex ) ;
             parent.remove( tabIndex ) ;
         }
     }

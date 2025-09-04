@@ -16,11 +16,13 @@ public class MenuBar extends JMenuBar {
     
     private JMenuItem closeMenuItem;
     private JMenuItem imageScrapersMI;
-    private JMenuItem ansMappingUI;
+    private JMenuItem ansMappingMI;
+    private JMenuItem topicMappingMI;
     private JMenuItem imgCuttingCompleteMI;
     private JMenuItem answersMappedMI;
     private JMenuItem topicsMappedMI;
     private JMenuItem serverSyncedMI;
+    
     private JMenuItem markAnsKeyMI;
             
     MenuBar( MainFrame mainFrame ) {
@@ -81,12 +83,18 @@ public class MenuBar extends JMenuBar {
         imageScrapersMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::activateQuestionScraperUI ) );
         
-        ansMappingUI = new JMenuItem( "Open Answer Mapper" );
-        ansMappingUI.addActionListener( e ->
+        ansMappingMI = new JMenuItem( "Open Answer Mapper" );
+        ansMappingMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::activateAnswerMapperUI ) ) ;
         
+        
+        topicMappingMI = new JMenuItem( "Open Topic Mapper" );
+        topicMappingMI.addActionListener( e ->
+                getCurrentProjectPanel().ifPresent( ProjectPanel::activateTopicMapperUI ) ) ;
+        
         menu.add( imageScrapersMI ) ;
-        menu.add( ansMappingUI ) ;
+        menu.add( ansMappingMI ) ;
+        menu.add( topicMappingMI ) ;
     }
     
     private void addProjectStateChangeMenuItems( JMenu menu ) {
@@ -132,7 +140,8 @@ public class MenuBar extends JMenuBar {
         
         imageScrapersMI.setEnabled( false ) ;
         closeMenuItem.setEnabled( enabled ) ;
-        ansMappingUI.setEnabled( enabled ) ;
+        ansMappingMI.setEnabled( enabled ) ;
+        topicMappingMI.setEnabled( enabled ) ;
         imgCuttingCompleteMI.setEnabled( enabled ) ;
         answersMappedMI.setEnabled( enabled ) ;
         topicsMappedMI.setEnabled( enabled ) ;
@@ -142,16 +151,23 @@ public class MenuBar extends JMenuBar {
     public void setEditorMode( ProjectPanel.EditorMode mode ) {
         
         imageScrapersMI.setEnabled( false ) ;
-        ansMappingUI.setEnabled( false ) ;
+        ansMappingMI.setEnabled( false ) ;
+        topicMappingMI.setEnabled( false ) ;
         markAnsKeyMI.setEnabled( false ) ;
         
         switch( mode ) {
             case IMAGE_SCRAPER:
-                ansMappingUI.setEnabled( true ) ;
+                ansMappingMI.setEnabled( true ) ;
+                topicsMappedMI.setEnabled( true ) ;
                 markAnsKeyMI.setEnabled( true ) ;
                 break ;
             case ANSWER_MAPPER:
                 imageScrapersMI.setEnabled( true ) ;
+                topicMappingMI.setEnabled( true ) ;
+                break ;
+            case TOPIC_MAPPER:
+                imageScrapersMI.setEnabled( true ) ;
+                ansMappingMI.setEnabled( true ) ;
                 break ;
         }
     }
