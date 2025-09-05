@@ -12,9 +12,9 @@ import java.awt.*;
 @Slf4j
 public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
     
-    public static final Font QUESTION_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
-    public static final Font TOPIC_FONT = new Font( "Courier", Font.PLAIN, 13 ) ;
-    public static final Font SYLLABUS_FONT = new Font( "Courier", Font.PLAIN, 14 ) ;
+    public static final Font QUESTION_FONT = new Font( "Courier", Font.PLAIN, 11 ) ;
+    public static final Font TOPIC_FONT = new Font( "Courier", Font.PLAIN, 11 ) ;
+    public static final Font SYLLABUS_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
 
     @Override
     public Component getTreeCellRendererComponent(

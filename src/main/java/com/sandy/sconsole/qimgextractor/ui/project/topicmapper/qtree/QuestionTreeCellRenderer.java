@@ -12,9 +12,7 @@ import java.awt.*;
 @Slf4j
 public class QuestionTreeCellRenderer extends DefaultTreeCellRenderer {
     
-    public static final Font QUESTION_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
-    public static final Font TOPIC_FONT = new Font( "Courier", Font.PLAIN, 13 ) ;
-    public static final Font SYLLABUS_FONT = new Font( "Courier", Font.PLAIN, 14 ) ;
+    public static final Font QUESTION_FONT = new Font( "Courier", Font.PLAIN, 11 ) ;
 
     @Override
     public Component getTreeCellRendererComponent(
@@ -29,15 +27,6 @@ public class QuestionTreeCellRenderer extends DefaultTreeCellRenderer {
             Object userObj = node.getUserObject() ;
             if( userObj instanceof Question question ) {
                 renderQuestionNode( comp, question ) ;
-            }
-            else {
-                String nodeName = node.toString() ;
-                if( nodeName.startsWith( "IIT " ) || nodeName.equals( "Unclassified" ) ) {
-                    renderSyllabusNode( comp, nodeName ) ;
-                }
-                else {
-                    renderTopicNode( comp, nodeName ) ;
-                }
             }
         }
         
@@ -58,19 +47,5 @@ public class QuestionTreeCellRenderer extends DefaultTreeCellRenderer {
         else {
             label.setIcon( SwingUtils.getIcon( "question" ) ) ;
         }
-    }
-    
-    private void renderSyllabusNode( Component comp, String syllabusName ) {
-        DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
-        label.setFont( SYLLABUS_FONT ) ;
-        label.setText( syllabusName ) ;
-        label.setIcon( SwingUtils.getIcon( "syllabus" ) );
-    }
-    
-    private void renderTopicNode( Component comp, String topicName ) {
-        DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
-        label.setFont( TOPIC_FONT ) ;
-        label.setText( topicName ) ;
-        label.setIcon( SwingUtils.getIcon( "topic" ) );
     }
 }

@@ -1,45 +1,27 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
-import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.BaseTree;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import java.awt.*;
 import java.util.Enumeration;
 
-import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
-
 @Slf4j
-public class TopicTree extends JTree implements TreeSelectionListener {
-    
-    public static final Font TREE_FONT = new Font( "Helvetica", Font.PLAIN, 12 ) ;
-
-    @Getter
-    private final TopicMapperUI parentPanel;
+public class TopicTree extends BaseTree {
     
     private final TopicTreeModel treeModel ;
     
-    public TopicTree( TopicMapperUI parentPanel ) {
-        this.parentPanel = parentPanel;
-        this.treeModel = new TopicTreeModel( parentPanel.getProjectModel() ) ;
+    public TopicTree( TopicMapperUI topicMapper ) {
+        super( topicMapper ) ;
+        this.treeModel = new TopicTreeModel( topicMapper.getProjectModel() ) ;
         
-        super.setRootVisible( false ) ;
-        super.setFont( TREE_FONT ) ;
-        super.getSelectionModel().setSelectionMode( SINGLE_TREE_SELECTION ) ;
-        super.setRowHeight( 25 ) ;
-        super.setEditable( true ) ;
         super.setCellRenderer( new TopicTreeCellRenderer() ) ;
         super.setModel( treeModel ) ;
-        
-        addTreeSelectionListener( this ) ;
     }
     
     @Override
@@ -47,66 +29,69 @@ public class TopicTree extends JTree implements TreeSelectionListener {
         return false ;
     }
     
-    public void setExpanded( boolean expanded ) {
+    public void refreshTree() {
+        this.treeModel.buildTree() ;
+    }
+    
+    public void selectNextUnclassifiedQuestion() {
+        
+        DefaultMutableTreeNode unclassifiedNode = treeModel.getUnclassifiedNode() ;
+        DefaultMutableTreeNode nextNode ;
+        
+        if( unclassifiedNode.getChildCount() > 0 ) {
+            nextNode = (DefaultMutableTreeNode) unclassifiedNode.getChildAt(0) ;
+            
+            TreePath path = new TreePath( nextNode.getPath() ) ;
+            super.setSelectionPath(path) ;
+            super.makeVisible(path) ;
+            super.scrollPathToVisible(path) ;
+        }
+    }
+    
+    public void expandTreeIntelligently( Question question ) {
+        String syllabusName = question.getTopic() != null ? question.getTopic().getSyllabusName() : "" ;
+        if( syllabusName.isEmpty() ) {
+            switch( question.getQID().toString().charAt( 0 ) ) {
+                case 'P' -> syllabusName = TopicRepo.IIT_PHYSICS ;
+                case 'C' -> syllabusName = TopicRepo.IIT_CHEMISTRY ;
+                case 'M' -> syllabusName = TopicRepo.IIT_MATHS ;
+            }
+        }
+
         DefaultMutableTreeNode root = ( DefaultMutableTreeNode )getModel().getRoot() ;
         expandPath( new TreePath( root.getPath() ) ) ;
         
         Enumeration<TreeNode> syllabusNodes = root.children() ;
         while( syllabusNodes.hasMoreElements() ) {
             DefaultMutableTreeNode syllabusNode = (DefaultMutableTreeNode)syllabusNodes.nextElement() ;
-            if( expanded ) {
-                super.expandPath( new TreePath( syllabusNode.getPath() ) ) ;
+            
+            if( syllabusName.equals( syllabusNode.toString() ) ||
+                syllabusNode.toString().equals( "Unclassified" ) ) {
+                expandSyllabusNode( syllabusNode, true ) ;
             }
             else {
-                super.collapsePath( new TreePath( syllabusNode.getPath() ) ) ;
-            }
-            
-            Enumeration<TreeNode> topicNodes = syllabusNode.children() ;
-            while( topicNodes.hasMoreElements() ) {
-                DefaultMutableTreeNode topicNode = (DefaultMutableTreeNode)topicNodes.nextElement() ;
-                if( !(topicNode.getUserObject() instanceof Question) ) {
-                    if( expanded ) {
-                        super.expandPath( new TreePath( topicNode.getPath() ) ) ;
-                    }
-                    else {
-                        super.collapsePath( new TreePath( topicNode.getPath() ) ) ;
-                    }
-                }
+                expandSyllabusNode( syllabusNode, false ) ;
             }
         }
     }
     
-    public void refreshTree() {
-        this.treeModel.buildTree() ;
-    }
-    
-    @Override
-    public void valueChanged( TreeSelectionEvent e ) {
-        if( !getSelectionModel().isSelectionEmpty() ) {
-            Object userObject = SwingUtils.getUserObject( e.getPath() ) ;
-            if( userObject instanceof Question question ) {
-                parentPanel.questionSelected( question, this ) ;
+    private void expandSyllabusNode( DefaultMutableTreeNode syllabusNode, boolean expanded ) {
+        Enumeration<TreeNode> topicNodes = syllabusNode.children() ;
+        while( topicNodes.hasMoreElements() ) {
+            DefaultMutableTreeNode topicNode = (DefaultMutableTreeNode)topicNodes.nextElement() ;
+            if( expanded ) {
+                super.expandPath( new TreePath( topicNode.getPath() ) ) ;
+            }
+            else {
+                super.collapsePath( new TreePath( topicNode.getPath() ) ); ;
             }
         }
-    }
-    
-    public void selectNextUnclassifiedQuestion() {
-        DefaultMutableTreeNode root = ( DefaultMutableTreeNode )getModel().getRoot() ;
-        Enumeration<TreeNode> syllabusNodes = root.children() ;
-        while( syllabusNodes.hasMoreElements() ) {
-            DefaultMutableTreeNode syllabusNode = (DefaultMutableTreeNode)syllabusNodes.nextElement() ;
-            if( syllabusNode.toString().equals( "Unclassified" ) ) {
-                if( syllabusNode.getChildCount() > 0 ) {
-                    DefaultMutableTreeNode child =
-                            (DefaultMutableTreeNode) syllabusNode.getChildAt(0) ;
-                    
-                    TreePath path = new TreePath(child.getPath());  // ← full path from root
-                    super.setSelectionPath(path);
-                    super.makeVisible(path);
-                    super.scrollPathToVisible(path);
-                    return ;
-                }
-            }
+
+        if( expanded ) {
+            super.expandPath( new TreePath( syllabusNode.getPath() ) ) ;
+        }
+        else {
+            super.collapsePath( new TreePath( syllabusNode.getPath() ) ) ;
         }
     }
 }

@@ -59,20 +59,22 @@ public class TopicMapperUI extends JPanel {
     }
     
     public void questionSelected( Question question, JTree tree ) {
-        this.classifierPanel.displayQuestion( question ) ;
-        if( tree instanceof TopicTree ) {
-            questionTreePanel.getTree().clearSelection() ;
+        if( this.selectedQuestion != question ) {
+            this.selectedQuestion = question ;
+            this.classifierPanel.displayQuestion( question ) ;
+            this.topicTreePanel.getTree().expandTreeIntelligently( question ) ;
+            if( tree instanceof TopicTree ) {
+                questionTreePanel.getTree().selectQuestion( question ) ;
+            }
+            else if( tree instanceof QuestionTree ) {
+                topicTreePanel.getTree().selectQuestion( question ) ;
+            }
         }
-        else if( tree instanceof QuestionTree ) {
-            topicTreePanel.getTree().clearSelection() ;
-        }
-        this.selectedQuestion = question ;
     }
     
     public void associateTopicToSelectedQuestion( Topic topic ) {
         this.selectedQuestion.setTopic( topic ) ;
         this.topicTreePanel.getTree().refreshTree() ;
-        this.topicTreePanel.getTree().setExpanded( true ) ;
         this.questionTreePanel.getTree().refreshTree() ;
         this.topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
         

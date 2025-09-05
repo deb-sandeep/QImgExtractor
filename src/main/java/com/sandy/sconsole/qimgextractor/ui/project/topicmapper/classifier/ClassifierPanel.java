@@ -21,7 +21,9 @@ public class ClassifierPanel extends JPanel {
     
     private void setUpUI() {
         
-        qIdLabel.setFont( new Font( "Courier New", Font.PLAIN, 20 ) ) ;
+        qIdLabel.setFont( new Font( "Courier New", Font.BOLD, 20 ) ) ;
+        qIdLabel.setForeground( Color.BLUE ) ;
+        qIdLabel.setBorder( BorderFactory.createEmptyBorder( 5, 0, 5, 0 ) ) ;
         
         setLayout( new BorderLayout() ) ;
         add( createNorthPanel(), BorderLayout.NORTH ) ;
@@ -41,7 +43,10 @@ public class ClassifierPanel extends JPanel {
             this.qIdLabel.setText( "" ) ;
         }
         else {
-            this.qIdLabel.setText( question.getQRef() ) ;
+            String qId = question.getQID().toString() ;
+            qId = qId.replaceAll( "/", " " ) ;
+            String topicName = question.getTopic() != null ? question.getTopic().getName() : "" ;
+            this.qIdLabel.setText( "<html>" + qId + " [<span style='color:red'>" + topicName + "</span>]</html>" ) ;
         }
         this.qImgPanel.displayQuestion( question ) ;
         this.topicSelectionPanel.showTopics( question ) ;

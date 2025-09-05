@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.*;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -20,6 +21,11 @@ public class TopicTreeModel extends DefaultTreeModel
     
     private final Map<String, Map<String, List<Question>>> topicQMap = new HashMap<>() ;
     
+    @Getter private DefaultMutableTreeNode phyNode ;
+    @Getter private DefaultMutableTreeNode chemNode ;
+    @Getter private DefaultMutableTreeNode mathsNode ;
+    @Getter private DefaultMutableTreeNode unclassifiedNode ;
+    
     public TopicTreeModel( ProjectModel projectModel ) {
         
         super( new DefaultMutableTreeNode( projectModel.getProjectName() ) );
@@ -32,10 +38,10 @@ public class TopicTreeModel extends DefaultTreeModel
     public void buildTree() {
         this.refreshTopicQuestionMap() ;
         this.rootNode.removeAllChildren() ;
-        buildRootNode( "IIT Physics" ) ;
-        buildRootNode( "IIT Chemistry" ) ;
-        buildRootNode( "IIT Maths" ) ;
-        buildRootNode( "Unclassified" ) ;
+        this.phyNode = buildRootNode( "IIT Physics" ) ;
+        this.chemNode = buildRootNode( "IIT Chemistry" ) ;
+        this.mathsNode = buildRootNode( "IIT Maths" ) ;
+        this.unclassifiedNode = buildRootNode( "Unclassified" ) ;
         super.nodeStructureChanged( this.rootNode ) ;
     }
     
@@ -58,7 +64,7 @@ public class TopicTreeModel extends DefaultTreeModel
                  .add( question ) ;
     }
     
-    private void buildRootNode( String syllabusName ) {
+    private DefaultMutableTreeNode buildRootNode( String syllabusName ) {
         DefaultMutableTreeNode syllabusNode = new DefaultMutableTreeNode( syllabusName ) ;
         this.rootNode.add( syllabusNode ) ;
         
@@ -76,6 +82,7 @@ public class TopicTreeModel extends DefaultTreeModel
                 }
             }
         }
+        return syllabusNode ;
     }
     
     @Override

@@ -82,7 +82,6 @@ public class QuestionRepo {
                 file.write( json.toString( 2 ) );
                 file.flush();
             }
-            log.debug( "Questions saved to {}", persistenceFile.getAbsolutePath() ) ;
         }
         catch( Exception e ) {
             log.error( "Error saving questions", e ) ;
