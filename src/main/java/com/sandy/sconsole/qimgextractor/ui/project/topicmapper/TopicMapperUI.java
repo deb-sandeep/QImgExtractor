@@ -54,7 +54,10 @@ public class TopicMapperUI extends JPanel {
     public void handlePreActivation() {
         this.topicTreePanel.refreshTree() ;
         this.questionTreePanel.refreshTree() ;
-        this.topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
+        boolean nextQSelected = this.topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
+        if( !nextQSelected ) {
+            this.classifierPanel.displayQuestion( null ) ;
+        }
     }
     
     public void questionSelected( Question question, JTree tree ) {
@@ -83,5 +86,9 @@ public class TopicMapperUI extends JPanel {
                 return null ;
             }
         }.execute() ;
+    }
+    
+    public void selectAdjacentQuestion( boolean forward ) {
+        this.topicTreePanel.getTree().selectAdjacentQuestion( forward ) ;
     }
 }

@@ -67,20 +67,26 @@ public class TopicSelectionPanel extends JPanel {
         button.addActionListener( e -> parent.associateTopicToSelectedQuestion( topic ) ) ;
         button.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
-                transferFocusToNextButton( e, topicsPanel, button ) ;
+                if( e.getKeyCode() == KeyEvent.VK_UP ) {
+                    parent.selectAdjacentQuestion( false ) ;
+                }
+                else if( e.getKeyCode() == KeyEvent.VK_DOWN ) {
+                    parent.selectAdjacentQuestion( true ) ;
+                }
+                else {
+                    transferFocusToNextButton( e, topicsPanel, button ) ;
+                }
             }
         } );
         return button ;
     }
     
     private String getButtonText( Topic topic ) {
-        StringBuilder sb = new StringBuilder();
-        sb.append( BTN_HTML_PREFIX ) ;
-        sb.append( topic.getName().charAt( 0 ) ) ;
-        sb.append( "</span>" ) ;
-        sb.append( topic.getName().substring( 1 ) ) ;
-        sb.append( BTN_HTML_SUFFIX ) ;
-        return sb.toString();
+        return BTN_HTML_PREFIX +
+                topic.getName().charAt( 0 ) +
+                "</span>" +
+                topic.getName().substring( 1 ) +
+                BTN_HTML_SUFFIX;
     }
     
     private void transferFocusToNextButton( KeyEvent ke, JPanel topicsPanel, JButton currentButton ) {
@@ -180,7 +186,7 @@ public class TopicSelectionPanel extends JPanel {
         else {
             for( int i=0; i<topicPanel.getComponentCount(); i++ ) {
                 JButton button = (JButton) topicPanel.getComponent( i ) ;
-                if( button.getText().contains( topic.getName() ) ) {
+                if( button.getText().contains( topic.getName().substring( 1 ) ) ) {
                     button.requestFocus() ;
                     return ;
                 }

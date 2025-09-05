@@ -132,6 +132,7 @@ public class MainFrame extends JFrame {
             currentProjectPanel.destroy() ;
             currentProjectPanel = null ;
             appMenuBar.setCurrentProjectPanel( null ) ;
+            super.setTitle( "" ) ;
             revalidate() ;
             repaint() ;
         }

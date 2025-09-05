@@ -34,7 +34,7 @@ public class TopicTree extends BaseTree {
         this.treeModel.buildTree() ;
     }
     
-    public void selectNextUnclassifiedQuestion() {
+    public boolean selectNextUnclassifiedQuestion() {
         
         DefaultMutableTreeNode unclassifiedNode = treeModel.getUnclassifiedNode() ;
         DefaultMutableTreeNode nextNode ;
@@ -45,7 +45,9 @@ public class TopicTree extends BaseTree {
             super.setSelectionPath(path) ;
             super.makeVisible(path) ;
             super.scrollPathToVisible(path) ;
+            return true ;
         }
+        return false ;
     }
     
     public void expandTreeIntelligently( Question question ) {
@@ -83,7 +85,7 @@ public class TopicTree extends BaseTree {
                 super.expandPath( new TreePath( topicNode.getPath() ) ) ;
             }
             else {
-                super.collapsePath( new TreePath( topicNode.getPath() ) ); ;
+                super.collapsePath( new TreePath( topicNode.getPath() ) ) ;
             }
         }
 
@@ -92,6 +94,44 @@ public class TopicTree extends BaseTree {
         }
         else {
             super.collapsePath( new TreePath( syllabusNode.getPath() ) ) ;
+        }
+    }
+    
+    public void selectAdjacentQuestion( boolean forward ) {
+        TreePath selectedPath = super.getSelectionPath() ;
+        DefaultMutableTreeNode nextNode = null;
+        
+        if( selectedPath != null ) {
+            DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)selectedPath.getLastPathComponent() ;
+            if( forward ) {
+                nextNode = selectedNode.getNextLeaf() ;
+                while( nextNode != null && !(nextNode.getUserObject() instanceof Question) ) {
+                    nextNode = nextNode.getNextLeaf() ;
+                }
+            }
+            else {
+                nextNode = selectedNode.getPreviousLeaf() ;
+                while( nextNode != null && !(nextNode.getUserObject() instanceof Question) ) {
+                    nextNode = nextNode.getPreviousLeaf() ;
+                }
+            }
+        }
+        
+        if( nextNode == null ) {
+            DefaultMutableTreeNode root = ( DefaultMutableTreeNode )getModel().getRoot() ;
+            if( forward ) {
+                nextNode = root.getFirstLeaf() ;
+            }
+            else {
+                nextNode = root.getLastLeaf() ;
+            }
+        }
+        
+        if( nextNode != null ) {
+            TreePath path = new TreePath( nextNode.getPath() ) ;
+            super.setSelectionPath(path) ;
+            super.makeVisible(path) ;
+            super.scrollPathToVisible(path) ;
         }
     }
 }
