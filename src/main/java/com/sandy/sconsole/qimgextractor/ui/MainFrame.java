@@ -106,6 +106,7 @@ public class MainFrame extends JFrame {
             projectModel.initialize( projectDir ) ;
             currentProjectPanel = new ProjectPanel( this, projectModel ) ;
             appMenuBar.setCurrentProjectPanel( currentProjectPanel ) ;
+            super.setTitle( projectDir.getName() ) ;
             
             Container contentPane = getContentPane() ;
             contentPane.add( currentProjectPanel, BorderLayout.CENTER ) ;

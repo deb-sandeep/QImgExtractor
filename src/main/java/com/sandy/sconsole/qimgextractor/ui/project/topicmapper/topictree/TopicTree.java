@@ -20,6 +20,7 @@ public class TopicTree extends BaseTree {
         super( topicMapper ) ;
         this.treeModel = new TopicTreeModel( topicMapper.getProjectModel() ) ;
         
+        super.setRowHeight( 20 ) ;
         super.setCellRenderer( new TopicTreeCellRenderer() ) ;
         super.setModel( treeModel ) ;
     }
@@ -40,7 +41,6 @@ public class TopicTree extends BaseTree {
         
         if( unclassifiedNode.getChildCount() > 0 ) {
             nextNode = (DefaultMutableTreeNode) unclassifiedNode.getChildAt(0) ;
-            
             TreePath path = new TreePath( nextNode.getPath() ) ;
             super.setSelectionPath(path) ;
             super.makeVisible(path) ;

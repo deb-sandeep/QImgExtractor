@@ -18,7 +18,7 @@ import static com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo.* ;
 @Slf4j
 public class TopicSelectionPanel extends JPanel {
     
-    private static final String BTN_HTML_PREFIX = "<html><div style='text-align:center'>" ;
+    private static final String BTN_HTML_PREFIX = "<html><div style='text-align:center'><span style='color:black'>" ;
     private static final String BTN_HTML_SUFFIX = "</div></html>" ;
     
     private static final int NUM_COLS = 4 ;
@@ -58,8 +58,9 @@ public class TopicSelectionPanel extends JPanel {
     
     private JButton createTopicButton( Topic topic, JPanel topicsPanel ) {
         JButton button = new JButton() ;
-        button.setText( BTN_HTML_PREFIX + topic.getName() + BTN_HTML_SUFFIX ) ;
+        button.setText( getButtonText( topic ) ) ;
         button.setFont( BTN_FONT ) ;
+        button.setForeground( Color.GRAY ) ;
         button.setOpaque( true ) ;
         button.setContentAreaFilled( true ) ;
         button.setBackground( getColor( topic ) ) ;
@@ -70,6 +71,16 @@ public class TopicSelectionPanel extends JPanel {
             }
         } );
         return button ;
+    }
+    
+    private String getButtonText( Topic topic ) {
+        StringBuilder sb = new StringBuilder();
+        sb.append( BTN_HTML_PREFIX ) ;
+        sb.append( topic.getName().charAt( 0 ) ) ;
+        sb.append( "</span>" ) ;
+        sb.append( topic.getName().substring( 1 ) ) ;
+        sb.append( BTN_HTML_SUFFIX ) ;
+        return sb.toString();
     }
     
     private void transferFocusToNextButton( KeyEvent ke, JPanel topicsPanel, JButton currentButton ) {

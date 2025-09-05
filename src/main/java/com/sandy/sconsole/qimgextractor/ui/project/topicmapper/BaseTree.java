@@ -3,6 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.topicmapper;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -15,6 +16,7 @@ import java.util.Enumeration;
 
 import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
 
+@Slf4j
 public class BaseTree extends JTree implements TreeSelectionListener {
     
     public static final Font TREE_FONT = new Font( "Helvetica", Font.PLAIN, 12 ) ;

@@ -54,7 +54,6 @@ public class TopicMapperUI extends JPanel {
     public void handlePreActivation() {
         this.topicTreePanel.refreshTree() ;
         this.questionTreePanel.refreshTree() ;
-        this.classifierPanel.displayQuestion( null ) ;
         this.topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
     }
     

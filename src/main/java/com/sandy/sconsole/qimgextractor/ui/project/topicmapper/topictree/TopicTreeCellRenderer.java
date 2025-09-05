@@ -13,8 +13,8 @@ import java.awt.*;
 public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
     
     public static final Font QUESTION_FONT = new Font( "Courier", Font.PLAIN, 11 ) ;
-    public static final Font TOPIC_FONT = new Font( "Courier", Font.PLAIN, 11 ) ;
-    public static final Font SYLLABUS_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
+    public static final Font TOPIC_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
+    public static final Font SYLLABUS_FONT = new Font( "Courier", Font.BOLD, 12 ) ;
 
     @Override
     public Component getTreeCellRendererComponent(
@@ -25,10 +25,12 @@ public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
                 tree, value, sel, expanded,
                 leaf, row, hasFocus ) ;
         
+        comp.setForeground( sel ? Color.WHITE : Color.DARK_GRAY ) ;
+        
         if( value instanceof DefaultMutableTreeNode node ) {
             Object userObj = node.getUserObject() ;
             if( userObj instanceof Question question ) {
-                renderQuestionNode( comp, question ) ;
+                renderQuestionNode( comp, question, sel ) ;
             }
             else {
                 String nodeName = node.toString() ;
@@ -44,7 +46,7 @@ public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
         return comp ;
     }
     
-    private void renderQuestionNode( Component comp, Question question ) {
+    private void renderQuestionNode( Component comp, Question question, boolean isSelected ) {
         DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
         String qLabel = question.getQID().toString() ;
         qLabel = qLabel.replaceFirst( "/", " " ) ;
@@ -65,6 +67,7 @@ public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
     private void renderTopicNode( Component comp, String topicName ) {
         DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
         label.setFont( TOPIC_FONT ) ;
+        label.setForeground( Color.BLUE ) ;
         label.setText( topicName ) ;
         label.setIcon( SwingUtils.getIcon( "topic" ) );
     }
