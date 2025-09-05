@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.tree;
+package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
@@ -82,9 +82,31 @@ public class TopicTree extends JTree implements TreeSelectionListener {
     
     @Override
     public void valueChanged( TreeSelectionEvent e ) {
-        Object userObject = SwingUtils.getUserObject( e.getPath() ) ;
-        if( userObject instanceof Question question ) {
-            parentPanel.questionSelected( question ) ;
+        if( !getSelectionModel().isSelectionEmpty() ) {
+            Object userObject = SwingUtils.getUserObject( e.getPath() ) ;
+            if( userObject instanceof Question question ) {
+                parentPanel.questionSelected( question, this ) ;
+            }
+        }
+    }
+    
+    public void selectNextUnclassifiedQuestion() {
+        DefaultMutableTreeNode root = ( DefaultMutableTreeNode )getModel().getRoot() ;
+        Enumeration<TreeNode> syllabusNodes = root.children() ;
+        while( syllabusNodes.hasMoreElements() ) {
+            DefaultMutableTreeNode syllabusNode = (DefaultMutableTreeNode)syllabusNodes.nextElement() ;
+            if( syllabusNode.toString().equals( "Unclassified" ) ) {
+                if( syllabusNode.getChildCount() > 0 ) {
+                    DefaultMutableTreeNode child =
+                            (DefaultMutableTreeNode) syllabusNode.getChildAt(0) ;
+                    
+                    TreePath path = new TreePath(child.getPath());  // ← full path from root
+                    super.setSelectionPath(path);
+                    super.makeVisible(path);
+                    super.scrollPathToVisible(path);
+                    return ;
+                }
+            }
         }
     }
 }

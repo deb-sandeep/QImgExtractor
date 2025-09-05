@@ -27,7 +27,7 @@ public class QImgPanel extends JPanel {
         private void renderImage() {
             try {
                 BufferedImage originalImage = ImageIO.read( qImg.getImgFile() ) ;
-                double        scaleFactor   = ( double )( parentPanel.getWidth() - 50 ) / originalImage.getWidth() ;
+                double        scaleFactor   = ( double )( parentPanel.getWidth() - 20 ) / originalImage.getWidth() ;
                 
                 BufferedImage displayedImage = SwingUtils.getScaledImage( originalImage, scaleFactor ) ;
                 setIcon( new ImageIcon( displayedImage ) ) ;
@@ -43,7 +43,7 @@ public class QImgPanel extends JPanel {
     
     public QImgPanel() {
         
-        setPreferredSize( new Dimension( 1000, 300 ) ) ;
+        setPreferredSize( new Dimension( 800, 400 ) ) ;
         setLayout( new BorderLayout() ) ;
         
         imgContainer.setLayout( new BoxLayout( imgContainer, BoxLayout.Y_AXIS ) ) ;
@@ -57,12 +57,15 @@ public class QImgPanel extends JPanel {
     
     public void displayQuestion( Question question ) {
         imgContainer.removeAll() ;
-        question.getQImgList().forEach( qImg -> {
-            QImgLabel imgLabel = new QImgLabel( this, qImg ) ;
-            imgLabel.setAlignmentX( LEFT_ALIGNMENT ) ;
-            imgContainer.add( imgLabel ) ;
-        } ) ;
+        if( question != null ) {
+            question.getQImgList().forEach( qImg -> {
+                QImgLabel imgLabel = new QImgLabel( this, qImg ) ;
+                imgLabel.setAlignmentX( LEFT_ALIGNMENT ) ;
+                imgContainer.add( imgLabel ) ;
+            } ) ;
+        }
         imgContainer.revalidate() ;
         scrollPane.revalidate() ;
+        imgContainer.repaint() ;
     }
 }

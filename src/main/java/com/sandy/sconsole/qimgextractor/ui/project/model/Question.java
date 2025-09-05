@@ -88,14 +88,19 @@ public class Question extends QuestionImageCluster
         return qID.getParent().getSrcId() + "//" + qID ;
     }
     
-    JSONObject getSerializedForm() throws Exception {
+    public JSONObject getSerializedForm() throws Exception {
         JSONObject json = new JSONObject() ;
         json.put( "qid", qID.toString() ) ;
         json.put( "lctSeq", qID.getLctSequence() ) ;
         json.put( "lctCtxImages", getImgInfoList( lctCtxImgCluster ) ) ;
         json.put( "questionImages", getImgInfoList( this ) ) ;
         json.put( "answer", answer ) ;
-        json.put( "topic", topic ) ;
+        if( topic != null ) {
+            json.put( "topic", topic.getSerializedForm() ) ;
+        }
+        else {
+            json.put( "topic", JSONObject.NULL ) ;
+        }
         return json ;
     }
     

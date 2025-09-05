@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.tree;
+package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.*;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class TopicTreeModel extends DefaultTreeModel
         buildRootNode( "IIT Chemistry" ) ;
         buildRootNode( "IIT Maths" ) ;
         buildRootNode( "Unclassified" ) ;
-        this.reload() ;
+        super.nodeStructureChanged( this.rootNode ) ;
     }
     
     private void refreshTopicQuestionMap() {

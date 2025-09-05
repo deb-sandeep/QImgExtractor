@@ -14,6 +14,10 @@ import java.util.*;
 @Component
 public class TopicRepo {
     
+    public static final String IIT_PHYSICS = "IIT Physics" ;
+    public static final String IIT_MATHS = "IIT Maths" ;
+    public static final String IIT_CHEMISTRY = "IIT Chemistry" ;
+    
     private final Map<Integer, Topic> topicById = new HashMap<>();
     private final Map<String, List<Topic>> topicsBySyllabus = new HashMap<>();
     

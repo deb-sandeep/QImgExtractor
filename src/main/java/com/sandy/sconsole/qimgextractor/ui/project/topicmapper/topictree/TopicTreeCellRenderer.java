@@ -1,8 +1,7 @@
-package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.tree;
+package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
-import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
