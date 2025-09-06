@@ -30,7 +30,7 @@ public class BaseTree extends JTree implements TreeSelectionListener {
         super.setRootVisible( false ) ;
         super.setFont( TREE_FONT ) ;
         super.getSelectionModel().setSelectionMode( SINGLE_TREE_SELECTION ) ;
-        super.setRowHeight( 25 ) ;
+        super.setRowHeight( 20 ) ;
         super.setEditable( true ) ;
         
         addTreeSelectionListener( this ) ;

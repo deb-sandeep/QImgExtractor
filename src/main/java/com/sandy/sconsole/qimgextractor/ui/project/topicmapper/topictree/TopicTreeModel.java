@@ -19,7 +19,7 @@ public class TopicTreeModel extends DefaultTreeModel
     
     private final DefaultMutableTreeNode rootNode ;
     
-    private final Map<String, Map<String, List<Question>>> topicQMap = new HashMap<>() ;
+    private final Map<String, Map<Topic, List<Question>>> topicQMap = new HashMap<>() ;
     
     @Getter private DefaultMutableTreeNode phyNode ;
     @Getter private DefaultMutableTreeNode chemNode ;
@@ -50,17 +50,17 @@ public class TopicTreeModel extends DefaultTreeModel
         for( Question question : projectModel.getQuestionRepo().getQuestionList() ) {
             Topic topic = question.getTopic() ;
             if( topic == null ) {
-                addQuestionToTopicQMap( "Unclassified", "Unclassified", question ) ;
+                addQuestionToTopicQMap( "Unclassified", new Topic( 0, "Unclassified", "Unclassified" ), question ) ;
             }
             else {
-                addQuestionToTopicQMap( topic.getSyllabusName(), topic.getName(), question ) ;
+                addQuestionToTopicQMap( topic.getSyllabusName(), topic, question ) ;
             }
         }
     }
     
-    private void addQuestionToTopicQMap( String syllabusName, String topicName, Question question ) {
+    private void addQuestionToTopicQMap( String syllabusName, Topic topic, Question question ) {
         topicQMap.computeIfAbsent( syllabusName, k -> new HashMap<>() )
-                 .computeIfAbsent( topicName, k -> new ArrayList<>() )
+                 .computeIfAbsent( topic, k -> new ArrayList<>() )
                  .add( question ) ;
     }
     
@@ -68,16 +68,17 @@ public class TopicTreeModel extends DefaultTreeModel
         DefaultMutableTreeNode syllabusNode = new DefaultMutableTreeNode( syllabusName ) ;
         this.rootNode.add( syllabusNode ) ;
         
-        for( String topicName : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).keySet().stream().sorted().toList() ) {
+        for( Topic topic : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).keySet().stream().sorted().toList() ) {
+            String topicName = topic.getName() ;
             if( !topicName.equals( "Unclassified" ) ) {
                 DefaultMutableTreeNode topicNode = new DefaultMutableTreeNode( topicName ) ;
                 syllabusNode.add( topicNode ) ;
-                for( Question question : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).get( topicName ).stream().sorted().toList() ) {
+                for( Question question : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).get( topic ).stream().sorted().toList() ) {
                     topicNode.add( new DefaultMutableTreeNode( question ) ) ;
                 }
             }
             else {
-                for( Question question : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).get( topicName ).stream().sorted().toList() ) {
+                for( Question question : topicQMap.getOrDefault( syllabusName, new HashMap<>() ).get( topic ).stream().sorted().toList() ) {
                     syllabusNode.add( new DefaultMutableTreeNode( question ) ) ;
                 }
             }

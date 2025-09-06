@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper;
 
+import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
@@ -43,28 +44,28 @@ public class TopicMapperUI extends JPanel {
     
     private void setUpUI() {
         setLayout( new BorderLayout() ) ;
-        add( this.topicTreePanel, BorderLayout.WEST ) ;
-        add( this.classifierPanel, BorderLayout.CENTER ) ;
-        add( this.questionTreePanel, BorderLayout.EAST ) ;
+        add( topicTreePanel, BorderLayout.WEST ) ;
+        add( classifierPanel, BorderLayout.CENTER ) ;
+        add( questionTreePanel, BorderLayout.EAST ) ;
     }
     
     // This method is called just before the panel is made visible. Can be used
     // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
-        this.topicTreePanel.refreshTree() ;
-        this.questionTreePanel.refreshTree() ;
-        boolean nextQSelected = this.topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
+        topicTreePanel.refreshTree() ;
+        questionTreePanel.refreshTree() ;
+        boolean nextQSelected = topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
         if( !nextQSelected ) {
-            this.classifierPanel.displayQuestion( null ) ;
+            classifierPanel.displayQuestion( null ) ;
         }
     }
     
     public void questionSelected( Question question, JTree tree ) {
-        if( this.selectedQuestion != question ) {
-            this.selectedQuestion = question ;
-            this.classifierPanel.displayQuestion( question ) ;
-            this.topicTreePanel.getTree().expandTreeIntelligently( question ) ;
+        if( selectedQuestion != question ) {
+            selectedQuestion = question ;
+            classifierPanel.displayQuestion( question ) ;
+            topicTreePanel.getTree().expandTreeIntelligently( question ) ;
             if( tree instanceof TopicTree ) {
                 questionTreePanel.getTree().selectQuestion( question ) ;
             }
@@ -75,10 +76,12 @@ public class TopicMapperUI extends JPanel {
     }
     
     public void associateTopicToSelectedQuestion( Topic topic ) {
-        this.selectedQuestion.setTopic( topic ) ;
-        this.topicTreePanel.getTree().refreshTree() ;
-        this.questionTreePanel.getTree().refreshTree() ;
-        this.topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
+        selectedQuestion.setTopic( topic ) ;
+        topicTreePanel.getTree().refreshTree() ;
+        questionTreePanel.getTree().refreshTree() ;
+        if( !topicTreePanel.getTree().selectNextUnclassifiedQuestion() ) {
+            topicTreePanel.getTree().selectQuestion( selectedQuestion ) ;
+        }
         
         new SwingWorker<>() {
             protected Object doInBackground() {
@@ -89,6 +92,6 @@ public class TopicMapperUI extends JPanel {
     }
     
     public void selectAdjacentQuestion( boolean forward ) {
-        this.topicTreePanel.getTree().selectAdjacentQuestion( forward ) ;
+        topicTreePanel.getTree().selectAdjacentQuestion( forward ) ;
     }
 }

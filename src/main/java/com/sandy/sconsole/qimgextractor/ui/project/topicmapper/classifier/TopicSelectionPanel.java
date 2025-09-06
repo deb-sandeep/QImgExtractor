@@ -57,14 +57,18 @@ public class TopicSelectionPanel extends JPanel {
     }
     
     private JButton createTopicButton( Topic topic, JPanel topicsPanel ) {
-        JButton button = new JButton() ;
-        button.setText( getButtonText( topic ) ) ;
+        JButton button = new JButton( getButtonText( topic ) ) ;
         button.setFont( BTN_FONT ) ;
         button.setForeground( Color.GRAY ) ;
         button.setOpaque( true ) ;
         button.setContentAreaFilled( true ) ;
+        button.setFocusPainted( true ) ;
+        button.setMargin( new Insets( 5, 5, 5, 5 ) ) ;
         button.setBackground( getColor( topic ) ) ;
-        button.addActionListener( e -> parent.associateTopicToSelectedQuestion( topic ) ) ;
+        button.addActionListener( e -> {
+            parent.associateTopicToSelectedQuestion( topic ) ;
+            resetButtonForegrounds( topicsPanel ) ;
+        } ) ;
         button.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
                 if( e.getKeyCode() == KeyEvent.VK_UP ) {
@@ -74,10 +78,11 @@ public class TopicSelectionPanel extends JPanel {
                     parent.selectAdjacentQuestion( true ) ;
                 }
                 else {
+                    highlightButtonsWithMatchingFirstCharacter( e, topicsPanel, topic ) ;
                     transferFocusToNextButton( e, topicsPanel, button ) ;
                 }
             }
-        } );
+        } ) ;
         return button ;
     }
     
@@ -87,6 +92,31 @@ public class TopicSelectionPanel extends JPanel {
                 "</span>" +
                 topic.getName().substring( 1 ) +
                 BTN_HTML_SUFFIX;
+    }
+    
+    private void resetButtonForegrounds( JPanel topicsPanel ) {
+        for( int i=0; i<topicsPanel.getComponentCount(); i++ ) {
+            JButton button = (JButton) topicsPanel.getComponent( i ) ;
+            button.setForeground( Color.GRAY ) ;
+        }
+    }
+    
+    private void highlightButtonsWithMatchingFirstCharacter( KeyEvent ke, JPanel topicsPanel, Topic topic ) {
+        char keyChar = ke.getKeyChar() ;
+        int numButtons = topicsPanel.getComponentCount() ;
+        
+        for( int i=0; i<numButtons; i++ ) {
+            JButton button = (JButton) topicsPanel.getComponent( i ) ;
+            button.setForeground( Color.LIGHT_GRAY ) ;
+            String btnText = button.getText().substring( BTN_HTML_PREFIX.length() ) ;
+            if( btnText.toLowerCase().charAt( 0 ) == keyChar ) {
+                button.setForeground( Color.GRAY ) ;
+                button.setBackground( Color.GREEN.brighter() ) ;
+            }
+            else {
+                button.setBackground( getColor( topic ) ) ;
+            }
+        }
     }
     
     private void transferFocusToNextButton( KeyEvent ke, JPanel topicsPanel, JButton currentButton ) {
@@ -132,6 +162,7 @@ public class TopicSelectionPanel extends JPanel {
         JButton button = (JButton) topicsPanel.getComponent( btnIndex ) ;
         String btnText = button.getText().substring( BTN_HTML_PREFIX.length() ) ;
         if( btnText.toLowerCase().charAt( 0 ) == keyChar ) {
+            button.setForeground( Color.BLUE ) ;
             button.requestFocus() ;
             return true ;
         }
@@ -141,9 +172,9 @@ public class TopicSelectionPanel extends JPanel {
     private Color getColor( Topic topic ) {
         String syllabusName = topic.getSyllabusName() ;
         return switch( syllabusName ) {
-            case IIT_PHYSICS -> Color.decode( "#FFC468" ).brighter().brighter();
-            case IIT_CHEMISTRY -> Color.decode( "#84FF85" ).brighter();
-            case IIT_MATHS -> Color.decode( "#97D6FF" ).brighter();
+            case IIT_PHYSICS -> Color.decode( "#FFC468" ).brighter() ;
+            case IIT_CHEMISTRY -> Color.decode( "#84FF85" ).brighter() ;
+            case IIT_MATHS -> Color.decode( "#97D6FF" ).brighter() ;
             default -> Color.LIGHT_GRAY;
         };
     }

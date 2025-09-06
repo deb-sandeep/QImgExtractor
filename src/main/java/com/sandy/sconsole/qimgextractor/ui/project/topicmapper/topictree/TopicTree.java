@@ -20,7 +20,6 @@ public class TopicTree extends BaseTree {
         super( topicMapper ) ;
         this.treeModel = new TopicTreeModel( topicMapper.getProjectModel() ) ;
         
-        super.setRowHeight( 20 ) ;
         super.setCellRenderer( new TopicTreeCellRenderer() ) ;
         super.setModel( treeModel ) ;
     }

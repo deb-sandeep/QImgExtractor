@@ -20,7 +20,6 @@ public class ClassifierPanel extends JPanel {
     }
     
     private void setUpUI() {
-        
         qIdLabel.setFont( new Font( "Courier New", Font.BOLD, 20 ) ) ;
         qIdLabel.setForeground( Color.BLUE ) ;
         qIdLabel.setBorder( BorderFactory.createEmptyBorder( 5, 0, 5, 0 ) ) ;

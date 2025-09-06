@@ -6,6 +6,7 @@ import net.sourceforge.tess4j.Tesseract;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -137,5 +138,38 @@ public class SwingUtils {
         tesseract.setOcrEngineMode( 1 );
         
         return tesseract.doOCR( highResImage );
+    }
+    
+    public static void expandAll(JTree tree) {
+        TreeModel m = tree.getModel();
+        Object root = m.getRoot();
+        if( root == null ) return;
+        SwingUtilities.invokeLater(() -> expandNode(tree, m, root, new TreePath(root)));
+    }
+    
+    private static void expandNode( JTree tree, TreeModel m, Object node, TreePath path) {
+        tree.expandPath(path);                 // expand this node first
+        int count = m.getChildCount(node);
+        for( int i = 0; i < count; i++ ) {
+            Object child = m.getChild(node, i);
+            expandNode(tree, m, child, path.pathByAddingChild(child));
+        }
+    }
+    
+    public static void collapseAll(JTree tree) {
+        TreeModel m = tree.getModel();
+        Object root = m.getRoot();
+        if( root == null ) return;
+        
+        SwingUtilities.invokeLater(() -> collapseNode(tree, m, root, new TreePath(root)));
+    }
+    
+    private static void collapseNode(JTree tree, TreeModel m, Object node, TreePath path) {
+        int count = m.getChildCount(node);
+        for( int i = 0; i < count; i++ ) {
+            Object child = m.getChild(node, i);
+            collapseNode(tree, m, child, path.pathByAddingChild(child));
+        }
+        tree.collapsePath(path);
     }
 }
