@@ -27,7 +27,8 @@ public class QImgPanel extends JPanel {
         private void renderImage() {
             try {
                 BufferedImage originalImage = ImageIO.read( qImg.getImgFile() ) ;
-                double        scaleFactor   = ( double )( parentPanel.getWidth() - 20 ) / originalImage.getWidth() ;
+                int displayWidth = Math.min( 1200,  (parentPanel.getWidth() - 100) ) ;
+                double scaleFactor   = ( double )( displayWidth ) / originalImage.getWidth() ;
                 
                 BufferedImage displayedImage = SwingUtils.getScaledImage( originalImage, scaleFactor ) ;
                 setIcon( new ImageIcon( displayedImage ) ) ;

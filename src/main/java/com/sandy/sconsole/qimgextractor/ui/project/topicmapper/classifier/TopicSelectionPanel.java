@@ -102,7 +102,7 @@ public class TopicSelectionPanel extends JPanel {
     }
     
     private void highlightButtonsWithMatchingFirstCharacter( KeyEvent ke, JPanel topicsPanel, Topic topic ) {
-        char keyChar = ke.getKeyChar() ;
+        char keyChar = Character.toLowerCase( ke.getKeyChar() ) ;
         int numButtons = topicsPanel.getComponentCount() ;
         
         for( int i=0; i<numButtons; i++ ) {

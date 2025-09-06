@@ -1,7 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
-import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import static javax.swing.SwingUtilities.invokeLater;
 @Slf4j
 public class TopicTreePanel extends JPanel {
     
-    public static final int PREFERRED_WIDTH = 400 ;
+    public static final int PREFERRED_WIDTH = 350 ;
     
     @Getter
     private final TopicMapperUI topicMapperUI ;
