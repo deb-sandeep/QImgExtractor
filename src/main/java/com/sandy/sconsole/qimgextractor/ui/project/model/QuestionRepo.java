@@ -120,6 +120,11 @@ public class QuestionRepo {
                             int topicId = topicJson.getInt( "id" ) ;
                             q.setTopic( topicRepo.getTopicById( topicId ) ) ;
                         }
+                        
+                        if( !qJson.isNull( "serverSyncTime" ) ) {
+                            long syncTime = qJson.getLong( "serverSyncTime" ) ;
+                            q.setServerSyncTime( new Date( syncTime ) ) ;
+                        }
                         break;
                     }
                 }

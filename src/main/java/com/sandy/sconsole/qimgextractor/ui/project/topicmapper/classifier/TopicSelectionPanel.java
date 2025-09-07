@@ -162,7 +162,7 @@ public class TopicSelectionPanel extends JPanel {
         JButton button = (JButton) topicsPanel.getComponent( btnIndex ) ;
         String btnText = button.getText().substring( BTN_HTML_PREFIX.length() ) ;
         if( btnText.toLowerCase().charAt( 0 ) == keyChar ) {
-            button.setForeground( Color.BLUE ) ;
+            button.setForeground( Color.RED ) ;
             button.requestFocus() ;
             return true ;
         }

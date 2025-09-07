@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -33,7 +34,10 @@ public class Question extends QuestionImageCluster
     
     @Getter
     private MMTAnswer mmtAnswer = null ;
-
+    
+    @Getter @Setter
+    private Date serverSyncTime = null ;
+    
     Question( QID qID ) {
         super( qID ) ;
     }
@@ -101,6 +105,7 @@ public class Question extends QuestionImageCluster
         else {
             json.put( "topic", JSONObject.NULL ) ;
         }
+        json.put( "serverSyncTime", serverSyncTime != null ? serverSyncTime.getTime() : JSONObject.NULL ) ;
         return json ;
     }
     
