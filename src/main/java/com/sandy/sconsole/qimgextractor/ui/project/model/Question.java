@@ -89,7 +89,7 @@ public class Question extends QuestionImageCluster
     }
     
     public String getQRef() {
-        return qID.getParent().getSrcId() + "//" + qID ;
+        return qID.getParent().getSrcId() + "://" + qID ;
     }
     
     public JSONObject getSerializedForm() throws Exception {
