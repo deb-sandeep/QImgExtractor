@@ -4,6 +4,7 @@ import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.ImageScraperUI;
+import com.sandy.sconsole.qimgextractor.ui.project.qsync.QSyncUI;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,8 @@ public class ProjectPanel extends JPanel {
     public enum EditorMode {
         IMAGE_SCRAPER,
         ANSWER_MAPPER,
-        TOPIC_MAPPER
+        TOPIC_MAPPER,
+        QUESTION_SYNC
     }
     
     @Getter
@@ -30,6 +32,7 @@ public class ProjectPanel extends JPanel {
     private final ImageScraperUI imgScraperUI ;
     private final AnswerMapperUI answerMapperUI ;
     private final TopicMapperUI topicMapperUI ;
+    private final QSyncUI qSyncUI ;
     
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         this.projectModel = model ;
@@ -38,6 +41,7 @@ public class ProjectPanel extends JPanel {
         this.imgScraperUI = new ImageScraperUI( this ) ;
         this.answerMapperUI = new AnswerMapperUI( this ) ;
         this.topicMapperUI = new TopicMapperUI( this ) ;
+        this.qSyncUI = new QSyncUI( this ) ;
         
         setUpUI() ;
     }
@@ -47,6 +51,7 @@ public class ProjectPanel extends JPanel {
         add( imgScraperUI, EditorMode.IMAGE_SCRAPER.name() ) ;
         add( answerMapperUI, EditorMode.ANSWER_MAPPER.name() ) ;
         add( topicMapperUI, EditorMode.TOPIC_MAPPER.name() ) ;
+        add( qSyncUI, EditorMode.QUESTION_SYNC.name() ) ;
         
         activateQuestionScraperUI() ;
     }
@@ -81,6 +86,13 @@ public class ProjectPanel extends JPanel {
         topicMapperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.TOPIC_MAPPER.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.TOPIC_MAPPER ) ;
+    }
+    
+    public void activateQSyncUI() {
+        log.debug( "Activating QSyncUI" ) ;
+        qSyncUI.handlePreActivation() ;
+        cardLayout.show( this, EditorMode.QUESTION_SYNC.name() ) ;
+        mainFrame.getAppMenuBar().setEditorMode( EditorMode.QUESTION_SYNC ) ;
     }
     
     public void toggleAnswerKeyMarkerForActivePage() {

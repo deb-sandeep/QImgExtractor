@@ -82,7 +82,7 @@ public class ProjectState {
         saveState();
     }
     
-    public void setSavedToServer( boolean value ) {
+    public void setQSyncedToServer( boolean value ) {
         this.savedToServer = value;
         if( value ) {
             this.imgCuttingWip = false ;

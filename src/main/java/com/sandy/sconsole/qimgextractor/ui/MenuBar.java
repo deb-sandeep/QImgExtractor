@@ -18,10 +18,12 @@ public class MenuBar extends JMenuBar {
     private JMenuItem imageScrapersMI;
     private JMenuItem ansMappingMI;
     private JMenuItem topicMappingMI;
+    private JMenuItem qSyncMI;
+    
     private JMenuItem imgCuttingCompleteMI;
     private JMenuItem answersMappedMI;
     private JMenuItem topicsMappedMI;
-    private JMenuItem serverSyncedMI;
+    private JMenuItem qSyncCompleteMI;
     
     private JMenuItem markAnsKeyMI;
             
@@ -92,9 +94,14 @@ public class MenuBar extends JMenuBar {
         topicMappingMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::activateTopicMapperUI ) ) ;
         
+        qSyncMI = new JMenuItem( "Open Question Sync" );
+        qSyncMI.addActionListener( e ->
+                getCurrentProjectPanel().ifPresent( ProjectPanel::activateQSyncUI ) ) ;
+        
         menu.add( imageScrapersMI ) ;
         menu.add( ansMappingMI ) ;
         menu.add( topicMappingMI ) ;
+        menu.add( qSyncMI ) ;
     }
     
     private void addProjectStateChangeMenuItems( JMenu menu ) {
@@ -111,14 +118,14 @@ public class MenuBar extends JMenuBar {
         topicsMappedMI.addActionListener( e ->
                 getProjectState().ifPresent( ps -> ps.setTopicsMapped( true ) ) );
         
-        serverSyncedMI = new JMenuItem( "Set Server Synced" );
-        serverSyncedMI.addActionListener( e ->
-                getProjectState().ifPresent( ps -> ps.setSavedToServer( true ) ) ) ;
+        qSyncCompleteMI = new JMenuItem( "Set Server Synced" );
+        qSyncCompleteMI.addActionListener( e ->
+                getProjectState().ifPresent( ps -> ps.setQSyncedToServer( true ) ) ) ;
         
         menu.add( imgCuttingCompleteMI );
         menu.add( answersMappedMI );
         menu.add( topicsMappedMI );
-        menu.add( serverSyncedMI );
+        menu.add( qSyncCompleteMI );
     }
     
     private Optional<ProjectState> getProjectState() {
@@ -142,10 +149,11 @@ public class MenuBar extends JMenuBar {
         closeMenuItem.setEnabled( enabled ) ;
         ansMappingMI.setEnabled( enabled ) ;
         topicMappingMI.setEnabled( enabled ) ;
+        qSyncMI.setEnabled( enabled ) ;
         imgCuttingCompleteMI.setEnabled( enabled ) ;
         answersMappedMI.setEnabled( enabled ) ;
         topicsMappedMI.setEnabled( enabled ) ;
-        serverSyncedMI.setEnabled( enabled ) ;
+        qSyncCompleteMI.setEnabled( enabled ) ;
     }
     
     public void setEditorMode( ProjectPanel.EditorMode mode ) {
@@ -153,6 +161,7 @@ public class MenuBar extends JMenuBar {
         imageScrapersMI.setEnabled( false ) ;
         ansMappingMI.setEnabled( false ) ;
         topicMappingMI.setEnabled( false ) ;
+        qSyncMI.setEnabled( false ) ;
         
         markAnsKeyMI.setEnabled( false ) ;
         
@@ -161,15 +170,22 @@ public class MenuBar extends JMenuBar {
                 ansMappingMI.setEnabled( true ) ;
                 topicMappingMI.setEnabled( true ) ;
                 markAnsKeyMI.setEnabled( true ) ;
+                qSyncMI.setEnabled( true ) ;
                 break ;
             case ANSWER_MAPPER:
                 imageScrapersMI.setEnabled( true ) ;
                 topicMappingMI.setEnabled( true ) ;
+                qSyncMI.setEnabled( true ) ;
                 break ;
             case TOPIC_MAPPER:
                 imageScrapersMI.setEnabled( true ) ;
                 ansMappingMI.setEnabled( true ) ;
+                qSyncMI.setEnabled( true ) ;
                 break ;
+            case QUESTION_SYNC:
+                imageScrapersMI.setEnabled( true ) ;
+                ansMappingMI.setEnabled( true ) ;
+                topicMappingMI.setEnabled( true ) ;
         }
     }
 }
