@@ -1,0 +1,212 @@
+package com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable;
+
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import lombok.Getter;
+import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+class TreeNode {
+   
+    @Getter final protected String name ;
+    @Getter protected List<TreeNode> children = null ;
+    
+    protected TreeNode( String name ) {
+        this.name = name ;
+    }
+    
+    public String toString() {
+        return name ;
+    }
+    
+    public boolean hasChildren() {
+        return children != null && !children.isEmpty() ;
+    }
+    
+    public int getChildCount() {
+        if( hasChildren() ) {
+            return children.size() ;
+        }
+        return 0 ;
+    }
+    
+    public int getIndexOfChild( TreeNode child ) {
+        if( hasChildren() ) {
+            for( int i=0; i<children.size(); i++ ) {
+                if( child == children.get( i ) ) {
+                    return i;
+                }
+            }
+        }
+        return -1 ;
+    }
+}
+
+class QuestionImgNode extends TreeNode {
+    
+    final QuestionImage questionImage ;
+    
+    QuestionImgNode( QuestionImage qImg ) {
+        super( qImg.getShortFileName() ) ;
+        this.questionImage = qImg ;
+    }
+}
+
+class QuestionNode extends TreeNode {
+    
+    final Question question ;
+    
+    QuestionNode( Question q ) {
+        super( q.getQID().toString() ) ;
+        super.children = new ArrayList<>() ;
+        this.question = q ;
+        for( QuestionImage qImg : q.getQImgList() ) {
+            children.add( new QuestionImgNode( qImg ) ) ;
+        }
+    }
+}
+
+class SyllabusNode extends TreeNode {
+    
+    SyllabusNode( String name ) {
+        super( name ) ;
+        super.children = new ArrayList<>() ;
+    }
+    
+    void addQuestionNode( QuestionNode qNode ) {
+        children.add( qNode ) ;
+    }
+}
+
+class RootNode extends TreeNode {
+    
+    final Map<String, SyllabusNode> syllabusMap = new HashMap<>() ;
+    
+    RootNode() {
+        super( "Questions" ) ;
+        super.children = new ArrayList<>() ;
+    }
+    
+    void addQuestion( Question q ) {
+        String syllabus = q.getTopic().getSyllabusName() ;
+        SyllabusNode syllabusNode = syllabusMap.computeIfAbsent( syllabus, s -> {
+            SyllabusNode sNode = new SyllabusNode( s ) ;
+            children.add( sNode ) ;
+            return sNode ;
+        } ) ;
+        syllabusNode.addQuestionNode( new QuestionNode( q ) ) ;
+    }
+    
+    void clear() {
+        syllabusMap.clear() ;
+        children.clear() ;
+    }
+}
+
+public class QSTreeTableModel extends AbstractTreeTableModel {
+    
+    private static final String[] COLUMNS = { "Name", "Type" } ;
+
+    private final ProjectModel projectModel ;
+    private final RootNode rootNode = new RootNode() ;
+    
+    public QSTreeTableModel( ProjectModel projectModel ) {
+        super() ;
+        this.projectModel = projectModel ;
+        super.root = rootNode ;
+        refreshModel() ;
+    }
+    
+    public void refreshModel() {
+        rootNode.clear() ;
+        for( Question q : projectModel.getQuestionRepo().getQuestionList() ) {
+            rootNode.addQuestion( q ) ;
+        }
+        super.modelSupport.fireNewRoot() ;
+    }
+
+    @Override
+    public int getColumnCount() {
+        return COLUMNS.length;
+    }
+    
+    @Override
+    public String getColumnName( int column ) {
+        return COLUMNS[column];
+    }
+    
+    @Override
+    public Class<?> getColumnClass( int column ) {
+        return switch (column) {
+            case 0, 1 -> String.class;
+            default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
+        };
+    }
+
+    @Override
+    public Object getChild( Object parent, int index ) {
+        
+        if( parent == null ) { return null ; }
+        TreeNode node = (TreeNode)parent ;
+        if( node.hasChildren() ) {
+            return node.children.get( index ) ;
+        }
+        return null ;
+    }
+    
+    @Override
+    public int getChildCount( Object parent ) {
+        return ((TreeNode)parent).getChildCount() ;
+    }
+    
+    @Override
+    public int getIndexOfChild( Object parent, Object child ) {
+        
+        if( parent == null || child == null ) { return -1 ; }
+        return (( TreeNode )parent).getIndexOfChild( (TreeNode)child ) ;
+    }
+    
+    @Override
+    public Object getValueAt( Object node, int column ) {
+        if( node instanceof SyllabusNode ) {
+            return getValueAt( (SyllabusNode)node, column ) ;
+        }
+        else if( node instanceof QuestionNode ) {
+            return getValueAt( (QuestionNode)node, column ) ;
+        }
+        else if( node instanceof QuestionImgNode ) {
+            return getValueAt( (QuestionImgNode)node, column ) ;
+        }
+        return null;
+    }
+    
+    private Object getValueAt( SyllabusNode node, int column ) {
+        if( column == 0 ) {
+            return node.getName() ;
+        }
+        return null ;
+    }
+    
+    private Object getValueAt( QuestionNode qNode, int column ) {
+        Question q = qNode.question ;
+        return switch( column ) {
+            case 0 -> q.getQRef() ;
+            case 1 -> q.getQID().getQuestionType() ;
+            default -> throw new IllegalStateException("Unexpected value: " + column);
+        } ;
+    }
+    
+    private Object getValueAt( QuestionImgNode qImgNode, int column ) {
+        QuestionImage qImg = qImgNode.questionImage ;
+        return switch( column ) {
+            case 0 -> qImg.getShortFileName() ;
+            case 1 -> qImg.getShortFileName().substring( qImg.getShortFileName().lastIndexOf( '.' ) ) ;
+            default -> throw new IllegalStateException("Unexpected value: " + column);
+        } ;
+    }
+}

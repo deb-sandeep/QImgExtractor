@@ -9,6 +9,7 @@ import java.util.List;
 
 public class QuestionImageCluster {
 
+    @Getter
     protected final List<QuestionImage> qImgList = new ArrayList<>() ;
     
     @Getter
