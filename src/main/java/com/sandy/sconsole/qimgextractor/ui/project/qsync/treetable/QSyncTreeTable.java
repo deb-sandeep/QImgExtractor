@@ -4,11 +4,8 @@ import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.*;
 
+import javax.swing.tree.TreePath;
 import java.awt.*;
-
-
-
-
 
 public class QSyncTreeTable extends JXTreeTable {
     
@@ -33,11 +30,25 @@ public class QSyncTreeTable extends JXTreeTable {
         SyllabusNodeHighlighter syllabusHL = new SyllabusNodeHighlighter() ;
         QuestionNodeHighlighter questionHL = new QuestionNodeHighlighter() ; // light yellow
         QuestionImgNodeHighlighter imgHL = new QuestionImgNodeHighlighter(
-                Color.WHITE,  // odd rows
-                new Color( 253, 253, 253 ) // even rows
+                Color.WHITE,  // even rows
+                new Color( 253, 253, 253 ) // odd rows
         ) ;
     
         super.setHighlighters( syllabusHL, questionHL, imgHL ) ;
+    }
+    
+    public void expandSyllabus() {
+        int row = 0 ;
+        while( row < getRowCount() ) {
+            Object node = getPathForRow( row ).getLastPathComponent() ;
+            if( node instanceof SyllabusNode ) {
+                expandRow( row ) ;
+            }
+            else if( node instanceof QuestionNode ) {
+                collapseRow( row ) ;
+            }
+            row++ ;
+        }
     }
     
     // -------------------- Inner classes --------------------------------------
@@ -49,6 +60,8 @@ public class QSyncTreeTable extends JXTreeTable {
         
         @Override
         protected Component doHighlight( Component component, ComponentAdapter adapter ) {
+            
+            if( adapter.isSelected() ) return component ;
             
             Object node = TreeTableNodeUtils.getNode(adapter);
             if (!(node instanceof SyllabusNode syllabus)) return component ;
@@ -85,6 +98,8 @@ public class QSyncTreeTable extends JXTreeTable {
         
         @Override
         protected Component doHighlight( Component component, ComponentAdapter adapter ) {
+            
+            if( adapter.isSelected() ) return component ;
             
             Object node = TreeTableNodeUtils.getNode( adapter ) ;
             if (!(node instanceof QuestionNode questionNode)) return component ;
@@ -130,6 +145,9 @@ public class QSyncTreeTable extends JXTreeTable {
         
         @Override
         protected Component doHighlight( Component component, ComponentAdapter adapter ) {
+
+            if( adapter.isSelected() ) return component ;
+            
             boolean even = adapter.row % 2 == 0 ;
             component.setBackground( even ? evenColor : oddColor ) ;
             return component ;

@@ -29,6 +29,7 @@ public class ProjectPanel extends JPanel {
     private final ProjectModel projectModel ;
 
     private final CardLayout cardLayout ;
+    
     private final ImageScraperUI imgScraperUI ;
     private final AnswerMapperUI answerMapperUI ;
     private final TopicMapperUI topicMapperUI ;
@@ -97,5 +98,14 @@ public class ProjectPanel extends JPanel {
     
     public void toggleAnswerKeyMarkerForActivePage() {
         imgScraperUI.toggleAnswerKeyMarkerForActivePage() ;
+    }
+    
+    public void handleMenuAction( String actionCmd ) {
+        Component[] components = getComponents() ;
+        for( Component component : components ) {
+            if( component instanceof QSyncUI ) {
+                ((QSyncUI)component).handleMenuAction( actionCmd ) ;
+            }
+        }
     }
 }

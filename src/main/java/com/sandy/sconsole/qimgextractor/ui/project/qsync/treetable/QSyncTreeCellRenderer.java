@@ -57,7 +57,20 @@ public class QSyncTreeCellRenderer extends DefaultTreeCellRenderer {
         qLabel = qLabel.replace( "/", "." ) ;
         label.setFont( QUESTION_FONT ) ;
         label.setText( qLabel ) ;
-        label.setIcon( SwingUtils.getIcon( "question" ) ) ;
+        
+        if( !question.isSynced() ) {
+            label.setIcon( SwingUtils.getIcon( "question_unsynced" ) ) ;
+            label.setForeground( Color.RED ) ;
+        }
+        else {
+            if( question.isModifiedAfterSync() ) {
+                label.setIcon( SwingUtils.getIcon( "question_dirty" ) ) ;
+                label.setForeground( Color.RED ) ;
+            }
+            else {
+                label.setIcon( SwingUtils.getIcon( "question_synced" ) ) ;
+            }
+        }
     }
     
     private void renderSyllabusNode( Component comp, String syllabusName ) {

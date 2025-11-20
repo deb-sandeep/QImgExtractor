@@ -2,15 +2,8 @@ package com.sandy.sconsole.qimgextractor.ui.project.qsync;
 
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
-import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
-import com.sandy.sconsole.qimgextractor.ui.project.model.Topic;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSTreeTableModel;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSyncTreeTable;
-import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.classifier.ClassifierPanel;
-import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.qtree.QuestionTree;
-import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.qtree.QuestionTreePanel;
-import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree.TopicTree;
-import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree.TopicTreePanel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,6 +12,12 @@ import java.awt.*;
 
 @Slf4j
 public class QSyncUI extends JPanel {
+    
+    public static final String AC_SHOW_ALL          = "QSyncUI.showAll" ;
+    public static final String AC_SHOW_SYNC_PENDING = "QSyncUI.showSyncPending" ;
+    public static final String AC_COLLAPSE_ALL      = "QSyncUI.collapseAll" ;
+    public static final String AC_EXPAND_ALL        = "QSyncUI.expandAll" ;
+    public static final String AC_EXPAND_SYLLABUS   = "QSyncUI.expandSyllabus" ;
     
     @Getter
     private final ProjectPanel projectPanel ; // Injected
@@ -52,5 +51,17 @@ public class QSyncUI extends JPanel {
     // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
+    }
+    
+    public void handleMenuAction( String actionCommand ) {
+        if( AC_EXPAND_ALL.equals( actionCommand ) ) {
+            treeTable.expandAll() ;
+        }
+        else if( AC_COLLAPSE_ALL.equals( actionCommand ) ) {
+            treeTable.collapseAll() ;
+        }
+        else if( AC_EXPAND_SYLLABUS.equals( actionCommand ) ) {
+            treeTable.expandSyllabus() ;
+        }
     }
 }

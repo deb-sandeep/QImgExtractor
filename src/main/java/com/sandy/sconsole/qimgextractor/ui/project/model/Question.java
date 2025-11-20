@@ -29,7 +29,7 @@ public class Question extends QuestionImageCluster
     @Getter
     private String answer = null ;
     
-    @Setter @Getter
+    @Getter
     private Topic topic = null ;
     
     @Getter
@@ -92,6 +92,11 @@ public class Question extends QuestionImageCluster
         return qID.getParent().getSrcId() + "://" + qID ;
     }
     
+    public void setTopic( Topic topic ) {
+        this.topic = topic ;
+        super.lastUpdateTime = new Date() ;
+    }
+    
     public JSONObject getSerializedForm() throws Exception {
         JSONObject json = new JSONObject() ;
         json.put( "qid", qID.toString() ) ;
@@ -106,6 +111,7 @@ public class Question extends QuestionImageCluster
             json.put( "topic", JSONObject.NULL ) ;
         }
         json.put( "serverSyncTime", serverSyncTime != null ? serverSyncTime.getTime() : JSONObject.NULL ) ;
+        json.put( "lastUpdateTime", lastUpdateTime != null ? lastUpdateTime.getTime() : JSONObject.NULL ) ;
         return json ;
     }
     
@@ -139,6 +145,7 @@ public class Question extends QuestionImageCluster
         if( qID.getQuestionType().equals( QID.MMT ) ) {
             this.mmtAnswer = new MMTAnswer( ans ) ;
         }
+        super.lastUpdateTime = new Date() ;
     }
     
     public void setRawAnswer( String ans ) throws InvalidAnswerException {
@@ -154,6 +161,7 @@ public class Question extends QuestionImageCluster
             case QID.MCA -> formatAndStoreMCQAnswer( ans );
             case QID.MMT -> formatAndStoreMMTAnswer( ans ) ;
         }
+        super.lastUpdateTime = new Date() ;
     }
     
     private void validateSCAChoice( String text ) throws InvalidAnswerException {
@@ -219,5 +227,18 @@ public class Question extends QuestionImageCluster
         }
         log.debug( "Cleaned MMT input text: {}", sb ) ;
         return sb.toString().toUpperCase() ;
+    }
+    
+    public boolean isSynced() {
+        return serverSyncTime != null ;
+    }
+    
+    public boolean isModifiedAfterSync() {
+        if( isSynced() ) {
+            if( lastUpdateTime != null ) {
+                return lastUpdateTime.after( serverSyncTime );
+            }
+        }
+        return false ;
     }
 }

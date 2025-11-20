@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui;
 
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
+import com.sandy.sconsole.qimgextractor.ui.project.qsync.QSyncUI;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -26,11 +27,18 @@ public class MenuBar extends JMenuBar {
     private JMenuItem qSyncCompleteMI;
     
     private JMenuItem markAnsKeyMI;
+    
+    private final JMenu syncMenu ;
             
     MenuBar( MainFrame mainFrame ) {
         this.mainFrame = mainFrame ;
+        this.syncMenu = getSyncMenu() ;
+        this.syncMenu.setEnabled( false ) ;
+        
         super.add( getFileMenu() ) ;
         super.add( getProjectMenu() ) ;
+        super.add( syncMenu ) ;
+        
         setCurrentProjectPanel( null ) ;
     }
     
@@ -140,11 +148,38 @@ public class MenuBar extends JMenuBar {
         return Optional.ofNullable( currentProjectPanel ) ;
     }
     
+    private JMenu getSyncMenu() {
+        
+        JMenuItem expandAllMI = new JMenuItem( "Expand All" ) ;
+        expandAllMI.addActionListener( e ->
+                mainFrame.getCurrentProjectPanel()
+                        .handleMenuAction( QSyncUI.AC_EXPAND_ALL ) ) ;
+        
+        JMenuItem collapseAllMI = new JMenuItem( "Collapse All" ) ;
+        collapseAllMI.addActionListener( e ->
+                mainFrame.getCurrentProjectPanel()
+                        .handleMenuAction( QSyncUI.AC_COLLAPSE_ALL ) ) ;
+        
+        JMenuItem expandSyllabusMI = new JMenuItem( "Expand Syllabus" ) ;
+        expandSyllabusMI.addActionListener( e ->
+                mainFrame.getCurrentProjectPanel()
+                        .handleMenuAction( QSyncUI.AC_EXPAND_SYLLABUS ) ) ;
+        
+        JMenu syncMenu = new JMenu( "Sync" ) ;
+        syncMenu.add( expandAllMI ) ;
+        syncMenu.add( collapseAllMI ) ;
+        syncMenu.add( expandSyllabusMI ) ;
+        syncMenu.addSeparator() ;
+        
+        return syncMenu;
+    }
+    
     void setCurrentProjectPanel( ProjectPanel currentProjectPanel ) {
         this.currentProjectPanel = currentProjectPanel ;
         
         boolean enabled = currentProjectPanel != null ;
         
+        syncMenu.setEnabled( false ) ;
         imageScrapersMI.setEnabled( false ) ;
         closeMenuItem.setEnabled( enabled ) ;
         ansMappingMI.setEnabled( enabled ) ;
@@ -164,6 +199,8 @@ public class MenuBar extends JMenuBar {
         qSyncMI.setEnabled( false ) ;
         
         markAnsKeyMI.setEnabled( false ) ;
+        
+        syncMenu.setEnabled( false ) ;
         
         switch( mode ) {
             case IMAGE_SCRAPER:
@@ -186,6 +223,7 @@ public class MenuBar extends JMenuBar {
                 imageScrapersMI.setEnabled( true ) ;
                 ansMappingMI.setEnabled( true ) ;
                 topicMappingMI.setEnabled( true ) ;
+                syncMenu.setEnabled( true ) ;
         }
     }
 }
