@@ -18,6 +18,10 @@ import java.net.URL;
 @Slf4j
 public class SwingUtils {
     
+    public static Color PHY_COLOR = Color.decode( "#FFC468" ) ;
+    public static Color CHEM_COLOR = Color.decode( "#84FF85" ) ;
+    public static Color MATHS_COLOR = Color.decode( "#97D6FF" ) ;
+    
     private static URL getResource( String path ) {
         return SwingUtils.class.getResource( path ) ;
     }
