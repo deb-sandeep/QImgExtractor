@@ -42,7 +42,7 @@ public class QSyncUI extends JPanel {
         setLayout( new BorderLayout() ) ;
         
         this.treeTable.setRootVisible( false ) ;
-        this.treeTable.expandAll() ;
+        this.treeTable.expandSyllabus() ;
         JScrollPane sp = new JScrollPane( treeTable ) ;
         add( sp, BorderLayout.CENTER ) ;
     }

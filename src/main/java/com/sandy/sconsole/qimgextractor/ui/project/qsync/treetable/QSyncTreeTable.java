@@ -4,10 +4,19 @@ import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.*;
 
-import javax.swing.tree.TreePath;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 
 public class QSyncTreeTable extends JXTreeTable {
+    
+    public static final int COL_NAME = 0 ;
+    public static final int COL_TYPE = 1 ;
+    public static final int COL_LAST_SYNC_DATE = 2 ;
+    public static final int COL_LAST_UPDATE_DATE = 3 ;
+    
+    public static final Font QUESTION_ROW_FONT     = new Font( "Courier", Font.PLAIN, 11 ) ;
+    public static final Font QUESTION_IMG_ROW_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
+    public static final Font SYLLABUS_ROW_FONT     = new Font( "Courier", Font.BOLD, 14 ) ;
     
     public QSyncTreeTable( QSTreeTableModel model ) {
         super( model ) ;
@@ -17,16 +26,27 @@ public class QSyncTreeTable extends JXTreeTable {
         super.setTreeCellRenderer( new QSyncTreeCellRenderer() ) ;
         super.setAutoResizeMode( JXTreeTable.AUTO_RESIZE_OFF ) ;
         
+        setCellRenderers() ;
         setColumnWidths() ;
         setRowHighlighters() ;
     }
     
+    private void setCellRenderers() {
+        QSyncTableCellRenderer tableCellRenderer = new QSyncTableCellRenderer();
+        super.setDefaultRenderer( Object.class, tableCellRenderer ) ;
+        super.getColumnModel().getColumn( 2 ).setCellRenderer( tableCellRenderer ) ;
+        super.getColumnModel().getColumn( 3 ).setCellRenderer( tableCellRenderer ) ;
+    }
+    
     private void setColumnWidths() {
-        super.getColumnModel().getColumn( 0 ).setPreferredWidth( 300 ) ;
+        TableColumnModel columnModel = super.getColumnModel() ;
+        columnModel.getColumn( COL_NAME ).setPreferredWidth( 250 ) ;
+        columnModel.getColumn( COL_TYPE ).setPreferredWidth( 50 ) ;
+        columnModel.getColumn( COL_LAST_SYNC_DATE ).setPreferredWidth( 150 ) ;
+        columnModel.getColumn( COL_LAST_UPDATE_DATE ).setPreferredWidth( 150 ) ;
     }
     
     private void setRowHighlighters() {
-        
         SyllabusNodeHighlighter syllabusHL = new SyllabusNodeHighlighter() ;
         QuestionNodeHighlighter questionHL = new QuestionNodeHighlighter() ; // light yellow
         QuestionImgNodeHighlighter imgHL = new QuestionImgNodeHighlighter(

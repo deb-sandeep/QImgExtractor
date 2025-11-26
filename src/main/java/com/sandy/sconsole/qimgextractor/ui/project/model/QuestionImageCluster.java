@@ -17,9 +17,6 @@ public class QuestionImageCluster {
     @Getter
     protected final QID qID ;
     
-    @Getter @Setter
-    protected Date lastUpdateTime = null ;
-    
     protected QuestionImageCluster( QID qID ) {
         this.qID = qID ;
     }
@@ -27,6 +24,5 @@ public class QuestionImageCluster {
     public void addQImg( QuestionImage qImg ) {
         qImgList.add( qImg ) ;
         qImgList.sort( Comparator.comparing( QuestionImage::getPartNumber ) ) ;
-        lastUpdateTime = new Date() ;
     }
 }

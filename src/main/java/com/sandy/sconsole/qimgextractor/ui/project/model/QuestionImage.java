@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Stack;
 
 import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
@@ -273,5 +274,9 @@ public class QuestionImage implements Comparable<QuestionImage> {
             sb.append( "/(" ).append( partNumber ).append( ")" ) ;
         }
         return sb.toString() ;
+    }
+    
+    public Date getLastModified() {
+        return imgFile != null ? new Date( imgFile.lastModified() ) : null ;
     }
 }

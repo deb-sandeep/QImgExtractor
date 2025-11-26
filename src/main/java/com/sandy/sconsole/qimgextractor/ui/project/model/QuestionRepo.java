@@ -125,11 +125,6 @@ public class QuestionRepo {
                             long syncTime = qJson.getLong( "serverSyncTime" ) ;
                             q.setServerSyncTime( new Date( syncTime ) ) ;
                         }
-
-                        if( !qJson.isNull( "lastUpdateTime" ) ) {
-                            long lastUpdateTime = qJson.getLong( "lastUpdateTime" ) ;
-                            q.setLastUpdateTime( new Date( lastUpdateTime ) ) ;
-                        }
                         break;
                     }
                 }

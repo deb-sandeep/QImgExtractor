@@ -110,7 +110,7 @@ class RootNode extends TreeNode {
 
 public class QSTreeTableModel extends AbstractTreeTableModel {
     
-    private static final String[] COLUMNS = { "Name", "Type" } ;
+    private static final String[] COLUMNS = { "Name", "Type", "Last Synced", "Last Updated" } ;
 
     private final ProjectModel projectModel ;
     private final RootNode rootNode = new RootNode() ;
@@ -144,6 +144,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     public Class<?> getColumnClass( int column ) {
         return switch (column) {
             case 0, 1 -> String.class;
+            case 2, 3 -> java.util.Date.class;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         };
     }
@@ -197,7 +198,9 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
         return switch( column ) {
             case 0 -> q.getQRef() ;
             case 1 -> q.getQID().getQuestionType() ;
-            default -> throw new IllegalStateException("Unexpected value: " + column);
+            case 2 -> q.getServerSyncTime() ;
+            case 3 -> null ;
+            default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
     }
     
@@ -206,7 +209,9 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
         return switch( column ) {
             case 0 -> qImg.getShortFileName() ;
             case 1 -> qImg.getShortFileName().substring( qImg.getShortFileName().lastIndexOf( '.' ) ) ;
-            default -> throw new IllegalStateException("Unexpected value: " + column);
+            case 2 -> null ;
+            case 3 -> qImg.getLastModified() ;
+            default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
     }
 }
