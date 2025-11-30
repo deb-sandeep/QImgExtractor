@@ -13,6 +13,7 @@ public class QSyncTreeTable extends JXTreeTable {
     public static final int COL_TYPE = 1 ;
     public static final int COL_LAST_SYNC_DATE = 2 ;
     public static final int COL_LAST_UPDATE_DATE = 3 ;
+    public static final int COL_ANSWER = 4 ;
     
     public static final Font QUESTION_ROW_FONT     = new Font( "Courier", Font.PLAIN, 11 ) ;
     public static final Font QUESTION_IMG_ROW_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
@@ -124,9 +125,13 @@ public class QSyncTreeTable extends JXTreeTable {
             Object node = TreeTableNodeUtils.getNode( adapter ) ;
             if (!(node instanceof QuestionNode questionNode)) return component ;
             
-            String syllabusName = questionNode.question.getTopic().getSyllabusName() ;
+            String syllabusName = "Unclassified" ;
             
-            Color bg = Color.RED ;
+            if( questionNode.question.getTopic() != null ) {
+                syllabusName = questionNode.question.getTopic().getSyllabusName() ;
+            }
+            
+            Color bg ;
             if( syllabusName.contains( "Physics" ) ) {
                 bg = SwingUtils.PHY_COLOR.brighter() ;
             }
@@ -135,6 +140,9 @@ public class QSyncTreeTable extends JXTreeTable {
             }
             else if( syllabusName.contains("Math") ) {
                 bg = SwingUtils.MATHS_COLOR.brighter() ;
+            }
+            else {
+                bg = Color.YELLOW ;
             }
 
             component.setBackground( bg ) ;

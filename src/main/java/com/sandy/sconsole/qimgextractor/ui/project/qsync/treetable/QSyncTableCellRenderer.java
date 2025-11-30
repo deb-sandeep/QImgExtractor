@@ -60,6 +60,14 @@ public class QSyncTableCellRenderer extends DefaultTableCellRenderer {
                 label.setIcon( SwingUtils.getIcon( "bullet_red" ) ) ;
             }
         }
+        else if( column == COL_ANSWER ) {
+            if( value != null ) {
+                label.setText( value.toString() ) ;
+            }
+            else {
+                label.setBackground( Color.RED ) ;
+            }
+        }
     }
     
     private void renderQuestionImgRowCell( int column, Object value, JLabel label ) {

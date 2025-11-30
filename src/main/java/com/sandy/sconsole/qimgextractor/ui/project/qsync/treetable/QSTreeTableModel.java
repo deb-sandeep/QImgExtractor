@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSyncTreeTable.*;
+
 class TreeNode {
    
     @Getter final protected String name ;
@@ -92,9 +94,15 @@ class RootNode extends TreeNode {
         super.children = new ArrayList<>() ;
     }
     
+    // TODO: If topic is not yet mapped, keep the questions under a
+    //  Unclassified node.
     void addQuestion( Question q ) {
-        String syllabus = q.getTopic().getSyllabusName() ;
-        SyllabusNode syllabusNode = syllabusMap.computeIfAbsent( syllabus, s -> {
+        String syllabusName = "Unclassified" ;
+        if( q.getTopic() != null ) {
+            syllabusName = q.getTopic().getSyllabusName() ;
+        }
+        
+        SyllabusNode syllabusNode = syllabusMap.computeIfAbsent( syllabusName, s -> {
             SyllabusNode sNode = new SyllabusNode( s ) ;
             children.add( sNode ) ;
             return sNode ;
@@ -110,7 +118,7 @@ class RootNode extends TreeNode {
 
 public class QSTreeTableModel extends AbstractTreeTableModel {
     
-    private static final String[] COLUMNS = { "Name", "Type", "Last Synced", "Last Updated" } ;
+    private static final String[] COLUMNS = { "Name", "Type", "Last Synced", "Last Updated", "Answer" } ;
 
     private final ProjectModel projectModel ;
     private final RootNode rootNode = new RootNode() ;
@@ -143,8 +151,11 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     @Override
     public Class<?> getColumnClass( int column ) {
         return switch (column) {
-            case 0, 1 -> String.class;
-            case 2, 3 -> java.util.Date.class;
+            case COL_NAME,
+                 COL_TYPE,
+                 COL_ANSWER -> String.class;
+            case COL_LAST_SYNC_DATE,
+                 COL_LAST_UPDATE_DATE -> java.util.Date.class;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         };
     }
@@ -196,10 +207,11 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     private Object getValueAt( QuestionNode qNode, int column ) {
         Question q = qNode.question ;
         return switch( column ) {
-            case 0 -> q.getQRef() ;
-            case 1 -> q.getQID().getQuestionType() ;
-            case 2 -> q.getServerSyncTime() ;
-            case 3 -> null ;
+            case COL_NAME -> q.getQRef() ;
+            case COL_TYPE -> q.getQID().getQuestionType() ;
+            case COL_LAST_SYNC_DATE -> q.getServerSyncTime() ;
+            case COL_LAST_UPDATE_DATE -> null ;
+            case COL_ANSWER -> q.getAnswer() ;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
     }
@@ -207,10 +219,11 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     private Object getValueAt( QuestionImgNode qImgNode, int column ) {
         QuestionImage qImg = qImgNode.questionImage ;
         return switch( column ) {
-            case 0 -> qImg.getShortFileName() ;
-            case 1 -> qImg.getShortFileName().substring( qImg.getShortFileName().lastIndexOf( '.' ) ) ;
-            case 2 -> null ;
-            case 3 -> qImg.getLastModified() ;
+            case COL_NAME -> qImg.getShortFileName() ;
+            case COL_TYPE -> qImg.getShortFileName().substring( qImg.getShortFileName().lastIndexOf( '.' ) ) ;
+            case COL_LAST_SYNC_DATE -> null ;
+            case COL_LAST_UPDATE_DATE -> qImg.getLastModified() ;
+            case COL_ANSWER -> null ;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
     }
