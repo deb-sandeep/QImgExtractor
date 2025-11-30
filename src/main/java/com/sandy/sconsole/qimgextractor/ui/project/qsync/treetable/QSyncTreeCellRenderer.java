@@ -56,12 +56,21 @@ public class QSyncTreeCellRenderer extends DefaultTreeCellRenderer {
         label.setText( qLabel ) ;
         
         if( !question.isSynced() ) {
-            label.setIcon( SwingUtils.getIcon( "question_unsynced" ) ) ;
-            label.setForeground( Color.RED ) ;
+            if( question.isReadyForServerSync() ) {
+                label.setIcon( SwingUtils.getIcon( "question_unsynced" ) ) ;
+                label.setForeground( Color.BLUE ) ;
+            }
+            else {
+                label.setIcon( SwingUtils.getIcon( "question_wip" ) ) ;
+            }
         }
         else {
             if( question.isModifiedAfterSync() ) {
                 label.setIcon( SwingUtils.getIcon( "question_dirty" ) ) ;
+                label.setForeground( Color.RED ) ;
+            }
+            else if( !question.isReadyForServerSync() ) {
+                label.setIcon( SwingUtils.getIcon( "question_invalid" ) ) ;
                 label.setForeground( Color.RED ) ;
             }
             else {

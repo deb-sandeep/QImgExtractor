@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ public class Question extends QuestionImageCluster
     private QuestionImageCluster lctCtxImgCluster = null ;
     
     @Getter
+    private final String srcId ;
+    
+    @Getter
     private String answer = null ;
     
     @Getter @Setter
@@ -38,8 +42,12 @@ public class Question extends QuestionImageCluster
     @Getter @Setter
     private Date serverSyncTime = null ;
     
-    Question( QID qID ) {
+    @Getter @Setter
+    private String serverSyncToken = null ;
+    
+    Question( String srcId, QID qID ) {
         super( qID ) ;
+        this.srcId = srcId ;
     }
     
     public boolean isLCT() {
@@ -106,6 +114,7 @@ public class Question extends QuestionImageCluster
             json.put( "topic", JSONObject.NULL ) ;
         }
         json.put( "serverSyncTime", serverSyncTime != null ? serverSyncTime.getTime() : JSONObject.NULL ) ;
+        json.put( "serverSyncToken", serverSyncToken != null ? serverSyncToken : JSONObject.NULL ) ;
         return json ;
     }
     
@@ -226,6 +235,32 @@ public class Question extends QuestionImageCluster
     }
     
     public boolean isModifiedAfterSync() {
+        return isSynced() && !serverSyncToken.equals( getHashCode() ) ;
+    }
+    
+    public boolean isReadyForServerSync() {
+        if( srcId != null ) {
+            if( answer != null ) {
+                if( topic != null ) {
+                    if( !qImgList.isEmpty() ) {
+                        return true ;
+                    }
+                }
+            }
+        }
         return false ;
+    }
+    
+    public String getHashCode() {
+        StringBuilder sb = new StringBuilder() ;
+        sb.append( srcId ).append( ":" ) ;
+        sb.append( qID.toString() ).append( ":" ) ;
+        sb.append( topic.getId() ).append( ":" ) ;
+        sb.append( answer ).append( ":" ) ;
+        List<QuestionImage> qImgList = getQImgList() ;
+        for( QuestionImage qImg : qImgList ) {
+            sb.append( qImg.getImgFile().getName() ).append( ":" ) ;
+        }
+        return AppUtil.getHash( sb.toString() ) ;
     }
 }

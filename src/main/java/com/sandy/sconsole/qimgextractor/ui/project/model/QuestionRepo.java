@@ -40,7 +40,7 @@ public class QuestionRepo {
                     cluster = lctCtxImgClusterMap.computeIfAbsent( qId, id -> new QuestionImageCluster( qImg.getQId() ) ) ;
                 }
                 else {
-                    cluster = qImgClusterMap.computeIfAbsent( qId, id -> new Question( qImg.getQId() ) ) ;
+                    cluster = qImgClusterMap.computeIfAbsent( qId, id -> new Question( projectModel.getProjectName(), qImg.getQId() ) ) ;
                 }
                 cluster.addQImg( qImg ) ;
             }

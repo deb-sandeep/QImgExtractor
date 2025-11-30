@@ -2,6 +2,8 @@ package com.sandy.sconsole.qimgextractor.util;
 
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,5 +83,9 @@ public class AppUtil {
             return null != files && files.length > 0 ;
         }
         return false ;
+    }
+    
+    public static String getHash( String input ) {
+        return new String( Hex.encodeHex( DigestUtils.md5( input ) ) ) ;
     }
 }
