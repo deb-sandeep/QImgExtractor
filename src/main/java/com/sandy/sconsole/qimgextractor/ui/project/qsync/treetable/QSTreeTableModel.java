@@ -94,8 +94,6 @@ class RootNode extends TreeNode {
         super.children = new ArrayList<>() ;
     }
     
-    // TODO: If topic is not yet mapped, keep the questions under a
-    //  Unclassified node.
     void addQuestion( Question q ) {
         String syllabusName = "Unclassified" ;
         if( q.getTopic() != null ) {
@@ -152,8 +150,8 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     public Class<?> getColumnClass( int column ) {
         return switch (column) {
             case COL_NAME,
-                 COL_TYPE,
-                 COL_ANSWER -> String.class;
+                 COL_TYPE -> String.class;
+            case COL_ANSWER -> Object.class;
             case COL_LAST_SYNC_DATE,
                  COL_LAST_UPDATE_DATE -> java.util.Date.class;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
@@ -211,7 +209,12 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
             case COL_TYPE -> q.getQID().getQuestionType() ;
             case COL_LAST_SYNC_DATE -> q.getServerSyncTime() ;
             case COL_LAST_UPDATE_DATE -> null ;
-            case COL_ANSWER -> q.getAnswer() ;
+            case COL_ANSWER -> {
+                if( q.getMmtAnswer() != null ) {
+                    yield q.getMmtAnswer() ;
+                }
+                yield q.getAnswer() ;
+            }
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
     }

@@ -1,9 +1,12 @@
 package com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
+import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table.AnswerTableMMTCellRenderer;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.*;
 
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 
@@ -19,6 +22,8 @@ public class QSyncTreeTable extends JXTreeTable {
     public static final Font QUESTION_IMG_ROW_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
     public static final Font SYLLABUS_ROW_FONT     = new Font( "Courier", Font.BOLD, 14 ) ;
     
+    private final AnswerTableMMTCellRenderer mmtCellRenderer = new AnswerTableMMTCellRenderer() ;
+
     public QSyncTreeTable( QSTreeTableModel model ) {
         super( model ) ;
         super.setRowHeight( 25 ) ;
@@ -35,8 +40,8 @@ public class QSyncTreeTable extends JXTreeTable {
     private void setCellRenderers() {
         QSyncTableCellRenderer tableCellRenderer = new QSyncTableCellRenderer();
         super.setDefaultRenderer( Object.class, tableCellRenderer ) ;
-        super.getColumnModel().getColumn( 2 ).setCellRenderer( tableCellRenderer ) ;
-        super.getColumnModel().getColumn( 3 ).setCellRenderer( tableCellRenderer ) ;
+        super.getColumnModel().getColumn( COL_LAST_SYNC_DATE ).setCellRenderer( tableCellRenderer ) ;
+        super.getColumnModel().getColumn( COL_LAST_UPDATE_DATE ).setCellRenderer( tableCellRenderer ) ;
     }
     
     private void setColumnWidths() {
@@ -70,6 +75,23 @@ public class QSyncTreeTable extends JXTreeTable {
             }
             row++ ;
         }
+    }
+    
+    @Override
+    public TableCellRenderer getCellRenderer( int row, int column ) {
+        if( column == COL_ANSWER ) {
+            var path = getPathForRow( row ) ;
+            if( path != null ) {
+                Object node = path.getLastPathComponent() ;
+                if( node instanceof QuestionNode ) {
+                    Question q = ((QuestionNode)node).question ;
+                    if( q.getMmtAnswer() != null ) {
+                        return mmtCellRenderer ;
+                    }
+                }
+            }
+        }
+        return super.getCellRenderer( row, column ) ;
     }
     
     // -------------------- Inner classes --------------------------------------
