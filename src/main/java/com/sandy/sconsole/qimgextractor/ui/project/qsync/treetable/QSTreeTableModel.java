@@ -4,6 +4,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 import java.util.ArrayList;
@@ -114,9 +115,17 @@ class RootNode extends TreeNode {
     }
 }
 
+@Slf4j
 public class QSTreeTableModel extends AbstractTreeTableModel {
     
-    private static final String[] COLUMNS = { "Name", "Type", "Last Synced", "Last Updated", "Answer" } ;
+    private static final String[] COLUMNS = {
+            COL_NAME_LABEL,
+            COL_TYPE_LABEL,
+            COL_LAST_SYNC_DATE_LABEL,
+            COL_LAST_UPDATE_DATE_LABEL,
+            COL_ANSWER_LABEL,
+            COL_SYNC_BTN_LABEL
+    } ;
 
     private final ProjectModel projectModel ;
     private final RootNode rootNode = new RootNode() ;
@@ -128,14 +137,6 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
         refreshModel() ;
     }
     
-    public void refreshModel() {
-        rootNode.clear() ;
-        for( Question q : projectModel.getQuestionRepo().getQuestionList() ) {
-            rootNode.addQuestion( q ) ;
-        }
-        super.modelSupport.fireNewRoot() ;
-    }
-
     @Override
     public int getColumnCount() {
         return COLUMNS.length;
@@ -147,13 +148,24 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     }
     
     @Override
+    public boolean isCellEditable( Object node, int column ) {
+        if( column == COL_SYNC_BTN ) {
+            Question q = ((QuestionNode)node).question ;
+            return q.isReadyForServerSync() ;
+        }
+        return false ;
+    }
+    
+    @Override
     public Class<?> getColumnClass( int column ) {
         return switch (column) {
             case COL_NAME,
                  COL_TYPE -> String.class;
-            case COL_ANSWER -> Object.class;
+            case COL_ANSWER,
+                 COL_SYNC_BTN -> Object.class;
             case COL_LAST_SYNC_DATE,
                  COL_LAST_UPDATE_DATE -> java.util.Date.class;
+            
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         };
     }
@@ -162,7 +174,8 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     public Object getChild( Object parent, int index ) {
         
         if( parent == null ) { return null ; }
-        TreeNode node = (TreeNode)parent ;
+        
+        TreeNode node = ( TreeNode )parent ;
         if( node.hasChildren() ) {
             return node.children.get( index ) ;
         }
@@ -196,7 +209,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     }
     
     private Object getValueAt( SyllabusNode node, int column ) {
-        if( column == 0 ) {
+        if( column == COL_NAME ) {
             return node.getName() ;
         }
         return null ;
@@ -215,6 +228,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
                 }
                 yield q.getAnswer() ;
             }
+            case COL_SYNC_BTN -> "Sync Button" ; // This will be replaced by a button by the renderer
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
     }
@@ -224,10 +238,19 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
         return switch( column ) {
             case COL_NAME -> qImg.getShortFileName() ;
             case COL_TYPE -> qImg.getShortFileName().substring( qImg.getShortFileName().lastIndexOf( '.' ) ) ;
-            case COL_LAST_SYNC_DATE -> null ;
             case COL_LAST_UPDATE_DATE -> qImg.getLastModified() ;
-            case COL_ANSWER -> null ;
+            case COL_LAST_SYNC_DATE,
+                 COL_ANSWER,
+                 COL_SYNC_BTN -> null ;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
+    }
+    
+    public void refreshModel() {
+        rootNode.clear() ;
+        for( Question q : projectModel.getQuestionRepo().getQuestionList() ) {
+            rootNode.addQuestion( q ) ;
+        }
+        super.modelSupport.fireNewRoot() ;
     }
 }

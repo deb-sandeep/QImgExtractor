@@ -6,7 +6,7 @@ import org.jdesktop.swingx.decorator.ComponentAdapter;
 public final class TreeTableNodeUtils {
     private TreeTableNodeUtils() {}
     
-    public static Object getNode(ComponentAdapter adapter) {
+    public static Object getNode( ComponentAdapter adapter ) {
         if (!(adapter.getComponent() instanceof JXTreeTable table)) return null;
         int viewRow = adapter.row;
         if (viewRow < 0) return null;

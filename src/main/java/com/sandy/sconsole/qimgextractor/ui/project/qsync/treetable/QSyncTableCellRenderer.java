@@ -21,7 +21,9 @@ public class QSyncTableCellRenderer extends DefaultTableCellRenderer {
             JTable table, Object value, boolean isSelected,
             boolean hasFocus, int row, int column ) {
         
-        JLabel label = ( JLabel )super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column ) ;
+        JLabel label = ( JLabel )super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column ) ;
+        
         label.setFont( new Font( "Courier", Font.PLAIN, 12 ) ) ;
         label.setIcon( null ) ;
         label.setText( "" ) ;
@@ -67,6 +69,9 @@ public class QSyncTableCellRenderer extends DefaultTableCellRenderer {
             else {
                 label.setBackground( Color.RED ) ;
             }
+        }
+        else if( column == COL_SYNC_BTN ) {
+            label.setText( value.toString() ) ;
         }
     }
     

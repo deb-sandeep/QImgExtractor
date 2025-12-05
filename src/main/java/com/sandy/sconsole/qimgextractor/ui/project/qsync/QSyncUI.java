@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.qsync;
 
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSTreeTableModel;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSyncTreeTable;
 import lombok.Getter;
@@ -18,6 +19,7 @@ public class QSyncUI extends JPanel {
     public static final String AC_COLLAPSE_ALL      = "QSyncUI.collapseAll" ;
     public static final String AC_EXPAND_ALL        = "QSyncUI.expandAll" ;
     public static final String AC_EXPAND_SYLLABUS   = "QSyncUI.expandSyllabus" ;
+    public static final String AC_SYNC_ALL_PENDING  = "QSyncUI.syncAllPending" ;
     
     @Getter
     private final ProjectPanel projectPanel ; // Injected
@@ -33,7 +35,7 @@ public class QSyncUI extends JPanel {
         this.projectModel = projectPanel.getProjectModel() ;
         
         this.model = new QSTreeTableModel( this.projectModel ) ;
-        this.treeTable = new QSyncTreeTable( this.model ) ;
+        this.treeTable = new QSyncTreeTable( this.model, this ) ;
         
         setUpUI() ;
     }
@@ -63,5 +65,14 @@ public class QSyncUI extends JPanel {
         else if( AC_EXPAND_SYLLABUS.equals( actionCommand ) ) {
             treeTable.expandSyllabus() ;
         }
+    }
+    
+    public void syncQuestion( Question question ) throws Exception {
+        // TODO:
+        //  1. Create a log panel
+        //  2. Populate VO
+        //  3. Call API logging debug to the log panel
+        //  4. Update question attributs
+        //  5. Ask the repo to save the question state
     }
 }

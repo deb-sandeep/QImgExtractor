@@ -38,12 +38,12 @@ public class QSyncTreeCellRenderer extends DefaultTreeCellRenderer {
         return comp ;
     }
     
-    private void renderQuestionImgNode( Component comp, QuestionImage qImg, boolean isSelected ) {
+    private void renderSyllabusNode( Component comp, String syllabusName ) {
         DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
-        String qLabel = qImg.getShortFileName() ;
-        label.setFont( QUESTION_IMG_ROW_FONT ) ;
-        label.setText( qLabel ) ;
-        label.setIcon( SwingUtils.getIcon( "sub_image" ) ) ;
+        label.setFont( SYLLABUS_ROW_FONT ) ;
+        label.setText( syllabusName ) ;
+        label.setForeground( Color.WHITE ) ;
+        label.setIcon( SwingUtils.getIcon( "syllabus" ) );
     }
     
     private void renderQuestionNode( Component comp, Question question, boolean isSelected ) {
@@ -79,11 +79,11 @@ public class QSyncTreeCellRenderer extends DefaultTreeCellRenderer {
         }
     }
     
-    private void renderSyllabusNode( Component comp, String syllabusName ) {
+    private void renderQuestionImgNode( Component comp, QuestionImage qImg, boolean isSelected ) {
         DefaultTreeCellRenderer label = ( DefaultTreeCellRenderer )comp ;
-        label.setFont( SYLLABUS_ROW_FONT ) ;
-        label.setText( syllabusName ) ;
-        label.setForeground( Color.WHITE ) ;
-        label.setIcon( SwingUtils.getIcon( "syllabus" ) );
+        String qLabel = qImg.getShortFileName() ;
+        label.setFont( QUESTION_IMG_ROW_FONT ) ;
+        label.setText( qLabel ) ;
+        label.setIcon( SwingUtils.getIcon( "sub_image" ) ) ;
     }
 }

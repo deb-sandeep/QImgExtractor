@@ -3,56 +3,83 @@ package com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table.AnswerTableMMTCellRenderer;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.qsync.QSyncUI;
+import lombok.extern.slf4j.Slf4j;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.*;
 
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 
-public class QSyncTreeTable extends JXTreeTable {
+@Slf4j
+public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonEditor.ButtonClickHandler {
     
     public static final int COL_NAME = 0 ;
     public static final int COL_TYPE = 1 ;
     public static final int COL_LAST_SYNC_DATE = 2 ;
     public static final int COL_LAST_UPDATE_DATE = 3 ;
     public static final int COL_ANSWER = 4 ;
+    public static final int COL_SYNC_BTN = 5 ;
+    
+    public static final String COL_NAME_LABEL = "Name" ;
+    public static final String COL_TYPE_LABEL = "Type" ;
+    public static final String COL_LAST_SYNC_DATE_LABEL = "Last Sync" ;
+    public static final String COL_LAST_UPDATE_DATE_LABEL = "Last Update" ;
+    public static final String COL_ANSWER_LABEL = "Answer" ;
+    public static final String COL_SYNC_BTN_LABEL = "Sync" ;
     
     public static final Font QUESTION_ROW_FONT     = new Font( "Courier", Font.PLAIN, 11 ) ;
-    public static final Font QUESTION_IMG_ROW_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
+    public static final Font QUESTION_IMG_ROW_FONT = new Font( "Courier", Font.PLAIN + Font.ITALIC, 12 ) ;
     public static final Font SYLLABUS_ROW_FONT     = new Font( "Courier", Font.BOLD, 14 ) ;
     
     private final AnswerTableMMTCellRenderer mmtCellRenderer = new AnswerTableMMTCellRenderer() ;
+    private final QSyncTableSyncButtonEditor syncBtnCellEditor ;
+    
+    private final QSyncUI parent ;
 
-    public QSyncTreeTable( QSTreeTableModel model ) {
+    public QSyncTreeTable( QSTreeTableModel model, QSyncUI parent ) {
         super( model ) ;
-        super.setRowHeight( 25 ) ;
+        super.setRowHeight( 26 ) ;
         super.setShowGrid( false, true ) ;
         super.setGridColor( Color.LIGHT_GRAY.brighter() ) ;
         super.setTreeCellRenderer( new QSyncTreeCellRenderer() ) ;
         super.setAutoResizeMode( JXTreeTable.AUTO_RESIZE_OFF ) ;
         
+        this.parent = parent ;
+        this.syncBtnCellEditor = new QSyncTableSyncButtonEditor( this ) ;
+        
         setCellRenderers() ;
         setColumnWidths() ;
         setRowHighlighters() ;
+        setColumnEditors() ;
     }
     
     private void setCellRenderers() {
-        QSyncTableCellRenderer tableCellRenderer = new QSyncTableCellRenderer();
+        
+        QSyncTableCellRenderer tableCellRenderer = new QSyncTableCellRenderer() ;
+        QSyncTableSyncButtonRenderer syncBtnRenderer = new QSyncTableSyncButtonRenderer( tableCellRenderer ) ;
+        
         super.setDefaultRenderer( Object.class, tableCellRenderer ) ;
         super.getColumnModel().getColumn( COL_LAST_SYNC_DATE ).setCellRenderer( tableCellRenderer ) ;
         super.getColumnModel().getColumn( COL_LAST_UPDATE_DATE ).setCellRenderer( tableCellRenderer ) ;
+        super.getColumnModel().getColumn( COL_SYNC_BTN ).setCellRenderer( syncBtnRenderer ) ;
     }
     
     private void setColumnWidths() {
+        
         TableColumnModel columnModel = super.getColumnModel() ;
         columnModel.getColumn( COL_NAME ).setPreferredWidth( 250 ) ;
         columnModel.getColumn( COL_TYPE ).setPreferredWidth( 50 ) ;
         columnModel.getColumn( COL_LAST_SYNC_DATE ).setPreferredWidth( 150 ) ;
         columnModel.getColumn( COL_LAST_UPDATE_DATE ).setPreferredWidth( 150 ) ;
+        columnModel.getColumn( COL_ANSWER ).setPreferredWidth( 150 ) ;
+        columnModel.getColumn( COL_SYNC_BTN ).setPreferredWidth( 50 ) ;
     }
     
     private void setRowHighlighters() {
+        
         SyllabusNodeHighlighter syllabusHL = new SyllabusNodeHighlighter() ;
         QuestionNodeHighlighter questionHL = new QuestionNodeHighlighter() ; // light yellow
         QuestionImgNodeHighlighter imgHL = new QuestionImgNodeHighlighter(
@@ -63,18 +90,10 @@ public class QSyncTreeTable extends JXTreeTable {
         super.setHighlighters( syllabusHL, questionHL, imgHL ) ;
     }
     
-    public void expandSyllabus() {
-        int row = 0 ;
-        while( row < getRowCount() ) {
-            Object node = getPathForRow( row ).getLastPathComponent() ;
-            if( node instanceof SyllabusNode ) {
-                expandRow( row ) ;
-            }
-            else if( node instanceof QuestionNode ) {
-                collapseRow( row ) ;
-            }
-            row++ ;
-        }
+    private void setColumnEditors() {
+        
+        TableColumnModel columnModel = super.getColumnModel() ;
+        columnModel.getColumn( COL_SYNC_BTN ).setCellEditor( this.syncBtnCellEditor ) ;
     }
     
     @Override
@@ -92,6 +111,37 @@ public class QSyncTreeTable extends JXTreeTable {
             }
         }
         return super.getCellRenderer( row, column ) ;
+    }
+    
+    @Override
+    public void syncButtonClick( int row ) {
+        var path = getPathForRow( row ) ;
+        if( path != null ) {
+            Question question = ((QuestionNode)path.getLastPathComponent()).question ;
+            try {
+                parent.syncQuestion( question ) ;
+                // TODO: Once the question has been successfully synced,
+                //       fire table change event so as to refresh the table.
+            }
+            catch( Exception e ) {
+                log.error( "Error syncing question: " + question.getQID(), e ) ;
+                // TODO: Figure out what to do on the table in case of sync failure
+            }
+        }
+    }
+    
+    public void expandSyllabus() {
+        int row = 0 ;
+        while( row < getRowCount() ) {
+            Object node = getPathForRow( row ).getLastPathComponent() ;
+            if( node instanceof SyllabusNode ) {
+                expandRow( row ) ;
+            }
+            else if( node instanceof QuestionNode ) {
+                collapseRow( row ) ;
+            }
+            row++ ;
+        }
     }
     
     // -------------------- Inner classes --------------------------------------
