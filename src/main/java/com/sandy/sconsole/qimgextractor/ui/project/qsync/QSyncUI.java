@@ -3,10 +3,13 @@ package com.sandy.sconsole.qimgextractor.ui.project.qsync;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.qsync.apiclient.QSyncAPIClient;
+import com.sandy.sconsole.qimgextractor.ui.project.qsync.logpanel.QSyncLogPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSTreeTableModel;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSyncTreeTable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,6 +32,8 @@ public class QSyncUI extends JPanel {
     
     private final QSTreeTableModel model ;
     private final QSyncTreeTable treeTable ;
+    private final QSyncLogPanel logPanel ;
+    private final QSyncAPIClient apiClient ;
     
     public QSyncUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
@@ -36,6 +41,8 @@ public class QSyncUI extends JPanel {
         
         this.model = new QSTreeTableModel( this.projectModel ) ;
         this.treeTable = new QSyncTreeTable( this.model, this ) ;
+        this.logPanel = new QSyncLogPanel() ;
+        this.apiClient = new QSyncAPIClient( this.logPanel ) ;
         
         setUpUI() ;
     }
@@ -45,8 +52,9 @@ public class QSyncUI extends JPanel {
         
         this.treeTable.setRootVisible( false ) ;
         this.treeTable.expandSyllabus() ;
-        JScrollPane sp = new JScrollPane( treeTable ) ;
-        add( sp, BorderLayout.CENTER ) ;
+        
+        add( new JScrollPane( treeTable ), BorderLayout.CENTER ) ;
+        add( logPanel, BorderLayout.EAST ) ;
     }
     
     // This method is called just before the panel is made visible. Can be used
@@ -67,12 +75,20 @@ public class QSyncUI extends JPanel {
         }
     }
     
-    public void syncQuestion( Question question ) throws Exception {
-        // TODO:
-        //  1. Create a log panel
-        //  2. Populate VO
-        //  3. Call API logging debug to the log panel
-        //  4. Update question attributs
-        //  5. Ask the repo to save the question state
+    public void syncQuestion( Question question ) {
+        logPanel.logSeparator() ;
+        logPanel.log( "Syncing question " + question.getQID().toString() + "\n" ) ;
+        
+        try {
+            boolean saved = apiClient.syncQuestion( question ) ;
+            if( saved ) {
+                projectModel.getQuestionRepo().save() ;
+            }
+        }
+        catch( Exception e ) {
+            logPanel.log( "Error syncing question " ) ;
+            logPanel.log( ExceptionUtils.getStackTrace( e ) );
+            logPanel.log( "\n" ) ;
+        }
     }
 }

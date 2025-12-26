@@ -18,4 +18,7 @@ public class AppConfig {
     
     @Value( "${repairProjectOnStartup}" )
     private boolean repairProjectOnStartup = false ;
+    
+    @Value( "${qSyncAPIEndpoint}" )
+    private String qSyncAPIEndpoint ;
 }

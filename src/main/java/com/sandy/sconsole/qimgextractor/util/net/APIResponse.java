@@ -70,12 +70,12 @@ public final class APIResponse {
     
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer( "APIResponse{" );
-        sb.append( "code=" ).append( code );
-        sb.append( ", contentLength=" ).append( contentLength );
-        sb.append( ", body='" ).append( body ).append( '\'' );
-        sb.append( ", contentType='" ).append( contentType ).append( '\'' );
-        sb.append( '}' );
+        final StringBuffer sb = new StringBuffer( "APIResponse{ \n" );
+        sb.append( "  code=" ).append( code );
+        sb.append( ",\n  contentLength=" ).append( contentLength );
+        sb.append( ",\n  body='" ).append( body ).append( '\'' );
+        sb.append( ",\n  contentType='" ).append( contentType ).append( '\'' );
+        sb.append( "\n}\n" );
         return sb.toString();
     }
 }

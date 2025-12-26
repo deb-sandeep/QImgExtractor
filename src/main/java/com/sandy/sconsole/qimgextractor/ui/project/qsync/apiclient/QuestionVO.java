@@ -10,6 +10,7 @@ import java.util.List;
 public class QuestionVO {
     
     private Integer id;
+    private String  questionId;
     private String  syllabusName;
     private Integer topicId;
     private String  sourceId;

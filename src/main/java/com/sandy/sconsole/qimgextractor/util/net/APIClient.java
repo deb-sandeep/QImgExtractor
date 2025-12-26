@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.util.net;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class APIClient {
     
@@ -20,6 +22,10 @@ public class APIClient {
     
     private final ObjectMapper mapper;
     private final OkHttpClient client;
+    
+    public interface APIClientListener {
+        void onAPIClientMsg( String msg ) ;
+    }
     
     public APIClient() {
         // Jackson mapper (tweak as you like)
@@ -50,33 +56,40 @@ public class APIClient {
         }
     }
     
-    public APIResponse post( String url, Object body ) throws IOException {
-        return post( url, null, null, body );
+    public APIResponse post( String url, Object body, APIClientListener listener ) throws IOException {
+        return post( url, null, null, body, listener );
     }
     
-    public APIResponse post( String url, String body ) throws IOException {
-        return post( url, null, null, body );
-    }
-    
-    public APIResponse post( String url,
-                             Map<String, String> headers,
-                             Map<String, String> body ) throws IOException {
-        return post( url, headers, null, body );
+    public APIResponse post( String url, String body, APIClientListener listener ) throws IOException {
+        return post( url, null, null, body, listener );
     }
     
     public APIResponse post( String url,
                              Map<String, String> headers,
-                             Object body ) throws IOException {
-        return post( url, headers, null, body );
+                             Map<String, String> body,
+                             APIClientListener listener ) throws IOException {
+        return post( url, headers, null, body, listener );
+    }
+    
+    public APIResponse post( String url,
+                             Map<String, String> headers,
+                             Object body,
+                             APIClientListener listener ) throws IOException {
+        return post( url, headers, null, body, listener );
     }
     
     public APIResponse post( String url,
                              Map<String, String> headers,
                              String contentType,
-                             Object body ) throws IOException {
+                             Object body,
+                             APIClientListener listener ) throws IOException {
         
         MediaType mt = MediaType.parse( ( contentType == null || contentType.isBlank() ) ?
                 DEFAULT_JSON.toString() : contentType );
+        
+        if( listener != null ) {
+            listener.onAPIClientMsg( "  POST " + url ) ;
+        }
         
         String bodyString;
         if( body == null ) {
@@ -89,12 +102,25 @@ public class APIClient {
             bodyString = mapper.writeValueAsString( body );
         }
         
+        if( listener != null ) {
+            listener.onAPIClientMsg( "  Body length " + bodyString.length() + " bytes" ) ;
+        }
+        
         RequestBody rb = RequestBody.create( mt, bodyString ) ;
         Request.Builder req = new Request.Builder().url( url ).post( rb );
         addHeaders( req, headers );
         
+        log.debug( "POST {} > {}", url, bodyString ) ;
+        if( listener != null ) {
+            listener.onAPIClientMsg( "  Sending request... " ) ;
+        }
         try( Response res = client.newCall( req.build() ).execute() ) {
-            return wrap( res );
+            log.debug( "< {} {}", res.code(), res.message() ) ;
+            APIResponse response = wrap( res ) ;
+            if( listener != null ) {
+                listener.onAPIClientMsg( "  Response code " + response.code() ) ;
+            }
+            return response ;
         }
     }
 
@@ -122,8 +148,7 @@ public class APIClient {
     private APIResponse wrap( Response res ) throws IOException {
         ResponseBody b = res.body();
         String bodyStr = ( b != null ) ? b.string() : "";
-        long length = ( b != null ) ? b.contentLength() : -1;
         String ct = res.header( "Content-Type" );
-        return new APIResponse( res.code(), length, bodyStr, ct, mapper );
+        return new APIResponse( res.code(), bodyStr.length(), bodyStr, ct, mapper );
     }
 }

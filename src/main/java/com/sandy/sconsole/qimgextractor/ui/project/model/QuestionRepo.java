@@ -101,11 +101,16 @@ public class QuestionRepo {
             JSONArray questions = json.getJSONArray( "questions" );
             
             for( int i = 0; i < questions.length(); i++ ) {
-                JSONObject qJson = questions.getJSONObject( i );
+                JSONObject qJson = questions.getJSONObject( i ) ;
                 String qid = qJson.getString( "qid" );
                 
                 for( Question q : questionList ) {
                     if( q.qID.toString().equals( qid ) ) {
+                        
+                        if( qJson.has( "id" ) ) {
+                            q.setId( qJson.getInt( "id" ) ) ;
+                        }
+                        
                         if( !qJson.isNull( "answer" ) ) {
                             try {
                                 q.setAnswer( qJson.getString( "answer" ) );
@@ -124,6 +129,11 @@ public class QuestionRepo {
                         if( !qJson.isNull( "serverSyncTime" ) ) {
                             long syncTime = qJson.getLong( "serverSyncTime" ) ;
                             q.setServerSyncTime( new Date( syncTime ) ) ;
+                        }
+                        
+                        if( !qJson.isNull( "serverSyncToken" ) ) {
+                            String token = qJson.getString( "serverSyncToken" ) ;
+                            q.setServerSyncToken( token ) ;
                         }
                         break;
                     }

@@ -27,6 +27,11 @@ public class Question extends QuestionImageCluster
     
     private QuestionImageCluster lctCtxImgCluster = null ;
     
+    // The server database ID. This is only set for questions which have
+    // a digital copy on the server.
+    @Getter @Setter
+    private int id = -1 ;
+    
     @Getter
     private final String srcId ;
     
@@ -101,7 +106,9 @@ public class Question extends QuestionImageCluster
     }
     
     public JSONObject getSerializedForm() throws Exception {
+        
         JSONObject json = new JSONObject() ;
+        json.put( "id", id ) ;
         json.put( "qid", qID.toString() ) ;
         json.put( "lctSeq", qID.getLctSequence() ) ;
         json.put( "lctCtxImages", getImgInfoList( lctCtxImgCluster ) ) ;
@@ -119,6 +126,7 @@ public class Question extends QuestionImageCluster
     }
     
     private JSONArray getImgInfoList( QuestionImageCluster qImgCluster ) throws Exception {
+        
         List<QuestionImage> qImgList = qImgCluster != null ? qImgCluster.qImgList : Collections.emptyList() ;
         JSONArray array = new JSONArray() ;
         for( QuestionImage qImg : qImgList ) {
@@ -135,6 +143,7 @@ public class Question extends QuestionImageCluster
     }
     
     public List<QuestionImage> getQImgList() {
+        
         List<QuestionImage> list = new ArrayList<>() ;
         if( lctCtxImgCluster != null ) {
             list.addAll( lctCtxImgCluster.qImgList ) ;
@@ -144,6 +153,7 @@ public class Question extends QuestionImageCluster
     }
     
     public void setAnswer( String ans ) throws InvalidAnswerException {
+        
         this.answer = ans ;
         if( qID.getQuestionType().equals( QID.MMT ) ) {
             this.mmtAnswer = new MMTAnswer( ans ) ;
