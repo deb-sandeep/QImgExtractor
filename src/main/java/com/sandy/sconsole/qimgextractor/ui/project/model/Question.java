@@ -1,6 +1,8 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
+import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,12 +27,19 @@ public class Question extends QuestionImageCluster
         }
     }
     
-    private QuestionImageCluster lctCtxImgCluster = null ;
+    public static class SyncInfo {
+        
+        @Getter @Setter
+        private int id = -1 ;
+        
+        @Getter @Setter
+        private Date syncTime = null ;
+        
+        @Getter @Setter
+        private String syncToken = null ;
+    }
     
-    // The server database ID. This is only set for questions which have
-    // a digital copy on the server.
-    @Getter @Setter
-    private int id = -1 ;
+    private QuestionImageCluster lctCtxImgCluster = null ;
     
     @Getter
     private final String srcId ;
@@ -44,11 +53,9 @@ public class Question extends QuestionImageCluster
     @Getter
     private MMTAnswer mmtAnswer = null ;
     
-    @Getter @Setter
-    private Date serverSyncTime = null ;
+    private final SyncInfo devSyncInfo = new SyncInfo() ;
     
-    @Getter @Setter
-    private String serverSyncToken = null ;
+    private final SyncInfo prodSyncInfo = new SyncInfo() ;
     
     Question( String srcId, QID qID ) {
         super( qID ) ;
@@ -108,21 +115,73 @@ public class Question extends QuestionImageCluster
     public JSONObject getSerializedForm() throws Exception {
         
         JSONObject json = new JSONObject() ;
-        json.put( "id", id ) ;
         json.put( "qid", qID.toString() ) ;
         json.put( "lctSeq", qID.getLctSequence() ) ;
         json.put( "lctCtxImages", getImgInfoList( lctCtxImgCluster ) ) ;
         json.put( "questionImages", getImgInfoList( this ) ) ;
         json.put( "answer", answer ) ;
+        
         if( topic != null ) {
             json.put( "topic", topic.getSerializedForm() ) ;
         }
         else {
             json.put( "topic", JSONObject.NULL ) ;
         }
-        json.put( "serverSyncTime", serverSyncTime != null ? serverSyncTime.getTime() : JSONObject.NULL ) ;
-        json.put( "serverSyncToken", serverSyncToken != null ? serverSyncToken : JSONObject.NULL ) ;
+        
+        json.put( "devSyncInfo", getSyncInfoSerializedForm( devSyncInfo ) ) ;
+        json.put( "prodSyncInfo", getSyncInfoSerializedForm( prodSyncInfo ) ) ;
+
         return json ;
+    }
+    
+    private JSONObject getSyncInfoSerializedForm( SyncInfo info ) throws Exception {
+        
+        JSONObject json = new JSONObject() ;
+        json.put( "id", info.id ) ;
+        json.put( "syncTime", info.syncTime != null ? info.syncTime.getTime() : JSONObject.NULL ) ;
+        json.put( "syncToken", info.syncToken != null ? info.syncToken : JSONObject.NULL ) ;
+        return json ;
+    }
+    
+    public void deserializeFrom( JSONObject qJson ) throws Exception {
+        
+        TopicRepo topicRepo = QImgExtractor.getBean( TopicRepo.class ) ;
+
+        if( !qJson.isNull( "answer" ) ) {
+            try {
+                this.setAnswer( qJson.getString( "answer" ) );
+            }
+            catch( Question.InvalidAnswerException e ) {
+                log.error( "Invalid answer found in persisted state.", e ) ;
+            }
+        }
+        
+        if( !qJson.isNull( "topic" ) ) {
+            JSONObject topicJson = qJson.getJSONObject( "topic" );
+            int topicId = topicJson.getInt( "id" ) ;
+            this.setTopic( topicRepo.getTopicById( topicId ) ) ;
+        }
+        
+        if( qJson.has( "devSyncInfo" ) ) {
+            deserializeSyncInfo( qJson.getJSONObject( "devSyncInfo" ), devSyncInfo ) ;
+        }
+        
+        if( qJson.has( "prodSyncInfo" ) ) {
+            deserializeSyncInfo( qJson.getJSONObject( "prodSyncInfo" ), prodSyncInfo ) ;
+        }
+    }
+    
+    private void deserializeSyncInfo( JSONObject json, SyncInfo info ) throws Exception {
+        
+        info.setId( json.getInt( "id" ) ) ;
+        
+        if( !json.isNull( "syncTime" ) ) {
+            long syncTime = json.getLong( "syncTime" ) ;
+            info.setSyncTime( new Date( syncTime ) ) ;
+        }
+        
+        String token = json.getString( "syncToken" ) ;
+        info.setSyncToken( token ) ;
     }
     
     private JSONArray getImgInfoList( QuestionImageCluster qImgCluster ) throws Exception {
@@ -241,11 +300,20 @@ public class Question extends QuestionImageCluster
     }
     
     public boolean isSynced() {
-        return serverSyncTime != null ;
+        return getSyncInfo().syncTime != null ;
     }
     
     public boolean isModifiedAfterSync() {
-        return isSynced() && !serverSyncToken.equals( getHashCode() ) ;
+        SyncInfo syncInfo = getSyncInfo() ;
+        return isSynced() && !syncInfo.syncToken.equals( getHashCode() ) ;
+    }
+    
+    private SyncInfo getSyncInfo() {
+        AppConfig config = QImgExtractor.getBean( AppConfig.class ) ;
+        if( config.isDevProfile() ) {
+            return devSyncInfo ;
+        }
+        return prodSyncInfo ;
     }
     
     public boolean isReadyForServerSync() {
@@ -272,5 +340,16 @@ public class Question extends QuestionImageCluster
             sb.append( qImg.getImgFile().getName() ).append( ":" ) ;
         }
         return AppUtil.getHash( sb.toString() ) ;
+    }
+    
+    public void setSyncInfo( int questionId, Date date, String hashCode ) {
+        SyncInfo syncInfo = getSyncInfo() ;
+        syncInfo.id = questionId ;
+        syncInfo.syncTime = date ;
+        syncInfo.syncToken = hashCode ;
+    }
+    
+    public Date getSyncTime() {
+        return getSyncInfo().syncTime ;
     }
 }

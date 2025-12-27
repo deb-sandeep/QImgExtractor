@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppConfig {
     
+    @Value( "${spring.profiles.active:dev}" )
+    private String profile ;
+    
     @Value( "${appWorkspaceDir}" )
     private File appWorkspaceDir ;
 
@@ -19,6 +22,13 @@ public class AppConfig {
     @Value( "${repairProjectOnStartup}" )
     private boolean repairProjectOnStartup = false ;
     
+    @Value( "${serverAddress}" )
+    private String serverAddress ;
+    
     @Value( "${qSyncAPIEndpoint}" )
     private String qSyncAPIEndpoint ;
+    
+    public boolean isDevProfile() {
+        return profile.equals( "dev" ) ;
+    }
 }

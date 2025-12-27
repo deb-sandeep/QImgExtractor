@@ -63,6 +63,8 @@ public class QImgExtractor
     
     private void initialize() {
         log.debug( "## Initializing QImgExtractor app." ) ;
+        log.debug( "  Profile {}", appConfig.getProfile() ) ;
+        log.debug( "  Server address {}", appConfig.getServerAddress() ) ;
         
         log.debug( "  Initializing AppState" ) ;
         appState = new AppState( appConfig ) ;

@@ -46,9 +46,7 @@ public class QSyncAPIClient {
             if( questionSaved ) {
                 logPanel.log( "Question saved successfully." ) ;
                 int questionId = jsonNode.get( "questionId" ).asInt() ;
-                question.setServerSyncTime( new Date() ) ;
-                question.setId( questionId ) ;
-                question.setServerSyncToken( question.getHashCode() ) ;
+                question.setSyncInfo( questionId, new Date(), question.getHashCode() ) ;
                 return true ;
             }
             else {

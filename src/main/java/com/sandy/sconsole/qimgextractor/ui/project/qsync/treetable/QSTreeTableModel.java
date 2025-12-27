@@ -220,7 +220,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
         return switch( column ) {
             case COL_NAME -> q.getQRef() ;
             case COL_TYPE -> q.getQID().getQuestionType() ;
-            case COL_LAST_SYNC_DATE -> q.getServerSyncTime() ;
+            case COL_LAST_SYNC_DATE -> q.getSyncTime() ;
             case COL_LAST_UPDATE_DATE -> null ;
             case COL_ANSWER -> {
                 if( q.getMmtAnswer() != null ) {

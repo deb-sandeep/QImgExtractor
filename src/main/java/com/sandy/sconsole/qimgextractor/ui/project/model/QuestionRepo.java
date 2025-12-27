@@ -1,6 +1,5 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
-import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -95,7 +94,6 @@ public class QuestionRepo {
         }
         
         try {
-            TopicRepo topicRepo = QImgExtractor.getBean( TopicRepo.class ) ;
             String content = FileUtils.readFileToString( persistenceFile, "UTF-8" ) ;
             JSONObject json = new JSONObject( content ) ;
             JSONArray questions = json.getJSONArray( "questions" );
@@ -106,35 +104,7 @@ public class QuestionRepo {
                 
                 for( Question q : questionList ) {
                     if( q.qID.toString().equals( qid ) ) {
-                        
-                        if( qJson.has( "id" ) ) {
-                            q.setId( qJson.getInt( "id" ) ) ;
-                        }
-                        
-                        if( !qJson.isNull( "answer" ) ) {
-                            try {
-                                q.setAnswer( qJson.getString( "answer" ) );
-                            }
-                            catch( Question.InvalidAnswerException e ) {
-                                log.error( "Invalid answer found in persisted state.", e ) ;
-                            }
-                        }
-                        
-                        if( !qJson.isNull( "topic" ) ) {
-                            JSONObject topicJson = qJson.getJSONObject( "topic" );
-                            int topicId = topicJson.getInt( "id" ) ;
-                            q.setTopic( topicRepo.getTopicById( topicId ) ) ;
-                        }
-                        
-                        if( !qJson.isNull( "serverSyncTime" ) ) {
-                            long syncTime = qJson.getLong( "serverSyncTime" ) ;
-                            q.setServerSyncTime( new Date( syncTime ) ) ;
-                        }
-                        
-                        if( !qJson.isNull( "serverSyncToken" ) ) {
-                            String token = qJson.getString( "serverSyncToken" ) ;
-                            q.setServerSyncToken( token ) ;
-                        }
+                        q.deserializeFrom( qJson ) ;
                         break;
                     }
                 }
