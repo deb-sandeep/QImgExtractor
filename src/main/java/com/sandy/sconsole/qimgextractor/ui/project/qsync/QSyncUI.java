@@ -29,7 +29,7 @@ public class QSyncUI extends JPanel {
     @Getter
     private final ProjectModel projectModel ; // Injected
     
-    private final QSTreeTableModel model ;
+    private final QSTreeTableModel treeTableModel;
     private final QSyncTreeTable treeTable ;
     private final QSyncLogPanel logPanel ;
     private final QSyncAPIClient apiClient ;
@@ -38,8 +38,8 @@ public class QSyncUI extends JPanel {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
         
-        this.model = new QSTreeTableModel( this, this.projectModel, false ) ;
-        this.treeTable = new QSyncTreeTable( this.model, this ) ;
+        this.treeTableModel = new QSTreeTableModel( this, this.projectModel, false ) ;
+        this.treeTable = new QSyncTreeTable( this.treeTableModel, this ) ;
         this.logPanel = new QSyncLogPanel() ;
         this.apiClient = new QSyncAPIClient( this.logPanel ) ;
         
@@ -60,6 +60,8 @@ public class QSyncUI extends JPanel {
     // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
+        treeTableModel.refreshModel() ;
+        treeTable.expandSyllabus() ;
     }
     
     public void handleMenuAction( String actionCommand ) {
@@ -73,11 +75,11 @@ public class QSyncUI extends JPanel {
             treeTable.expandSyllabus() ;
         }
         else if( AC_TOGGLE_SHOW_ONLY_UNSYNCHED.equals( actionCommand ) ) {
-            model.toggleShowOnlyUnsynced() ;
+            treeTableModel.toggleShowOnlyUnsynced() ;
             treeTable.expandSyllabus() ;
         }
         else if( AC_SYNC_ALL_PENDING.equals( actionCommand ) ) {
-            new Thread( model::syncAllSyncPendingQuestions ).start() ;
+            new Thread( treeTableModel::syncAllSyncPendingQuestions ).start() ;
         }
     }
     
