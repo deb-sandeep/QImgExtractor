@@ -17,12 +17,11 @@ import java.awt.*;
 @Slf4j
 public class QSyncUI extends JPanel {
     
-    public static final String AC_SHOW_ALL          = "QSyncUI.showAll" ;
-    public static final String AC_SHOW_SYNC_PENDING = "QSyncUI.showSyncPending" ;
     public static final String AC_COLLAPSE_ALL      = "QSyncUI.collapseAll" ;
     public static final String AC_EXPAND_ALL        = "QSyncUI.expandAll" ;
     public static final String AC_EXPAND_SYLLABUS   = "QSyncUI.expandSyllabus" ;
     public static final String AC_SYNC_ALL_PENDING  = "QSyncUI.syncAllPending" ;
+    public static final String AC_TOGGLE_SHOW_ONLY_UNSYNCHED = "QSyncUI.toggleShowOnlyUnsynched" ;
     
     @Getter
     private final ProjectPanel projectPanel ; // Injected
@@ -39,7 +38,7 @@ public class QSyncUI extends JPanel {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
         
-        this.model = new QSTreeTableModel( this.projectModel ) ;
+        this.model = new QSTreeTableModel( this.projectModel, false ) ;
         this.treeTable = new QSyncTreeTable( this.model, this ) ;
         this.logPanel = new QSyncLogPanel() ;
         this.apiClient = new QSyncAPIClient( this.logPanel ) ;
@@ -71,6 +70,10 @@ public class QSyncUI extends JPanel {
             treeTable.collapseAll() ;
         }
         else if( AC_EXPAND_SYLLABUS.equals( actionCommand ) ) {
+            treeTable.expandSyllabus() ;
+        }
+        else if( AC_TOGGLE_SHOW_ONLY_UNSYNCHED.equals( actionCommand ) ) {
+            model.toggleShowOnlyUnsynced() ;
             treeTable.expandSyllabus() ;
         }
     }

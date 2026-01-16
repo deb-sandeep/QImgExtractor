@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
+import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,10 +131,13 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     private final ProjectModel projectModel ;
     private final RootNode rootNode = new RootNode() ;
     
-    public QSTreeTableModel( ProjectModel projectModel ) {
+    private boolean showUnsyncedOnly;
+    
+    public QSTreeTableModel( ProjectModel projectModel, boolean showSyncPendingOnly ) {
         super() ;
         this.projectModel = projectModel ;
         super.root = rootNode ;
+        this.showUnsyncedOnly = showSyncPendingOnly ;
         refreshModel() ;
     }
     
@@ -249,8 +253,20 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     public void refreshModel() {
         rootNode.clear() ;
         for( Question q : projectModel.getQuestionRepo().getQuestionList() ) {
-            rootNode.addQuestion( q ) ;
+            if( showUnsyncedOnly ) {
+                if( !q.isSynced() || q.isModifiedAfterSync() ) {
+                    rootNode.addQuestion( q ) ;
+                }
+            }
+            else {
+                rootNode.addQuestion( q ) ;
+            }
         }
-        super.modelSupport.fireNewRoot() ;
+        super.modelSupport.fireTreeStructureChanged( new TreePath( super.getRoot() ) ) ;
+    }
+    
+    public void toggleShowOnlyUnsynced() {
+        this.showUnsyncedOnly = !this.showUnsyncedOnly;
+        refreshModel() ;
     }
 }

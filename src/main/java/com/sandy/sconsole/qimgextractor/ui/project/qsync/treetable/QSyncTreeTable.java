@@ -54,6 +54,8 @@ public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonE
         setColumnWidths() ;
         setRowHighlighters() ;
         setColumnEditors() ;
+        
+        super.setAutoCreateColumnsFromModel( false ) ;
     }
     
     private void setCellRenderers() {
@@ -115,19 +117,6 @@ public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonE
     
     @Override
     public void syncButtonClick( int row ) {
-        var path = getPathForRow( row ) ;
-        if( path != null ) {
-            Question question = ((QuestionNode)path.getLastPathComponent()).question ;
-            try {
-                parent.syncQuestion( question ) ;
-                // TODO: Once the question has been successfully synced,
-                //       fire table change event so as to refresh the table.
-            }
-            catch( Exception e ) {
-                log.error( "Error syncing question: " + question.getQID(), e ) ;
-                // TODO: Figure out what to do on the table in case of sync failure
-            }
-        }
     }
     
     public void expandSyllabus() {
