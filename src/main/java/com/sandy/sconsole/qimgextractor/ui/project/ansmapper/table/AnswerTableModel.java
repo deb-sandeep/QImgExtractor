@@ -170,6 +170,13 @@ public class AnswerTableModel extends DefaultTableModel {
                 ansText.append( ansStack.pop() ) ;
             }
             q.setRawAnswer( ansText.toString() ) ;
+            
+            // If we are going back to a more nascent stage, then
+            // erase the advanced stage markers
+            if( projectModel.getState().isTopicsMapped() ||
+                projectModel.getState().isSavedToServer() ) {
+                projectModel.getState().setAnswersMapped( true ); ;
+            }
             fireTableCellUpdated( row, col ) ;
         }
         else {

@@ -3,10 +3,12 @@ package com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.qsync.QSyncUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
+import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,13 +130,15 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
             COL_SYNC_BTN_LABEL
     } ;
 
+    private final QSyncUI qSyncUI ;
     private final ProjectModel projectModel ;
     private final RootNode rootNode = new RootNode() ;
     
     private boolean showUnsyncedOnly;
     
-    public QSTreeTableModel( ProjectModel projectModel, boolean showSyncPendingOnly ) {
+    public QSTreeTableModel( QSyncUI qSyncUI, ProjectModel projectModel, boolean showSyncPendingOnly ) {
         super() ;
+        this.qSyncUI = qSyncUI ;
         this.projectModel = projectModel ;
         super.root = rootNode ;
         this.showUnsyncedOnly = showSyncPendingOnly ;
@@ -268,5 +272,28 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
     public void toggleShowOnlyUnsynced() {
         this.showUnsyncedOnly = !this.showUnsyncedOnly;
         refreshModel() ;
+    }
+
+    public void syncAllSyncPendingQuestions() {
+        for( TreeNode syllabusNode : rootNode.getChildren() ) {
+            for( TreeNode questionNode : syllabusNode.getChildren() ) {
+                Question q = ((QuestionNode)questionNode).question ;
+                boolean syncQuestion = false ;
+                if( q.isReadyForServerSync() ) {
+                    if( q.isSynced() ) {
+                        if( q.isModifiedAfterSync() ) {
+                            syncQuestion = true ;
+                        }
+                    }
+                    else {
+                        syncQuestion = true ;
+                    }
+                }
+                if( syncQuestion ) {
+                    qSyncUI.syncQuestion( q ) ;
+                    SwingUtilities.invokeLater( () -> super.modelSupport.firePathChanged( new TreePath( questionNode ) ) ) ;
+                }
+            }
+        }
     }
 }

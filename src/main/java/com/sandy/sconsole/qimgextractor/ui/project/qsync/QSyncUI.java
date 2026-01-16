@@ -38,7 +38,7 @@ public class QSyncUI extends JPanel {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
         
-        this.model = new QSTreeTableModel( this.projectModel, false ) ;
+        this.model = new QSTreeTableModel( this, this.projectModel, false ) ;
         this.treeTable = new QSyncTreeTable( this.model, this ) ;
         this.logPanel = new QSyncLogPanel() ;
         this.apiClient = new QSyncAPIClient( this.logPanel ) ;
@@ -75,6 +75,9 @@ public class QSyncUI extends JPanel {
         else if( AC_TOGGLE_SHOW_ONLY_UNSYNCHED.equals( actionCommand ) ) {
             model.toggleShowOnlyUnsynced() ;
             treeTable.expandSyllabus() ;
+        }
+        else if( AC_SYNC_ALL_PENDING.equals( actionCommand ) ) {
+            new Thread( model::syncAllSyncPendingQuestions ).start() ;
         }
     }
     

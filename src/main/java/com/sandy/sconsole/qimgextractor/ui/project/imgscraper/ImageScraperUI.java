@@ -294,10 +294,12 @@ public class ImageScraperUI extends JPanel
     
     public void questionImgDeleted( QuestionImage qImg ) {
         projectModel.questionImgDeleted( qImg ) ;
+        projectModel.getState().setImgCuttingWip( true ) ;
     }
     
     public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
         projectModel.questionImgTagNameChanged( qImg, newTagName ) ;
+        projectModel.getState().setImgCuttingWip( true ) ;
     }
     
     public void activatePageImg( PageImage pageImg ) {

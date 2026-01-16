@@ -86,6 +86,13 @@ public class TopicMapperUI extends JPanel {
         new SwingWorker<>() {
             protected Object doInBackground() {
                 projectModel.getQuestionRepo().save() ;
+                
+                // If we are going back to a more nascent stage, then
+                // erase the advanced stage markers
+                if( projectModel.getState().isSavedToServer() ) {
+                    projectModel.getState().setTopicsMapped( true ); ;
+                }
+                
                 return null ;
             }
         }.execute() ;

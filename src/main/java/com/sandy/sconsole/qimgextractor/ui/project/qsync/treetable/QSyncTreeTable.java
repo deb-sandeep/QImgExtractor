@@ -117,6 +117,17 @@ public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonE
     
     @Override
     public void syncButtonClick( int row ) {
+        var path = getPathForRow( row ) ;
+        if( path != null ) {
+            Question question = ((QuestionNode)path.getLastPathComponent()).question ;
+            try {
+                parent.syncQuestion( question ) ;
+            }
+            catch( Exception e ) {
+                log.error( "Error syncing question: " + question.getQID(), e ) ;
+                // TODO: Figure out what to do on the table in case of sync failure
+            }
+        }
     }
     
     public void expandSyllabus() {

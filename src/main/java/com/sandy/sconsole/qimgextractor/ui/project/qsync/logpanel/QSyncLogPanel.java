@@ -47,7 +47,7 @@ public class QSyncLogPanel extends JPanel {
     }
     
     private void append( String msg ) {
-        logTextArea.append( msg + "\n" ) ;
+        SwingUtilities.invokeLater( () -> logTextArea.append( msg + "\n" ) ) ;
     }
     
     public void logSeparator() {

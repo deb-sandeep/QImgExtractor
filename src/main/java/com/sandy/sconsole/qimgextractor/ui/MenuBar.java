@@ -170,12 +170,18 @@ public class MenuBar extends JMenuBar {
                 mainFrame.getCurrentProjectPanel()
                          .handleMenuAction( QSyncUI.AC_TOGGLE_SHOW_ONLY_UNSYNCHED ) ) ;
         
+        JMenuItem syncAllPendingMI = new JMenuItem( "Sync All Pending" ) ;
+        syncAllPendingMI.addActionListener( e ->
+                mainFrame.getCurrentProjectPanel()
+                         .handleMenuAction( QSyncUI.AC_SYNC_ALL_PENDING ) ) ;
+        
         JMenu syncMenu = new JMenu( "Sync" ) ;
         syncMenu.add( expandAllMI ) ;
         syncMenu.add( collapseAllMI ) ;
         syncMenu.add( expandSyllabusMI ) ;
         syncMenu.addSeparator() ;
         syncMenu.add( showOnlyUnsyncedMI ) ;
+        syncMenu.add( syncAllPendingMI ) ;
         
         return syncMenu;
     }
