@@ -1,4 +1,4 @@
-package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog;
+package com.sandy.sconsole.qimgextractor.ui.util;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;

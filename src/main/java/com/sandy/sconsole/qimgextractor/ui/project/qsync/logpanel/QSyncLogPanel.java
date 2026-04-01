@@ -13,7 +13,7 @@ public class QSyncLogPanel extends JPanel {
     private final JTextArea logTextArea ;
 
     public QSyncLogPanel() {
-        setPreferredSize( new java.awt.Dimension( 500, 200 ) ) ;
+        setPreferredSize( new java.awt.Dimension( 800, 200 ) ) ;
         this.logTextArea = new JTextArea() ;
         this.setUpUI() ;
     }

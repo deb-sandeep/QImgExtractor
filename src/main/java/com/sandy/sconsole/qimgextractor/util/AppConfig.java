@@ -28,6 +28,9 @@ public class AppConfig {
     @Value( "${qSyncAPIEndpoint}" )
     private String qSyncAPIEndpoint ;
     
+    @Value( "true" )
+    private boolean hideSyncedSrcFolders = true ;
+    
     public boolean isDevProfile() {
         return profile.equals( "dev" ) ;
     }

@@ -6,7 +6,8 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
-import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog.ProjectDirectoryView;
+import com.sandy.sconsole.qimgextractor.ui.util.ProjectDirectoryView;
+import com.sandy.sconsole.qimgextractor.ui.util.ProjectDirectoryFileSystemView;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.UITheme;
 import jakarta.annotation.PostConstruct;
@@ -69,6 +70,9 @@ public class MainFrame extends JFrame {
         projectDirChooser.setAcceptAllFileFilterUsed( false ) ;
         projectDirChooser.setMultiSelectionEnabled( false ) ;
         projectDirChooser.setFileView( new ProjectDirectoryView() ) ;
+        projectDirChooser.setFileSystemView(
+                new ProjectDirectoryFileSystemView( appConfig )
+        ) ;
     }
     
     private StatusBar createStatusBar() {

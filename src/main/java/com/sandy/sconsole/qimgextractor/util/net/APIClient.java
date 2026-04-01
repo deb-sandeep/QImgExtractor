@@ -110,12 +110,12 @@ public class APIClient {
         Request.Builder req = new Request.Builder().url( url ).post( rb );
         addHeaders( req, headers );
         
-        log.debug( "POST {} > {}", url, bodyString ) ;
+        //log.debug( "POST {} > {}", url, bodyString ) ;
         if( listener != null ) {
             listener.onAPIClientMsg( "  Sending request... " ) ;
         }
         try( Response res = client.newCall( req.build() ).execute() ) {
-            log.debug( "< {} {}", res.code(), res.message() ) ;
+            //log.debug( "< {} {}", res.code(), res.message() ) ;
             APIResponse response = wrap( res ) ;
             if( listener != null ) {
                 listener.onAPIClientMsg( "  Response code " + response.code() ) ;
