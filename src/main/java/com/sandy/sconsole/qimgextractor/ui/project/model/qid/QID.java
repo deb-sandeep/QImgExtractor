@@ -22,7 +22,7 @@ public abstract class QID {
     public static final String NVT = "NVT" ;
     public static final String MMT = "MMT" ;
     
-    public static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, MCA, LCT, IVT, NVT, MMT ) ;
+    public static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, NVT, MCA, LCT, IVT, MMT ) ;
 
     @Getter
     protected QuestionImage parent ;
