@@ -1,16 +1,23 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.classifier;
 
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Topic;
 import com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.*;
 import java.util.List;
 
 import static com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo.* ;
@@ -31,6 +38,7 @@ public class TopicSelectionPanel extends JPanel {
     private final JPanel chemistryTopicsPanel = new JPanel() ;
     private final JPanel mathsTopicsPanel = new JPanel() ;
     
+    private final Map<String, List<Topic>> aiTopicMap = new HashMap<>() ;
     
     public TopicSelectionPanel( TopicMapperUI parent ) {
         this.parent = parent ;
@@ -38,6 +46,7 @@ public class TopicSelectionPanel extends JPanel {
         prepareTopicsPanel( IIT_CHEMISTRY, chemistryTopicsPanel ) ;
         prepareTopicsPanel( IIT_MATHS,     mathsTopicsPanel ) ;
         setUpUI() ;
+        loadAITopicMappings() ;
     }
     
     private void prepareTopicsPanel( String syllabusName, JPanel topicsPanel ) {
@@ -187,32 +196,89 @@ public class TopicSelectionPanel extends JPanel {
         add( new JPanel(), "Blank" ) ;
     }
     
+    private void loadAITopicMappings() {
+        ProjectModel projectModel = QImgExtractor.getBean( ProjectModel.class ) ;
+        File aiTopicMapFile = new File( projectModel.getWorkDir(), "ai-topic-map.json" ) ;
+        if( aiTopicMapFile.exists() ) {
+            try {
+                String      content = FileUtils.readFileToString( aiTopicMapFile, "UTF-8" ) ;
+                JSONObject  json = new JSONObject( content ) ;
+                Iterator<?> keys = json.keys() ;
+                while( keys.hasNext() ) {
+                    String key = (String)keys.next() ;
+                    JSONObject value = json.getJSONObject( key ) ;
+                    JSONArray topicMappings = value.getJSONArray( "topicMappings" ) ;
+                    if( topicMappings.length() > 0 ) {
+                        populateAITopicMap( key, topicMappings ) ;
+                    }
+                }
+            }
+            catch( Exception e ) {
+                log.error( "Error synchronizing with persisted state", e );
+            }
+        }
+    }
+    
+    private void populateAITopicMap( String questionId, JSONArray topicMappings )
+            throws JSONException {
+        
+        TopicRepo topicRepo = QImgExtractor.getBean( TopicRepo.class ) ;
+        
+        List<Topic> suggestedTopics = new ArrayList<>() ;
+        for( int i=0; i<topicMappings.length(); i++ ) {
+            JSONObject mapping = topicMappings.getJSONObject( i ) ;
+            int topicId = mapping.getInt( "topicId" ) ;
+            suggestedTopics.add( topicRepo.getTopicById( topicId ) ) ;
+        }
+        
+        aiTopicMap.put( questionId.replace( "_", "/" ), suggestedTopics ) ;
+    }
+    
     public void showTopics( Question question ) {
         String subjectCode = "B" ;
+        List<Topic> suggestedTopics = null ;
+        
         if( question != null ) {
             subjectCode = question.getQID().getSubjectCode() ;
+            suggestedTopics = aiTopicMap.get( question.getQID().toString() ) ;
         }
+        
         switch( subjectCode ) {
             case "P" -> {
                 cardLayout.show( this, IIT_PHYSICS ) ;
-                setFocus( physicsTopicsPanel, question ) ;
+                setFocus( physicsTopicsPanel, question, suggestedTopics ) ;
             }
             case "C" -> {
                 cardLayout.show( this, IIT_CHEMISTRY ) ;
-                setFocus( chemistryTopicsPanel, question ) ;
+                setFocus( chemistryTopicsPanel, question, suggestedTopics ) ;
             }
             case "M" -> {
                 cardLayout.show( this, IIT_MATHS ) ;
-                setFocus( mathsTopicsPanel, question ) ;
+                setFocus( mathsTopicsPanel, question, suggestedTopics ) ;
             }
             case "B" -> cardLayout.show( this, "Blank" ) ;
         }
     }
     
-    private void setFocus( JPanel topicPanel, Question question ) {
+    private void setFocus( JPanel topicPanel, Question question,
+                           List<Topic> suggestedTopics ) {
+        
         Topic topic = question.getTopic() ;
+        
         if( topic == null ) {
-            topicPanel.getComponent( 0 ).requestFocus() ;
+            if( suggestedTopics != null && !suggestedTopics.isEmpty() ) {
+                Topic suggestedTopic = suggestedTopics.get( 0 ) ;
+                for( int j = 0; j < topicPanel.getComponentCount(); j++ ) {
+                    JButton button = ( JButton )topicPanel.getComponent( j );
+                    if( button.getText().contains( suggestedTopic.getName().substring( 1 ) ) ) {
+                        button.requestFocus();
+                        return;
+                    }
+                }
+            }
+            else {
+                topicPanel.getComponent( 0 ).requestFocus() ;
+            }
         }
         else {
             for( int i=0; i<topicPanel.getComponentCount(); i++ ) {

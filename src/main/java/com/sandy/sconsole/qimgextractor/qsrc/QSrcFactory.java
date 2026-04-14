@@ -12,7 +12,7 @@ public class QSrcFactory {
         if( projectName.startsWith( "AITS" ) ) {
             return AITS_COMP_FACTORY ;
         }
-        else if( projectName.startsWith( "RB-M" ) ) {
+        else if( projectName.startsWith( "RB-" ) ) {
             return RBM_COMP_FACTORY ;
         }
         throw new IllegalArgumentException( "Unsupported source type : " + projectName ) ;
