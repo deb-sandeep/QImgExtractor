@@ -67,6 +67,7 @@ public class TopicSelectionPanel extends JPanel {
     
     private JButton createTopicButton( Topic topic, JPanel topicsPanel ) {
         JButton button = new JButton( getButtonText( topic ) ) ;
+        button.setActionCommand( topic.getName() ) ;
         button.setFont( BTN_FONT ) ;
         button.setForeground( Color.GRAY ) ;
         button.setOpaque( true ) ;
@@ -270,7 +271,7 @@ public class TopicSelectionPanel extends JPanel {
                 Topic suggestedTopic = suggestedTopics.get( 0 ) ;
                 for( int j = 0; j < topicPanel.getComponentCount(); j++ ) {
                     JButton button = ( JButton )topicPanel.getComponent( j );
-                    if( button.getText().contains( suggestedTopic.getName().substring( 1 ) ) ) {
+                    if( button.getActionCommand().equals( suggestedTopic.getName() ) ) {
                         button.requestFocus();
                         return;
                     }
@@ -283,7 +284,7 @@ public class TopicSelectionPanel extends JPanel {
         else {
             for( int i=0; i<topicPanel.getComponentCount(); i++ ) {
                 JButton button = (JButton) topicPanel.getComponent( i ) ;
-                if( button.getText().contains( topic.getName().substring( 1 ) ) ) {
+                if( button.getActionCommand().equals( topic.getName() ) ) {
                     button.requestFocus() ;
                     return ;
                 }
