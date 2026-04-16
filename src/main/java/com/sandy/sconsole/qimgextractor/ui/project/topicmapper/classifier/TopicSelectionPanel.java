@@ -46,7 +46,7 @@ public class TopicSelectionPanel extends JPanel {
         prepareTopicsPanel( IIT_CHEMISTRY, chemistryTopicsPanel ) ;
         prepareTopicsPanel( IIT_MATHS,     mathsTopicsPanel ) ;
         setUpUI() ;
-        loadAITopicMappings() ;
+        reloadAISuggestions() ;
     }
     
     private void prepareTopicsPanel( String syllabusName, JPanel topicsPanel ) {
@@ -76,8 +76,8 @@ public class TopicSelectionPanel extends JPanel {
         button.setMargin( new Insets( 5, 5, 5, 5 ) ) ;
         button.setBackground( getColor( topic ) ) ;
         button.addActionListener( e -> {
-            parent.associateTopicToSelectedQuestion( topic ) ;
             resetButtonForegrounds( topicsPanel ) ;
+            parent.associateTopicToSelectedQuestion( topic ) ;
         } ) ;
         button.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
@@ -197,7 +197,8 @@ public class TopicSelectionPanel extends JPanel {
         add( new JPanel(), "Blank" ) ;
     }
     
-    private void loadAITopicMappings() {
+    public void reloadAISuggestions() {
+        aiTopicMap.clear() ;
         ProjectModel projectModel = QImgExtractor.getBean( ProjectModel.class ) ;
         File aiTopicMapFile = new File( projectModel.getWorkDir(), "ai-topic-map.json" ) ;
         if( aiTopicMapFile.exists() ) {
@@ -219,7 +220,7 @@ public class TopicSelectionPanel extends JPanel {
             }
         }
     }
-    
+
     private void populateAITopicMap( String questionId, JSONArray topicMappings )
             throws JSONException {
         
@@ -265,6 +266,7 @@ public class TopicSelectionPanel extends JPanel {
                            List<Topic> suggestedTopics ) {
         
         Topic topic = question.getTopic() ;
+        resetButtonForegrounds( topicPanel ) ;
         
         if( topic == null ) {
             if( suggestedTopics != null && !suggestedTopics.isEmpty() ) {
@@ -272,6 +274,7 @@ public class TopicSelectionPanel extends JPanel {
                 for( int j = 0; j < topicPanel.getComponentCount(); j++ ) {
                     JButton button = ( JButton )topicPanel.getComponent( j );
                     if( button.getActionCommand().equals( suggestedTopic.getName() ) ) {
+                        button.setForeground( Color.RED ) ;
                         button.requestFocus();
                         return;
                     }
@@ -291,4 +294,5 @@ public class TopicSelectionPanel extends JPanel {
             }
         }
     }
+    
 }

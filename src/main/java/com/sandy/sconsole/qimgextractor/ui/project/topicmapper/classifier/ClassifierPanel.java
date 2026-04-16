@@ -50,4 +50,8 @@ public class ClassifierPanel extends JPanel {
         this.qImgPanel.displayQuestion( question ) ;
         this.topicSelectionPanel.showTopics( question ) ;
     }
+    
+    public void reloadAISuggestions() {
+        topicSelectionPanel.reloadAISuggestions() ;
+    }
 }

@@ -16,6 +16,7 @@ public class MenuBar extends JMenuBar {
     private ProjectPanel currentProjectPanel ;
     
     private JMenuItem closeMenuItem;
+    private JMenuItem reloadAISuggestionsMI;
     private JMenuItem imageScrapersMI;
     private JMenuItem ansMappingMI;
     private JMenuItem topicMappingMI;
@@ -59,6 +60,10 @@ public class MenuBar extends JMenuBar {
         JMenuItem openMenuItem = new JMenuItem( "Open..." );
         openMenuItem.addActionListener( e -> mainFrame.openProject() );
         
+        reloadAISuggestionsMI = new JMenuItem( "Reload AI Suggestions" ) ;
+        reloadAISuggestionsMI.addActionListener( e ->
+                mainFrame.reloadAISuggestionsForCurrentProject() ) ;
+        
         markAnsKeyMI = new JMenuItem( "Toggle Ans Marker [Active Page]" ) ;
         markAnsKeyMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::toggleAnswerKeyMarkerForActivePage ) ) ;
@@ -73,6 +78,7 @@ public class MenuBar extends JMenuBar {
         projectMenu.addSeparator() ;
         //------------------------------
         
+        projectMenu.add( reloadAISuggestionsMI ) ;
         projectMenu.add( markAnsKeyMI ) ;
         
         projectMenu.addSeparator() ;

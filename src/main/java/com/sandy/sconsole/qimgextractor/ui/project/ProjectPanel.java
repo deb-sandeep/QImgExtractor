@@ -108,4 +108,8 @@ public class ProjectPanel extends JPanel {
             }
         }
     }
+    
+    public void reloadAISuggestions() {
+        topicMapperUI.reloadAISuggestions() ;
+    }
 }

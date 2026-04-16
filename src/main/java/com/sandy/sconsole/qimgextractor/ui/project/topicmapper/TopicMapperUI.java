@@ -101,4 +101,8 @@ public class TopicMapperUI extends JPanel {
     public void selectAdjacentQuestion( boolean forward ) {
         topicTreePanel.getTree().selectAdjacentQuestion( forward ) ;
     }
+    
+    public void reloadAISuggestions() {
+        classifierPanel.reloadAISuggestions() ;
+    }
 }

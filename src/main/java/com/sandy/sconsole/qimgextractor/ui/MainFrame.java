@@ -149,4 +149,10 @@ public class MainFrame extends JFrame {
     public void clearStatusMsg() {
         messageSBComponent.clear() ;
     }
+    
+    public void reloadAISuggestionsForCurrentProject() {
+        if( currentProjectPanel != null ) {
+            currentProjectPanel.reloadAISuggestions() ;
+        }
+    }
 }
