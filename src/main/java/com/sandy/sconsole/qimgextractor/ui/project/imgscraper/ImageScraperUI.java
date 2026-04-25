@@ -12,7 +12,6 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog.ImgSaveDialog;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree.PageQuestionTreePanel;
-import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -115,7 +114,7 @@ public class ImageScraperUI extends JPanel
             ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getTabComponentAt( i ) ;
             if( panel != null ) {
                 panel.destroy() ;
-                tabPane.remove( i ); ;
+                tabPane.remove( i ) ;
             }
         }
         executor.shutdown() ;
@@ -204,7 +203,9 @@ public class ImageScraperUI extends JPanel
             // and save the image.
             String imgFileName = fileName;
             if( !fileName.startsWith( projectModel.getProjectName() ) ) {
-                imgFileName = getFQFileName( projectModel.getProjectName(), extractPageNumber( imgSrcFile ), fileName ) ;
+                imgFileName = getFQFileName( projectModel.getProjectName(),
+                                             extractPageNumber( imgSrcFile, projectModel.isManualProject() ),
+                                             fileName ) ;
                 log.debug( "    Prepending source id '{}' to file name.", projectModel.getProjectName() ) ;
             }
             
@@ -254,7 +255,7 @@ public class ImageScraperUI extends JPanel
         
         log.debug( "  Updating the project model with the new question image added." ) ;
         String fqFileName = getFQFileName( projectModel.getProjectName(),
-                AppUtil.extractPageNumber( pageImage.getImgFile() ),
+                extractPageNumber( pageImage.getImgFile(), projectModel.isManualProject() ),
                 regionMeta.getTag() + ".png" ) ;
         File imgFile = new File( projectModel.getExtractedImgDir(), fqFileName ) ;
         
@@ -378,7 +379,7 @@ public class ImageScraperUI extends JPanel
     }
 
     // This method is called just before the panel is made visible. Can be used
-    // to update UI state based on any changes that have happened through
+    // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
     }

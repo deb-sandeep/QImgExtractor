@@ -1,15 +1,15 @@
-package com.sandy.sconsole.qimgextractor.qsrc.aits;
+package com.sandy.sconsole.qimgextractor.qsrc;
 
-import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import lombok.EqualsAndHashCode;
 
 import java.util.Stack;
 
 @EqualsAndHashCode(callSuper = false)
-public class AITS_QID extends QID {
+public class Generic_QID extends QID {
     
-    AITS_QID( QuestionImage qImg ) {
+    public Generic_QID( QuestionImage qImg ) {
         super( qImg ) ;
     }
     

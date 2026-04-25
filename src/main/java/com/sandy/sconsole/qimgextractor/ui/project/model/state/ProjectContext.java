@@ -3,12 +3,12 @@ package com.sandy.sconsole.qimgextractor.ui.project.model.state;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
-import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.sandy.sconsole.qimgextractor.QImgExtractor.logStatusMsg;
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.extractPageNumber;
 
 @Slf4j
 public class ProjectContext {
@@ -49,7 +49,7 @@ public class ProjectContext {
     
     public void setSelectedPageImg( PageImage pageImg ) {
         this.selectedPageImg = pageImg ;
-        this.selectedPageNumber = AppUtil.extractPageNumber( pageImg.getImgFile() ) ;
+        this.selectedPageNumber = extractPageNumber( pageImg.getImgFile(), projectModel.isManualProject() ) ;
     }
     
     public void setPartSelectionModeEnabled( boolean value ) {

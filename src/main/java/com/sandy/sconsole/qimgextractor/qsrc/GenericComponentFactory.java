@@ -1,7 +1,5 @@
-package com.sandy.sconsole.qimgextractor.qsrc.rbm;
+package com.sandy.sconsole.qimgextractor.qsrc;
 
-import com.sandy.sconsole.qimgextractor.qsrc.QSrcComponentFactory;
-import com.sandy.sconsole.qimgextractor.qsrc.aits.AITS_QID;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog.SaveFnKeyHandler;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
@@ -15,7 +13,7 @@ import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 import static java.awt.event.KeyEvent.*;
 import static javax.swing.KeyStroke.getKeyStroke;
 
-public class RBMComponentFactory extends QSrcComponentFactory {
+public class GenericComponentFactory extends QSrcComponentFactory {
     
     private static final SaveFnKeyHandler SUB_ROLL_KH   = QuestionImage::rollSubjectCode ;
     private static final SaveFnKeyHandler QTYPE_ROLL_KH = ( qImg, isShiftPressed ) ->  qImg.getQId().rollQType( isShiftPressed ) ;
@@ -24,7 +22,7 @@ public class RBMComponentFactory extends QSrcComponentFactory {
     
     @Override
     public QID getNewQIDInstance( QuestionImage qImg ) {
-        return new RBM_QID( qImg  ) ;
+        return new Generic_QID( qImg  ) ;
     }
     
     @Override

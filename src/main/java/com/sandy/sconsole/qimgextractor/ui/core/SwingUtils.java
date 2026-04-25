@@ -9,8 +9,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -95,24 +93,22 @@ public class SwingUtils {
     }
     
     public static BufferedImage getScaledImage( BufferedImage originalImage, double scaleFactor ) {
-        
+
         if( scaleFactor == 1.0f ) {
             return originalImage ;
         }
-        
-        BufferedImage scaledImg ;
-        
-        int w = (int)(originalImage.getWidth()*scaleFactor) ;
-        int h = (int)(originalImage.getHeight()*scaleFactor) ;
-        
-        scaledImg = new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB ) ;
-        
-        AffineTransform at = new AffineTransform() ;
-        at.scale( scaleFactor, scaleFactor ) ;
-        
-        AffineTransformOp scaleOp = new AffineTransformOp( at, AffineTransformOp.TYPE_BICUBIC ) ;
-        scaledImg = scaleOp.filter( originalImage, scaledImg ) ;
-        
+
+        int w = (int)(originalImage.getWidth() * scaleFactor) ;
+        int h = (int)(originalImage.getHeight() * scaleFactor) ;
+
+        BufferedImage scaledImg = new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB ) ;
+
+        Graphics2D g2d = scaledImg.createGraphics() ;
+        g2d.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC ) ;
+        g2d.setRenderingHint( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY ) ;
+        g2d.drawImage( originalImage, 0, 0, w, h, null ) ;
+        g2d.dispose() ;
+
         return scaledImg ;
     }
     

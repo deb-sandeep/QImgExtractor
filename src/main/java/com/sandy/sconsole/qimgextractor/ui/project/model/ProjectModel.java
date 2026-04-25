@@ -166,9 +166,9 @@ public class ProjectModel {
     
     // This function is driven by the configuration 'repairProjectOnStartup'.
     // If set to true, the extracted image folder will be cleaned and synced
-    // with the extracted images meta-data. This might cause deletion of images
-    // in the question-images folder which are not associated with sub image meta-data
-    // for a page.
+    // with the extracted images metadata. This might cause deletion of images
+    // in the question-images folder which are not associated with sub image
+    // metadata for a page.
     private void repairProjectArtefacts() {
         
         File[] files = extractedImgDir.listFiles( f -> f.getName().endsWith( ".png" ) ) ;
@@ -287,5 +287,9 @@ public class ProjectModel {
                 return pageImage ;
         }
         return null ;
+    }
+    
+    public boolean isManualProject() {
+        return baseDir.getName().startsWith( "MN-" ) ;
     }
 }

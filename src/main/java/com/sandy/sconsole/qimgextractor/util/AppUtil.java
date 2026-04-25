@@ -56,15 +56,24 @@ public class AppUtil {
         return sb.toString() ;
     }
     
-    // Page scans are of the format AITS-13-A-FT1P1-02.png. The last
-    // segment of the file name is the page sequence number. This method
-    // extracts the page sequence number, given a page image file.
-    public static int extractPageNumber( File pageImgFile ) {
+    // Page images are generated for two types of projects:
+    // - first one in which pages are digitally scanned. These pages are of the
+    //   format AITS-13-A-FT1P1-02.png. In this case, the last segment of the
+    //   file name is the page sequence number.
+    //
+    // - the second type is where questions are manually typed into md files and
+    //   exported as images. These are manual projects. These images are
+    //   of the format 01-Avasthi-NVT.png. In this case, the first sequence of
+    //   the file name is the page number.
+    //
+    public static int extractPageNumber( File pageImgFile, boolean isManualProject ) {
         String fileName = stripFileExtension( pageImgFile ) ;
         // Tokenize the file name and extract the last token, that will
         // be the page number
         String[] tokens = fileName.split( "-" ) ;
-        return Integer.parseInt( tokens[tokens.length-1] ) ;
+        return isManualProject ?
+                Integer.parseInt( tokens[0] ) :
+                Integer.parseInt( tokens[tokens.length-1] ) ;
     }
     
     public static String getFQFileName( String srcId, int pageNumber, String fileName ) {

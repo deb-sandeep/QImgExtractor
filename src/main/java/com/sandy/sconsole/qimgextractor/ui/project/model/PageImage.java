@@ -47,7 +47,7 @@ public class PageImage implements Comparable<PageImage> {
     PageImage( ProjectModel projectModel, File imgFile ) {
         this.projectModel = projectModel ;
         this.imgFile = imgFile ;
-        this.pageNumber = extractPageNumber( imgFile ) ;
+        this.pageNumber = extractPageNumber( imgFile, projectModel.isManualProject() ) ;
         
         this.loadQuestionImages() ;
     }
