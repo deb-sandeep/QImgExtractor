@@ -17,7 +17,7 @@ import java.util.Stack;
 public class AnswerTable extends JTable {
     
     private static final Font HEADER_FONT = new Font( "Helvetica", Font.PLAIN, 14 ) ;
-    private static final Font TABLE_FONT = new Font( "Courier", Font.PLAIN, 15 ) ;
+    private static final Font TABLE_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
     
     private final ProjectModel projectModel ;
     private final AnswerTableModel answerTableModel ;
@@ -54,10 +54,10 @@ public class AnswerTable extends JTable {
         for( int i=0; i<AnswerTableModel.COL_COUNT; i++ ) {
             TableColumn column = columnModel.getColumn( i ) ;
             if( i % 2 == 0 ) {
-                column.setPreferredWidth( baseWidth + 50 ) ;
+                column.setPreferredWidth( baseWidth + 100 ) ;
             }
             else {
-                column.setPreferredWidth( baseWidth - 50 ) ;
+                column.setPreferredWidth( baseWidth - 100 ) ;
             }
         }
     }

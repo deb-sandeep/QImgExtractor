@@ -128,7 +128,6 @@ public class ImgExtractorPanel extends JPanel
             
             double sf = ( double )preferredImgWidth / img.getWidth() ;
             int sliderVal = convertScaleFactorToSliderValue( sf ) ;
-            log.debug( "Slider value: {}", sliderVal ) ;
             this.imgScaleSlider.setValue( sliderVal ) ;
             
             fileNameStatus.log( pageImg.getImgFile().getName() ) ;

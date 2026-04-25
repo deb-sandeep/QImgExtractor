@@ -16,7 +16,7 @@ public class AnswerTableDefaultCellRenderer extends DefaultTableCellRenderer {
         setHorizontalAlignment( JLabel.LEFT ) ;
         setVerticalAlignment( JLabel.CENTER ) ;
         setOpaque( true ) ;
-        setFont( new Font( "Courier", Font.PLAIN, 12 ) ) ;
+        setFont( new Font( "Courier", Font.PLAIN, 11 ) ) ;
     }
     
     @Override
@@ -39,9 +39,7 @@ public class AnswerTableDefaultCellRenderer extends DefaultTableCellRenderer {
         comp.setBackground( getColor( cellValue ) ) ;
         comp.setForeground( Color.DARK_GRAY ) ;
         
-        cellValue = cellValue.replaceFirst( "/", " " ) ;
-        cellValue = cellValue.replaceFirst( "/", " " ) ;
-        cellValue = cellValue.replace( "/", "." ) ;
+        cellValue = cellValue.replace( "/", " " ) ;
         comp.setText( " " + cellValue ) ;
     }
     

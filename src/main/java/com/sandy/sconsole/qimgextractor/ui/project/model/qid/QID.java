@@ -28,16 +28,16 @@ public abstract class QID {
     protected QuestionImage parent ;
     
     @Getter
-    private String questionType = null ;
+    protected String questionType = null ;
     
     @Getter
-    private boolean isLCTContext = false ;
+    protected boolean isLCTContext = false ;
     
     @Getter
-    private int lctSequence    = -1 ;
+    protected int lctSequence    = -1 ;
     
     @Getter
-    private int questionNumber = -1 ;
+    protected int questionNumber = -1 ;
     
     protected QID( QuestionImage qImg ){
         this.parent = qImg ;
@@ -90,7 +90,7 @@ public abstract class QID {
             if( !lctContext ) {
                 String part = parts.pop() ;
                 try {
-                    int qNo = Integer.parseInt( part ) ;
+                    Integer.parseInt( part ) ;
                 }
                 catch( NumberFormatException e ) {
                     throw new IllegalArgumentException(
