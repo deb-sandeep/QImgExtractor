@@ -86,4 +86,22 @@ public class MN_QID extends QID {
         }
         return sb.toString() ;
     }
+    
+    @Override
+    public int compareTo( QID qId ) {
+        if( !( qId instanceof MN_QID mnQID ) ) {
+            return super.compareTo( qId ) ;
+        }
+        
+        if( bookCode.equals( mnQID.bookCode ) ) {
+            if( chapterNum == mnQID.chapterNum ) {
+                if( exerciseName.equals( mnQID.exerciseName ) ) {
+                    return super.compareTo( qId ) ;
+                }
+                return exerciseName.compareTo( mnQID.exerciseName ) ;
+            }
+            return chapterNum - mnQID.chapterNum ;
+        }
+        return bookCode.compareTo( mnQID.bookCode ) ;
+    }
 }

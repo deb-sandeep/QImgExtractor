@@ -81,13 +81,7 @@ public class Question extends QuestionImageCluster
     public int compareTo( Question q ) {
         if( getSubjectTypeIndex() == q.getSubjectTypeIndex() ) {
             if( getQTypeIndex() == q.getQTypeIndex() ) {
-                if( isLCT() && q.isLCT() ) {
-                    if( qID.getLctSequence() == q.qID.getLctSequence() ) {
-                        return qID.getQuestionNumber() - q.qID.getQuestionNumber() ;
-                    }
-                    return qID.getLctSequence() - q.qID.getLctSequence() ;
-                }
-                return qID.getQuestionNumber() - q.qID.getQuestionNumber() ;
+                return qID.compareTo( q.qID ) ;
             }
             return getQTypeIndex() - q.getQTypeIndex() ;
         }

@@ -15,7 +15,7 @@ import static javax.swing.SwingUtilities.invokeLater;
 @Slf4j
 public class QuestionTreePanel extends JPanel {
     
-    public static final int PREFERRED_WIDTH = 150 ;
+    public static final int PREFERRED_WIDTH = 175 ;
     
     @Getter
     private final TopicMapperUI topicMapperUI ;

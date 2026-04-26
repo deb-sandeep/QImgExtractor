@@ -13,7 +13,7 @@ import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.g
 import static com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil.validateQuestionType;
 
 @Slf4j
-public abstract class QID {
+public abstract class QID implements Comparable<QID>{
     
     public static final String SCA = "SCA" ;
     public static final String MCA = "MCA" ;
@@ -194,5 +194,16 @@ public abstract class QID {
             sb.append( "Ctx" ) ;
         }
         return sb.toString() ;
+    }
+    
+    @Override
+    public int compareTo( QID qId ) {
+        if( isLCT() && qId.isLCT() ) {
+            if( getLctSequence() == qId.getLctSequence() ) {
+                return getQuestionNumber() - qId.getQuestionNumber() ;
+            }
+            return getLctSequence() - qId.getLctSequence() ;
+        }
+        return questionNumber - qId.getQuestionNumber() ;
     }
 }
