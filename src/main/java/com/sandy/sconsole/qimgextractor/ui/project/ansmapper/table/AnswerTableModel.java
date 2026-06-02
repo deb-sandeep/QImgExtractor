@@ -153,7 +153,10 @@ public class AnswerTableModel extends DefaultTableModel {
             Question q = questions.get( row ) ;
             StringBuilder ansText = new StringBuilder();
             if( q.getQID().getQuestionType().equals( QID.MMT ) ) {
-                if( ansStack.size() > 3 ) {
+                if( ansStack.size() == 1 && ansStack.peek().contains( "#" )) {
+                    ansText.append( ansStack.pop().trim() ) ;
+                }
+                else if( ansStack.size() > 3 ) {
                     for( int i=0; i<4; i++ ) {
                         ansText.append( ansStack.pop().trim() ).append( "#" );
                     }
@@ -175,7 +178,7 @@ public class AnswerTableModel extends DefaultTableModel {
             // erase the advanced stage markers
             if( projectModel.getState().isTopicsMapped() ||
                 projectModel.getState().isSavedToServer() ) {
-                projectModel.getState().setAnswersMapped( true ); ;
+                projectModel.getState().setAnswersMapped( true ) ;
             }
             fireTableCellUpdated( row, col ) ;
         }
