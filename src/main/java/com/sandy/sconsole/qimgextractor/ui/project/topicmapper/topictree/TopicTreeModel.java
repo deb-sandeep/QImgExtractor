@@ -86,6 +86,20 @@ public class TopicTreeModel extends DefaultTreeModel
         return syllabusNode ;
     }
     
+    public Question getNextUnclassifiedQuestion( Question current ) {
+        for( int i = 0 ; i < unclassifiedNode.getChildCount() ; i++ ) {
+            DefaultMutableTreeNode child ;
+            child = (DefaultMutableTreeNode) unclassifiedNode.getChildAt( i ) ;
+            if( current.equals( child.getUserObject() ) ) {
+                if( i + 1 < unclassifiedNode.getChildCount() ) {
+                    return ( Question )((DefaultMutableTreeNode) unclassifiedNode.getChildAt( i + 1 )).getUserObject() ;
+                }
+                return null ;
+            }
+        }
+        return null ;
+    }
+
     @Override
     public void newQuestionImgAdded( PageImage pageImage, QuestionImage qImg ) {
         buildTree() ;

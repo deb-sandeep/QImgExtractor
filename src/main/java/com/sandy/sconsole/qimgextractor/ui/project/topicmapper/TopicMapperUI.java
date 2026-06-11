@@ -76,10 +76,18 @@ public class TopicMapperUI extends JPanel {
     }
     
     public void associateTopicToSelectedQuestion( Topic topic ) {
+        boolean wasUnclassified = selectedQuestion.getTopic() == null ;
+        Question nextQuestion = wasUnclassified ?
+            topicTreePanel.getTree().getNextUnclassifiedQuestion( selectedQuestion ) : null ;
+
         selectedQuestion.setTopic( topic ) ;
         topicTreePanel.getTree().refreshTree() ;
         questionTreePanel.getTree().refreshTree() ;
-        if( !topicTreePanel.getTree().selectNextUnclassifiedQuestion() ) {
+
+        if( nextQuestion != null ) {
+            topicTreePanel.getTree().selectQuestion( nextQuestion ) ;
+        }
+        else if( !topicTreePanel.getTree().selectNextUnclassifiedQuestion() ) {
             topicTreePanel.getTree().selectQuestion( selectedQuestion ) ;
         }
         
@@ -92,7 +100,6 @@ public class TopicMapperUI extends JPanel {
                 if( projectModel.getState().isSavedToServer() ) {
                     projectModel.getState().setTopicsMapped( true ); ;
                 }
-                
                 return null ;
             }
         }.execute() ;

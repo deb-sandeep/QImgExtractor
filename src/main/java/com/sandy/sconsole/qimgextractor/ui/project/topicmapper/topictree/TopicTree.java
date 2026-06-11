@@ -34,10 +34,10 @@ public class TopicTree extends BaseTree {
     }
     
     public boolean selectNextUnclassifiedQuestion() {
-        
+
         DefaultMutableTreeNode unclassifiedNode = treeModel.getUnclassifiedNode() ;
         DefaultMutableTreeNode nextNode ;
-        
+
         if( unclassifiedNode.getChildCount() > 0 ) {
             nextNode = (DefaultMutableTreeNode) unclassifiedNode.getChildAt(0) ;
             TreePath path = new TreePath( nextNode.getPath() ) ;
@@ -47,6 +47,10 @@ public class TopicTree extends BaseTree {
             return true ;
         }
         return false ;
+    }
+
+    public Question getNextUnclassifiedQuestion( Question current ) {
+        return treeModel.getNextUnclassifiedQuestion( current ) ;
     }
     
     public void expandTreeIntelligently( Question question ) {
