@@ -221,7 +221,7 @@ public class Question extends QuestionImageCluster
         
         String qType = qID.getQuestionType() ;
         switch( qType ) {
-            case QID.SCA, QID.LCT -> formatAndStoreSCAAnswer( ans ) ;
+            case QID.SCA, QID.LCT, QID.ART -> formatAndStoreSCAAnswer( ans ) ;
             case QID.IVT, QID.NVT -> formatAndStoreNVTAnswer( ans ) ;
             case QID.MCA -> formatAndStoreMCQAnswer( ans );
             case QID.MMT -> formatAndStoreMMTAnswer( ans ) ;

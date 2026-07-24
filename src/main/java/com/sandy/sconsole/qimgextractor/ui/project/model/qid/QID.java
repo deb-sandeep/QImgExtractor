@@ -21,8 +21,9 @@ public abstract class QID implements Comparable<QID>{
     public static final String IVT = "IVT" ;
     public static final String NVT = "NVT" ;
     public static final String MMT = "MMT" ;
+    public static final String ART = "ART" ;
     
-    public static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, NVT, MCA, LCT, IVT, MMT ) ;
+    public static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, NVT, MCA, LCT, IVT, MMT, ART ) ;
 
     @Getter
     protected QuestionImage parent ;
