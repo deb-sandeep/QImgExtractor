@@ -232,19 +232,37 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     }
     
     public void toggleVMarkSelectionMode() {
-        if( inVMarkSelectionMode ) {
-            // Going from vMark selection mode to editor mode
+        setVMarkSelectionMode( !inVMarkSelectionMode ) ;
+    }
+
+    // Clears existing guides and immediately enters guide placement mode,
+    // collapsing what used to be a clear + explicit toggle-on into one step.
+    public void enterFreshGuideEditMode() {
+        clearVerticalMarkers() ;
+        setVMarkSelectionMode( true ) ;
+    }
+
+    // Called when the canvas leaves COMMAND mode for EDITOR mode, so the
+    // user doesn't have to explicitly toggle guide mode off before escaping.
+    public void exitGuideEditMode() {
+        setVMarkSelectionMode( false ) ;
+    }
+
+    private void setVMarkSelectionMode( boolean on ) {
+        if( on == inVMarkSelectionMode ) {
+            return ;
+        }
+        if( !on && curVMarkPos >= 0 ) {
             // Remove the vMark position. This will erase the vertical
             // marker on the next paint.
-            if( curVMarkPos >= 0 ) {
-                int oldX = curVMarkPos;
-                curVMarkPos = -1;
-                repaintVMarkerRegion( oldX );
-            }
+            int oldX = curVMarkPos ;
+            curVMarkPos = -1 ;
+            repaintVMarkerRegion( oldX ) ;
         }
-        this.inVMarkSelectionMode = !this.inVMarkSelectionMode ;
+        inVMarkSelectionMode = on ;
+        canvas.setGuideModeStatus( on ) ;
     }
-    
+
     public void clearVerticalMarkers() {
         verticalGuides.clear() ;
         canvas.repaint() ;

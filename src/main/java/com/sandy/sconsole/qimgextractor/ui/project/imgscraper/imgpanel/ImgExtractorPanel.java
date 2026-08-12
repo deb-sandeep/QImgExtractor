@@ -36,6 +36,7 @@ public class ImgExtractorPanel extends JPanel
     private MessageStatusComponent mousePosStatus = null ;
     private MessageStatusComponent curSelTagNameStatus = null ;
     private MessageStatusComponent partModeSBComponent = null ;
+    private MessageStatusComponent guideModeSBComponent = null ;
     
     private final ImgCanvasListener listener ;
     
@@ -84,10 +85,12 @@ public class ImgExtractorPanel extends JPanel
         statusBar = new StatusBar() ;
         
         modeStatus = new MessageStatusComponent() ;
-        modeStatus.log( "EDITOR MODE" ) ;
-        
+        modeStatus.log( imgCanvas.getOpMode() + " MODE" ) ;
+
         partModeSBComponent = new MessageStatusComponent() ;
-        
+
+        guideModeSBComponent = new MessageStatusComponent() ;
+
         fileNameStatus = new MessageStatusComponent() ;
         fileNameStatus.setForeground( Color.GRAY ) ;
         
@@ -103,6 +106,7 @@ public class ImgExtractorPanel extends JPanel
         
         statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( partModeSBComponent, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( guideModeSBComponent, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( curSelTagNameStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( mousePosStatus, StatusBar.Direction.EAST ) ;
@@ -235,6 +239,15 @@ public class ImgExtractorPanel extends JPanel
         }
         else {
             partModeSBComponent.clear() ;
+        }
+    }
+
+    public void setGuideModeStatus( boolean active ) {
+        if( active ) {
+            guideModeSBComponent.log( "GUIDE MODE" ) ;
+        }
+        else {
+            guideModeSBComponent.clear() ;
         }
     }
     

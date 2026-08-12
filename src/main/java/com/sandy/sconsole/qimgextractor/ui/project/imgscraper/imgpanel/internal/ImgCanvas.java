@@ -31,7 +31,7 @@ public class ImgCanvas extends JLabel {
     private BufferedImage originalImage = null ;
     private BufferedImage scaledImg = null ;
     
-    private OpMode opMode = OpMode.EDITOR ;
+    @Getter private OpMode opMode = OpMode.COMMAND ;
     
     @Getter private double scaleFactor = 1.0f ;
 
@@ -66,6 +66,7 @@ public class ImgCanvas extends JLabel {
                 else if( opMode == OpMode.COMMAND ) {
                     switch ( keyCode ) {
                         case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.EDITOR ) ;
+                        case KeyEvent.VK_ENTER -> regionSelector.enterFreshGuideEditMode() ;
                         case KeyEvent.VK_B -> regionSelector.toggleVMarkSelectionMode() ;
                         case KeyEvent.VK_C -> regionSelector.clearVerticalMarkers() ;
                         default -> listener.processImgCanvasCommandKey( keyCode ) ;
@@ -77,8 +78,15 @@ public class ImgCanvas extends JLabel {
     
     private void setOpMode( OpMode opMode ) {
         this.opMode = opMode ;
+        if( opMode == OpMode.EDITOR ) {
+            regionSelector.exitGuideEditMode() ;
+        }
         parent.setModeStatus( opMode.toString() + " MODE" ) ;
         regionSelector.clearActiveSelection() ;
+    }
+
+    void setGuideModeStatus( boolean active ) {
+        parent.setGuideModeStatus( active ) ;
     }
     
     public void setOriginalImage( BufferedImage img,
