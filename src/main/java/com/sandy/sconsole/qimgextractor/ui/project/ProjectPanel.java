@@ -99,6 +99,10 @@ public class ProjectPanel extends JPanel {
     public void toggleAnswerKeyMarkerForActivePage() {
         imgScraperUI.toggleAnswerKeyMarkerForActivePage() ;
     }
+
+    public void closeActiveImageScraperTab() {
+        imgScraperUI.closeCurrentTab() ;
+    }
     
     public void handleMenuAction( String actionCmd ) {
         Component[] components = getComponents() ;

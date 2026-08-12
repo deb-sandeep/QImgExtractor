@@ -6,6 +6,8 @@ import com.sandy.sconsole.qimgextractor.ui.project.qsync.QSyncUI;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.util.Optional;
 
 @Slf4j
@@ -16,6 +18,7 @@ public class MenuBar extends JMenuBar {
     private ProjectPanel currentProjectPanel ;
     
     private JMenuItem closeMenuItem;
+    private JMenuItem closeTabMI;
     private JMenuItem reloadAISuggestionsMI;
     private JMenuItem imageScrapersMI;
     private JMenuItem ansMappingMI;
@@ -68,6 +71,12 @@ public class MenuBar extends JMenuBar {
         markAnsKeyMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::toggleAnswerKeyMarkerForActivePage ) ) ;
 
+        closeTabMI = new JMenuItem( "Close Active Tab" ) ;
+        closeTabMI.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_W,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() ) ) ;
+        closeTabMI.addActionListener( e ->
+                getCurrentProjectPanel().ifPresent( ProjectPanel::closeActiveImageScraperTab ) ) ;
+
         closeMenuItem = new JMenuItem( "Close..." );
         closeMenuItem.addActionListener( e -> mainFrame.closeCurrentProject() );
         
@@ -80,7 +89,8 @@ public class MenuBar extends JMenuBar {
         
         projectMenu.add( reloadAISuggestionsMI ) ;
         projectMenu.add( markAnsKeyMI ) ;
-        
+        projectMenu.add( closeTabMI ) ;
+
         projectMenu.addSeparator() ;
         //------------------------------
 
@@ -217,14 +227,16 @@ public class MenuBar extends JMenuBar {
         qSyncMI.setEnabled( false ) ;
         
         markAnsKeyMI.setEnabled( false ) ;
-        
+        closeTabMI.setEnabled( false ) ;
+
         syncMenu.setEnabled( false ) ;
-        
+
         switch( mode ) {
             case IMAGE_SCRAPER:
                 ansMappingMI.setEnabled( true ) ;
                 topicMappingMI.setEnabled( true ) ;
                 markAnsKeyMI.setEnabled( true ) ;
+                closeTabMI.setEnabled( true ) ;
                 qSyncMI.setEnabled( true ) ;
                 break ;
             case ANSWER_MAPPER:
