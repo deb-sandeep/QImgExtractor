@@ -87,13 +87,13 @@ DESKEW_THRESHOLD=40
 #                         page (which is light) falls on the "push toward
 #                         white" side: background gets brighter/cleaner,
 #                         but text darkens less (weaker effect on text)
-#     higher (e.g. 70) -> pivot sits up in the midtones/highlights, so
+#     higher (e.g. 90) -> pivot sits up in the midtones/highlights, so
 #                         more of the range falls on the "push toward
 #                         black" side: text gets noticeably darker/bolder,
 #                         at the cost of some risk of also dimming
 #                         near-white background if pushed too high
-SIGMOID_STRENGTH=10
-SIGMOID_MIDPOINT=55
+SIGMOID_STRENGTH=8
+SIGMOID_MIDPOINT=90
 
 # ── Temp file ────────────────────────────────────────────────
 TMP_OUT="$(mktemp /tmp/img_proc_XXXXXX.png)"
