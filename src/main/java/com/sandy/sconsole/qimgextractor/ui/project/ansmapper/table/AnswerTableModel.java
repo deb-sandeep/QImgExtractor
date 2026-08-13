@@ -99,6 +99,11 @@ public class AnswerTableModel extends DefaultTableModel {
                     }
                 }
             }
+            else if( ansText.length() > 3 && ansText.matches( "[A-D1-4]+" ) ) {
+                for( int i=ansText.length()-1; i>=0; i-- ) {
+                    ansStack.push( ansText.charAt( i ) + "" ) ;
+                }
+            }
             else {
                 ansStack.push( ansText ) ;
             }
