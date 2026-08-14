@@ -6,6 +6,7 @@ public class QSrcFactory {
     
     private static final QSrcComponentFactory AITS_COMP_FACTORY = new GenericComponentFactory() ;
     private static final QSrcComponentFactory RBM_COMP_FACTORY = new GenericComponentFactory() ;
+    private static final QSrcComponentFactory LK_COMP_FACTORY = new GenericComponentFactory() ;
     private static final QSrcComponentFactory MANUAL_COMP_FACTORY = new MNComponentFactory() ;
 
     public static QSrcComponentFactory getQSrcComponentFactory( String projectName ) {
@@ -14,6 +15,9 @@ public class QSrcFactory {
         }
         else if( projectName.startsWith( "RB-" ) ) {
             return RBM_COMP_FACTORY ;
+        }
+        else if( projectName.startsWith( "LK-" ) ) {
+            return LK_COMP_FACTORY ;
         }
         else if( projectName.startsWith( "MN-" ) ) {
             return MANUAL_COMP_FACTORY ;

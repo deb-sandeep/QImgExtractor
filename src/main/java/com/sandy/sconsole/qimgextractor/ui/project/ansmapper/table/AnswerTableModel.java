@@ -99,9 +99,13 @@ public class AnswerTableModel extends DefaultTableModel {
                     }
                 }
             }
-            else if( ansText.length() > 3 && ansText.matches( "[A-D1-4]+" ) ) {
+            else if( ansText.length() > 3 && ansText.matches( "[A-Da-d1-4]+" ) ) {
                 for( int i=ansText.length()-1; i>=0; i-- ) {
-                    ansStack.push( ansText.charAt( i ) + "" ) ;
+                    char c =  ansText.charAt( i ) ;
+                    if( c == 'a' || c == 'b' || c == 'c' || c == 'd' ) {
+                        c = Character.toUpperCase( c ) ;
+                    }
+                    ansStack.push( c + "" ) ;
                 }
             }
             else {
