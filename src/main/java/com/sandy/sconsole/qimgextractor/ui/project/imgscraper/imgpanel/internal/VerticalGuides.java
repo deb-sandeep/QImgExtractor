@@ -39,6 +39,10 @@ public class VerticalGuides {
         markerPositions.replaceAll( marker -> (int)( marker * parent.getScaleFactor() ) ) ;
         return markerPositions ;
     }
+
+    public int getGuideCount() {
+        return appState.getVerticalMarkers().size() ;
+    }
     
     public void clear() {
         markerPositions.clear() ;

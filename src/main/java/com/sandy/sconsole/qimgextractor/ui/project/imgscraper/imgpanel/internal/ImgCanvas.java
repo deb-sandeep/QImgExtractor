@@ -76,7 +76,7 @@ public class ImgCanvas extends JLabel {
         } ) ;
     }
     
-    private void setOpMode( OpMode opMode ) {
+    void setOpMode( OpMode opMode ) {
         this.opMode = opMode ;
         if( opMode == OpMode.EDITOR ) {
             regionSelector.exitGuideEditMode() ;

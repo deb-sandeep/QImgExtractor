@@ -26,6 +26,11 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     private boolean inRegionSelectMode = false ;
     
     private boolean inVMarkSelectionMode = false ;
+
+    // Only true when guide mode was entered via enterFreshGuideEditMode()
+    // (Enter key). Guides placed via the manual B toggle never auto-exit,
+    // since that path is used for open-ended adjustment, not a fixed count.
+    private boolean autoExitAfterTwoGuides = false ;
     
     private transient SelectedRegion activeRegion = null ;
     private transient int curVMarkPos = -1 ;
@@ -56,6 +61,9 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             if( inVMarkSelectionMode ) {
                 if( curVMarkPos > 0 ) {
                     verticalGuides.addGuide( event.getX() ) ;
+                    if( autoExitAfterTwoGuides && verticalGuides.getGuideCount() >= 2 ) {
+                        canvas.setOpMode( ImgCanvas.OpMode.EDITOR ) ;
+                    }
                 }
             }
         }
@@ -240,6 +248,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     public void enterFreshGuideEditMode() {
         clearVerticalMarkers() ;
         setVMarkSelectionMode( true ) ;
+        autoExitAfterTwoGuides = true ;
     }
 
     // Called when the canvas leaves COMMAND mode for EDITOR mode, so the
@@ -252,12 +261,15 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         if( on == inVMarkSelectionMode ) {
             return ;
         }
-        if( !on && curVMarkPos >= 0 ) {
-            // Remove the vMark position. This will erase the vertical
-            // marker on the next paint.
-            int oldX = curVMarkPos ;
-            curVMarkPos = -1 ;
-            repaintVMarkerRegion( oldX ) ;
+        if( !on ) {
+            autoExitAfterTwoGuides = false ;
+            if( curVMarkPos >= 0 ) {
+                // Remove the vMark position. This will erase the vertical
+                // marker on the next paint.
+                int oldX = curVMarkPos ;
+                curVMarkPos = -1 ;
+                repaintVMarkerRegion( oldX ) ;
+            }
         }
         inVMarkSelectionMode = on ;
         canvas.setGuideModeStatus( on ) ;
