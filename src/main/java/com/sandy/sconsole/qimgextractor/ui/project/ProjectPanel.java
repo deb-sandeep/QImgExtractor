@@ -70,13 +70,15 @@ public class ProjectPanel extends JPanel {
     
     public void activateQuestionScraperUI() {
         log.debug( "Activating QuestionScraperUI" ) ;
+        mainFrame.clearAISuggestionMsg() ;
         imgScraperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.IMAGE_SCRAPER.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.IMAGE_SCRAPER ) ;
     }
-    
+
     public void activateAnswerMapperUI() {
         log.debug( "Activating AnswerMapperUI" ) ;
+        mainFrame.clearAISuggestionMsg() ;
         answerMapperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.ANSWER_MAPPER.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.ANSWER_MAPPER ) ;
@@ -91,6 +93,7 @@ public class ProjectPanel extends JPanel {
     
     public void activateQSyncUI() {
         log.debug( "Activating QSyncUI" ) ;
+        mainFrame.clearAISuggestionMsg() ;
         qSyncUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.QUESTION_SYNC.name() ) ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.QUESTION_SYNC ) ;
@@ -115,5 +118,9 @@ public class ProjectPanel extends JPanel {
     
     public void reloadAISuggestions() {
         topicMapperUI.reloadAISuggestions() ;
+    }
+
+    public void autoAssociateTopics() {
+        topicMapperUI.autoAssociateTopics() ;
     }
 }

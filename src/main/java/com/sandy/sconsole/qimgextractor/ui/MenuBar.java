@@ -20,6 +20,7 @@ public class MenuBar extends JMenuBar {
     private JMenuItem closeMenuItem;
     private JMenuItem closeTabMI;
     private JMenuItem reloadAISuggestionsMI;
+    private JMenuItem autoAssocTopicsMI;
     private JMenuItem imageScrapersMI;
     private JMenuItem ansMappingMI;
     private JMenuItem topicMappingMI;
@@ -66,6 +67,11 @@ public class MenuBar extends JMenuBar {
         reloadAISuggestionsMI = new JMenuItem( "Reload AI Suggestions" ) ;
         reloadAISuggestionsMI.addActionListener( e ->
                 mainFrame.reloadAISuggestionsForCurrentProject() ) ;
+
+        autoAssocTopicsMI = new JMenuItem( "Auto Associate Topics" ) ;
+        autoAssocTopicsMI.setEnabled( false ) ;
+        autoAssocTopicsMI.addActionListener( e ->
+                getCurrentProjectPanel().ifPresent( ProjectPanel::autoAssociateTopics ) ) ;
         
         markAnsKeyMI = new JMenuItem( "Toggle Ans Marker [Active Page]" ) ;
         markAnsKeyMI.addActionListener( e ->
@@ -88,6 +94,7 @@ public class MenuBar extends JMenuBar {
         //------------------------------
         
         projectMenu.add( reloadAISuggestionsMI ) ;
+        projectMenu.add( autoAssocTopicsMI ) ;
         projectMenu.add( markAnsKeyMI ) ;
         projectMenu.add( closeTabMI ) ;
 
@@ -209,6 +216,7 @@ public class MenuBar extends JMenuBar {
         
         syncMenu.setEnabled( false ) ;
         imageScrapersMI.setEnabled( false ) ;
+        autoAssocTopicsMI.setEnabled( false ) ;
         closeMenuItem.setEnabled( enabled ) ;
         ansMappingMI.setEnabled( enabled ) ;
         topicMappingMI.setEnabled( enabled ) ;
@@ -225,7 +233,8 @@ public class MenuBar extends JMenuBar {
         ansMappingMI.setEnabled( false ) ;
         topicMappingMI.setEnabled( false ) ;
         qSyncMI.setEnabled( false ) ;
-        
+
+        autoAssocTopicsMI.setEnabled( false ) ;
         markAnsKeyMI.setEnabled( false ) ;
         closeTabMI.setEnabled( false ) ;
 
@@ -248,6 +257,7 @@ public class MenuBar extends JMenuBar {
                 imageScrapersMI.setEnabled( true ) ;
                 ansMappingMI.setEnabled( true ) ;
                 qSyncMI.setEnabled( true ) ;
+                autoAssocTopicsMI.setEnabled( true ) ;
                 break ;
             case QUESTION_SYNC:
                 imageScrapersMI.setEnabled( true ) ;

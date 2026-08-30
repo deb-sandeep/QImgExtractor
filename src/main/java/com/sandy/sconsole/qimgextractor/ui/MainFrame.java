@@ -39,6 +39,7 @@ public class MainFrame extends JFrame {
     private ProjectPanel currentProjectPanel ;
     
     private MessageStatusComponent messageSBComponent ;
+    private MessageStatusComponent aiSuggestionSBComponent ;
     
     public MainFrame( AppConfig appConfig, ProjectModel projectModel ) {
         this.appConfig = appConfig ;
@@ -80,8 +81,14 @@ public class MainFrame extends JFrame {
         messageSBComponent.setForeground( Color.DARK_GRAY ) ;
         messageSBComponent.setFont( UITheme.STATUS_FONT ) ;
         messageSBComponent.setBorder( null );
-        
+
+        aiSuggestionSBComponent = new MessageStatusComponent() ;
+        aiSuggestionSBComponent.setForeground( Color.DARK_GRAY ) ;
+        aiSuggestionSBComponent.setFont( UITheme.STATUS_FONT ) ;
+        aiSuggestionSBComponent.setBorder( null );
+
         StatusBar statusBar = new StatusBar() ;
+        statusBar.addStatusBarComponent( aiSuggestionSBComponent, StatusBar.Direction.CENTER ) ;
         statusBar.addStatusBarComponent( messageSBComponent, StatusBar.Direction.EAST ) ;
         statusBar.initialize() ;
         return statusBar ;
@@ -148,6 +155,14 @@ public class MainFrame extends JFrame {
     
     public void clearStatusMsg() {
         messageSBComponent.clear() ;
+    }
+
+    public void logAISuggestionMsg( String message ) {
+        aiSuggestionSBComponent.log( message ) ;
+    }
+
+    public void clearAISuggestionMsg() {
+        aiSuggestionSBComponent.clear() ;
     }
     
     public void reloadAISuggestionsForCurrentProject() {

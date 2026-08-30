@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.classifier;
 
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestionRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 
 import javax.swing.*;
@@ -12,10 +13,10 @@ public class ClassifierPanel extends JPanel {
     private final TopicSelectionPanel topicSelectionPanel ;
     private final JLabel qIdLabel ;
     
-    public ClassifierPanel( TopicMapperUI parent ) {
+    public ClassifierPanel( TopicMapperUI parent, AITopicSuggestionRepo aiSuggestionRepo ) {
         this.qIdLabel = new JLabel() ;
         this.qImgPanel = new QImgPanel() ;
-        this.topicSelectionPanel = new TopicSelectionPanel( parent ) ;
+        this.topicSelectionPanel = new TopicSelectionPanel( parent, aiSuggestionRepo ) ;
         setUpUI() ;
     }
     

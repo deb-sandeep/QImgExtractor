@@ -1,6 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper;
 
-import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 @Slf4j
 public class TopicMapperUI extends JPanel {
@@ -28,17 +29,19 @@ public class TopicMapperUI extends JPanel {
     private final TopicTreePanel  topicTreePanel ;
     private final QuestionTreePanel questionTreePanel ;
     private final ClassifierPanel classifierPanel ;
-    
+    private final AITopicSuggestionRepo aiSuggestionRepo ;
+
     private Question selectedQuestion ;
-    
+
     public TopicMapperUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
-        
+        this.aiSuggestionRepo = new AITopicSuggestionRepo() ;
+
         this.topicTreePanel = new TopicTreePanel( this ) ;
         this.questionTreePanel = new QuestionTreePanel( this ) ;
-        this.classifierPanel = new ClassifierPanel( this ) ;
-        
+        this.classifierPanel = new ClassifierPanel( this, aiSuggestionRepo ) ;
+
         setUpUI() ;
     }
     
@@ -64,6 +67,7 @@ public class TopicMapperUI extends JPanel {
     public void questionSelected( Question question, JTree tree ) {
         if( selectedQuestion != question ) {
             selectedQuestion = question ;
+            showAISuggestionsInStatusBar( question ) ;
             classifierPanel.displayQuestion( question ) ;
             topicTreePanel.getTree().expandTreeIntelligently( question ) ;
             if( tree instanceof TopicTree ) {
@@ -105,11 +109,74 @@ public class TopicMapperUI extends JPanel {
         }.execute() ;
     }
     
+    private static final String AI_SUGGESTION_SEPARATOR = "      •      " ;
+
+    private void showAISuggestionsInStatusBar( Question question ) {
+        if( question == null ) {
+            QImgExtractor.logAISuggestionMsg( " " ) ;
+            return ;
+        }
+
+        List<AITopicSuggestion> suggestions = aiSuggestionRepo.getSuggestions( question ) ;
+        if( suggestions == null || suggestions.isEmpty() ) {
+            QImgExtractor.logAISuggestionMsg( "No AI recommendations" ) ;
+            return ;
+        }
+
+        StringBuilder sb = new StringBuilder() ;
+        for( int i=0; i<suggestions.size(); i++ ) {
+            AITopicSuggestion s = suggestions.get( i ) ;
+            if( i > 0 ) {
+                sb.append( AI_SUGGESTION_SEPARATOR ) ;
+            }
+            String name = s.getTopic() != null ? s.getTopic().getName() : "?" ;
+            sb.append( name ).append( " (" ).append( s.getConfidenceLevel() ).append( ')' ) ;
+        }
+        QImgExtractor.logAISuggestionMsg( sb.toString() ) ;
+    }
+
     public void selectAdjacentQuestion( boolean forward ) {
         topicTreePanel.getTree().selectAdjacentQuestion( forward ) ;
     }
     
     public void reloadAISuggestions() {
         classifierPanel.reloadAISuggestions() ;
+    }
+
+    public void autoAssociateTopics() {
+
+        AutoAssociationReport report =
+                new AutoTopicAssociator( projectModel, aiSuggestionRepo ).run() ;
+
+        topicTreePanel.refreshTree() ;
+        questionTreePanel.refreshTree() ;
+        if( !topicTreePanel.getTree().selectNextUnclassifiedQuestion() ) {
+            classifierPanel.displayQuestion( null ) ;
+        }
+
+        new SwingWorker<>() {
+            protected Object doInBackground() {
+                projectModel.getQuestionRepo().save() ;
+                if( projectModel.getState().isSavedToServer() ) {
+                    projectModel.getState().setTopicsMapped( true ) ;
+                }
+                return null ;
+            }
+        }.execute() ;
+
+        QImgExtractor.logStatusMsg( "Auto-associated " + report.mapped + " topic(s)" ) ;
+        showReport( report ) ;
+    }
+
+    private void showReport( AutoAssociationReport report ) {
+        JTextArea textArea = new JTextArea( report.toDisplayString() ) ;
+        textArea.setEditable( false ) ;
+        textArea.setFont( new Font( "Courier New", Font.PLAIN, 13 ) ) ;
+        textArea.setColumns( 60 ) ;
+        textArea.setRows( 8 ) ;
+
+        JOptionPane.showMessageDialog( SwingUtilities.getWindowAncestor( this ),
+                new JScrollPane( textArea ), "Auto Topic Association",
+                JOptionPane.INFORMATION_MESSAGE ) ;
     }
 }

@@ -1,23 +1,18 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.classifier;
 
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
-import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Topic;
 import com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestion;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestionRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.util.*;
 import java.util.List;
 
 import static com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo.* ;
@@ -38,10 +33,11 @@ public class TopicSelectionPanel extends JPanel {
     private final JPanel chemistryTopicsPanel = new JPanel() ;
     private final JPanel mathsTopicsPanel = new JPanel() ;
     
-    private final Map<String, List<Topic>> aiTopicMap = new HashMap<>() ;
-    
-    public TopicSelectionPanel( TopicMapperUI parent ) {
+    private final AITopicSuggestionRepo aiSuggestionRepo ;
+
+    public TopicSelectionPanel( TopicMapperUI parent, AITopicSuggestionRepo aiSuggestionRepo ) {
         this.parent = parent ;
+        this.aiSuggestionRepo = aiSuggestionRepo ;
         prepareTopicsPanel( IIT_PHYSICS,   physicsTopicsPanel ) ;
         prepareTopicsPanel( IIT_CHEMISTRY, chemistryTopicsPanel ) ;
         prepareTopicsPanel( IIT_MATHS,     mathsTopicsPanel ) ;
@@ -198,51 +194,16 @@ public class TopicSelectionPanel extends JPanel {
     }
     
     public void reloadAISuggestions() {
-        aiTopicMap.clear() ;
-        ProjectModel projectModel = QImgExtractor.getBean( ProjectModel.class ) ;
-        File aiTopicMapFile = new File( projectModel.getWorkDir(), "ai-topic-map.json" ) ;
-        if( aiTopicMapFile.exists() ) {
-            try {
-                String      content = FileUtils.readFileToString( aiTopicMapFile, "UTF-8" ) ;
-                JSONObject  json = new JSONObject( content ) ;
-                Iterator<?> keys = json.keys() ;
-                while( keys.hasNext() ) {
-                    String key = (String)keys.next() ;
-                    JSONObject value = json.getJSONObject( key ) ;
-                    JSONArray topicMappings = value.getJSONArray( "topicMappings" ) ;
-                    if( topicMappings.length() > 0 ) {
-                        populateAITopicMap( key, topicMappings ) ;
-                    }
-                }
-            }
-            catch( Exception e ) {
-                log.error( "Error synchronizing with persisted state", e );
-            }
-        }
+        aiSuggestionRepo.reload() ;
     }
 
-    private void populateAITopicMap( String questionId, JSONArray topicMappings )
-            throws JSONException {
-        
-        TopicRepo topicRepo = QImgExtractor.getBean( TopicRepo.class ) ;
-        
-        List<Topic> suggestedTopics = new ArrayList<>() ;
-        for( int i=0; i<topicMappings.length(); i++ ) {
-            JSONObject mapping = topicMappings.getJSONObject( i ) ;
-            int topicId = mapping.getInt( "topicId" ) ;
-            suggestedTopics.add( topicRepo.getTopicById( topicId ) ) ;
-        }
-        
-        aiTopicMap.put( questionId.replace( "_", "/" ), suggestedTopics ) ;
-    }
-    
     public void showTopics( Question question ) {
         String subjectCode = "B" ;
-        List<Topic> suggestedTopics = null ;
-        
+        List<AITopicSuggestion> suggestedTopics = null ;
+
         if( question != null ) {
             subjectCode = question.getQID().getSubjectCode() ;
-            suggestedTopics = aiTopicMap.get( question.getQID().toString() ) ;
+            suggestedTopics = aiSuggestionRepo.getSuggestions( question ) ;
         }
         
         switch( subjectCode ) {
@@ -263,14 +224,15 @@ public class TopicSelectionPanel extends JPanel {
     }
     
     private void setFocus( JPanel topicPanel, Question question,
-                           List<Topic> suggestedTopics ) {
-        
+                           List<AITopicSuggestion> suggestedTopics ) {
+
         Topic topic = question.getTopic() ;
         resetButtonForegrounds( topicPanel ) ;
-        
+
         if( topic == null ) {
-            if( suggestedTopics != null && !suggestedTopics.isEmpty() ) {
-                Topic suggestedTopic = suggestedTopics.get( 0 ) ;
+            if( suggestedTopics != null && !suggestedTopics.isEmpty()
+                    && suggestedTopics.get( 0 ).getTopic() != null ) {
+                Topic suggestedTopic = suggestedTopics.get( 0 ).getTopic() ;
                 for( int j = 0; j < topicPanel.getComponentCount(); j++ ) {
                     JButton button = ( JButton )topicPanel.getComponent( j );
                     if( button.getActionCommand().equals( suggestedTopic.getName() ) ) {
