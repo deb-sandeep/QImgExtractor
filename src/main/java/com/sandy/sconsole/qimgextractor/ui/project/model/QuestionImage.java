@@ -213,7 +213,13 @@ public class QuestionImage implements Comparable<QuestionImage> {
             }
         }
         else {
-            q.getQId().incrementQuestionNumber() ;
+            if( q.getQId().isLCTContext() ) {
+                int nextNum = context.getPendingLCTSubQuestionNumber() ;
+                q.getQId().transitionFromLCTContextToSubQuestion( nextNum ) ;
+            }
+            else {
+                q.getQId().incrementQuestionNumber() ;
+            }
             if( context.isPartSelectionModeEnabled() ) {
                 q.partNumber = 1 ;
             }

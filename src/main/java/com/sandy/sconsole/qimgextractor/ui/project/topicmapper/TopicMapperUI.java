@@ -5,6 +5,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Topic;
+import com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.classifier.ClassifierPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.qtree.QuestionTree;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.qtree.QuestionTreePanel;
@@ -94,22 +95,70 @@ public class TopicMapperUI extends JPanel {
         else if( !topicTreePanel.getTree().selectNextUnclassifiedQuestion() ) {
             topicTreePanel.getTree().selectQuestion( selectedQuestion ) ;
         }
-        
+
+        saveQuestionsInBackground() ;
+    }
+
+    public void associateTopicToAllUnclassifiedQuestions( Topic topic ) {
+
+        String syllabusName = topic.getSyllabusName() ;
+        List<Question> targets = projectModel.getQuestionRepo().getQuestionList()
+                .stream()
+                .filter( q -> q.getTopic() == null )
+                .filter( q -> syllabusName.equals( syllabusForSubject( q.getQID().getSubjectCode() ) ) )
+                .toList() ;
+
+        if( targets.isEmpty() ) {
+            QImgExtractor.logStatusMsg( "No unclassified " + syllabusName + " questions" ) ;
+            return ;
+        }
+
+        int choice = JOptionPane.showConfirmDialog( SwingUtilities.getWindowAncestor( this ),
+                "Associate \"" + topic.getName() + "\" with " + targets.size() +
+                " unclassified " + syllabusName + " question(s)?",
+                "Bulk Topic Association", JOptionPane.OK_CANCEL_OPTION ) ;
+        if( choice != JOptionPane.OK_OPTION ) {
+            return ;
+        }
+
+        targets.forEach( q -> q.setTopic( topic ) ) ;
+
+        topicTreePanel.refreshTree() ;
+        questionTreePanel.refreshTree() ;
+        if( !topicTreePanel.getTree().selectNextUnclassifiedQuestion() ) {
+            classifierPanel.displayQuestion( null ) ;
+        }
+
+        saveQuestionsInBackground() ;
+        QImgExtractor.logStatusMsg( "Associated \"" + topic.getName() + "\" with " +
+                                    targets.size() + " question(s)" ) ;
+    }
+
+    private static String syllabusForSubject( String subjectCode ) {
+        return switch( subjectCode ) {
+            case "P" -> TopicRepo.IIT_PHYSICS ;
+            case "C" -> TopicRepo.IIT_CHEMISTRY ;
+            case "M" -> TopicRepo.IIT_MATHS ;
+            default -> null ;
+        } ;
+    }
+
+    private void saveQuestionsInBackground() {
         new SwingWorker<>() {
             protected Object doInBackground() {
                 projectModel.getQuestionRepo().save() ;
-                
+
                 // If we are going back to a more nascent stage, then
                 // erase the advanced stage markers
                 if( projectModel.getState().isSavedToServer() ) {
-                    projectModel.getState().setTopicsMapped( true ); ;
+                    projectModel.getState().setTopicsMapped( true ) ;
                 }
                 return null ;
             }
         }.execute() ;
     }
-    
-    private static final String AI_SUGGESTION_SEPARATOR = "      •      " ;
+
+    private static final String AI_SUGGESTION_SEPARATOR = "      |      " ;
 
     private void showAISuggestionsInStatusBar( Question question ) {
         if( question == null ) {
@@ -154,15 +203,7 @@ public class TopicMapperUI extends JPanel {
             classifierPanel.displayQuestion( null ) ;
         }
 
-        new SwingWorker<>() {
-            protected Object doInBackground() {
-                projectModel.getQuestionRepo().save() ;
-                if( projectModel.getState().isSavedToServer() ) {
-                    projectModel.getState().setTopicsMapped( true ) ;
-                }
-                return null ;
-            }
-        }.execute() ;
+        saveQuestionsInBackground() ;
 
         QImgExtractor.logStatusMsg( "Auto-associated " + report.mapped + " topic(s)" ) ;
         showReport( report ) ;

@@ -18,7 +18,10 @@ public class ProjectContext {
     
     @Getter
     private QuestionImage lastSavedImg ;
-    
+
+    @Getter
+    private int pendingLCTSubQuestionNumber = -1 ;
+
     @Getter
     private PageImage selectedPageImg ;
     
@@ -41,9 +44,16 @@ public class ProjectContext {
     }
     
     public void setLastSavedImage( QuestionImage qImg ) {
+        QuestionImage previousSavedImg = lastSavedImg ;
         lastSavedImg = qImg ;
         if( lastSavedImg != null && lastSavedImg.getQId().isLCT() ) {
             lastLCTSequence = lastSavedImg.getQId().getLctSequence() ;
+
+            if( lastSavedImg.getQId().isLCTContext() ) {
+                int prevQuestionNumber = previousSavedImg != null
+                        ? previousSavedImg.getQId().getQuestionNumber() : 0 ;
+                pendingLCTSubQuestionNumber = prevQuestionNumber + 1 ;
+            }
         }
     }
     

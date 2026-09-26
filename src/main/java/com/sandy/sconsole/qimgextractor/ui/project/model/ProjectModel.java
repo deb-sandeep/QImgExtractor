@@ -93,7 +93,8 @@ public class ProjectModel {
         assert files != null ;
         
         QuestionImage lastSavedQImg = null ;
-        
+        int maxLctSequence = 0 ;
+
         for( File file : files ) {
             PageImage pageImg = new PageImage( this, file ) ;
             PageImageState state ;
@@ -105,18 +106,19 @@ public class ProjectModel {
             }
             pageImg.setState( state ) ;
             pageImages.add( pageImg );
-            
-            QuestionImage lastQImg = pageImg.getLastQuestionImg() ;
-            if( lastQImg != null ) {
-                if( lastSavedQImg == null ) {
-                    lastSavedQImg = lastQImg ;
+
+            for( QuestionImage qImg : pageImg.getQImgList() ) {
+                if( qImg.getQId().isLCT() ) {
+                    maxLctSequence = Math.max( maxLctSequence, qImg.getQId().getLctSequence() ) ;
                 }
-                else if( lastQImg.compareTo( lastSavedQImg ) > 0 ) {
-                    lastSavedQImg = lastQImg ;
+                if( lastSavedQImg == null ||
+                    qImg.getQId().compareTo( lastSavedQImg.getQId() ) > 0 ) {
+                    lastSavedQImg = qImg ;
                 }
             }
         }
         context.setLastSavedImage( lastSavedQImg ) ;
+        context.setLastLCTSequence( Math.max( context.getLastLCTSequence(), maxLctSequence ) ) ;
         Collections.sort( pageImages ) ;
     }
     

@@ -111,6 +111,11 @@ public abstract class QID implements Comparable<QID>{
             this.questionNumber += 1 ;
         }
     }
+
+    public void transitionFromLCTContextToSubQuestion( int questionNumber ) {
+        this.isLCTContext = false ;
+        this.questionNumber = questionNumber ;
+    }
     
     public String getFilePartName() {
         StringBuilder sb = new StringBuilder() ;

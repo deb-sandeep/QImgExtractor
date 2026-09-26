@@ -89,7 +89,17 @@ public class TopicSelectionPanel extends JPanel {
                 }
             }
         } ) ;
+        button.setComponentPopupMenu( createTopicPopupMenu( topic ) ) ;
         return button ;
+    }
+
+    private JPopupMenu createTopicPopupMenu( Topic topic ) {
+        JMenuItem associateAllMI = new JMenuItem( "Map to all remaining" ) ;
+        associateAllMI.addActionListener( e -> parent.associateTopicToAllUnclassifiedQuestions( topic ) ) ;
+
+        JPopupMenu popupMenu = new JPopupMenu() ;
+        popupMenu.add( associateAllMI ) ;
+        return popupMenu ;
     }
     
     private String getButtonText( Topic topic ) {
