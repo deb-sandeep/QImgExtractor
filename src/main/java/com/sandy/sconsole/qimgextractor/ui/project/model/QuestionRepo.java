@@ -52,11 +52,17 @@ public class QuestionRepo {
             }
         }
         
-        questionList.clear() ;
-        questionList.addAll( qImgClusterMap.values() ) ;
-        Collections.sort( questionList ) ;
-        
-        syncWithPersistedState() ;
+        // Synchronized with save(), which runs on a background thread. Without
+        // this, back-to-back refreshes (e.g. bulk deletes) can mutate the list
+        // while a previous save is iterating it, or read the persistence file
+        // while it is being partially written.
+        synchronized( this ) {
+            questionList.clear() ;
+            questionList.addAll( qImgClusterMap.values() ) ;
+            Collections.sort( questionList ) ;
+
+            syncWithPersistedState() ;
+        }
         new SwingWorker<>() {
             protected Void doInBackground() {
                 save() ;
