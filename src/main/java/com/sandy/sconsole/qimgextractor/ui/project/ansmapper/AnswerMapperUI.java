@@ -12,8 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class AnswerMapperUI extends JPanel {
@@ -31,7 +34,7 @@ public class AnswerMapperUI extends JPanel {
     public AnswerMapperUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
-        this.answerTable = new AnswerTable( this.projectModel ) ;
+        this.answerTable = new AnswerTable( this ) ;
         this.questionTreePanel = new QuestionTreePanel( this ) ;
         this.imgPanel = new ImgPanel( this ) ;
         
@@ -52,6 +55,57 @@ public class AnswerMapperUI extends JPanel {
         questionTreePanel.refreshTree() ;
         imgPanel.refreshAnswerKeyPages() ;
         answerTable.refreshTable() ;
+    }
+    
+    public void deleteQuestions( List<Question> questions ) {
+        
+        if( questions == null || questions.isEmpty() ) {
+            return ;
+        }
+        
+        List<Question> deletable = new ArrayList<>() ;
+        List<Question> synced = new ArrayList<>() ;
+        for( Question q : questions ) {
+            ( q.isSyncedToAnyServer() ? synced : deletable ).add( q ) ;
+        }
+        
+        if( deletable.isEmpty() ) {
+            AppUtil.showErrorMsg( this, "Synced questions can't be deleted: " + toQIdList( synced ) ) ;
+            return ;
+        }
+        
+        StringBuilder msg = new StringBuilder() ;
+        msg.append( "Delete the following question(s)?\n" )
+           .append( toQIdList( deletable ) ).append( "\n\n" ) ;
+        if( !synced.isEmpty() ) {
+            msg.append( "Skipping synced question(s):\n" )
+               .append( toQIdList( synced ) ).append( "\n\n" ) ;
+        }
+        msg.append( "Question images will be permanently deleted." ) ;
+        
+        int choice = JOptionPane.showConfirmDialog( this, msg.toString(), "Delete Questions",
+                                                    JOptionPane.YES_NO_OPTION,
+                                                    JOptionPane.WARNING_MESSAGE ) ;
+        if( choice != JOptionPane.YES_OPTION ) {
+            return ;
+        }
+        
+        for( Question q : deletable ) {
+            try {
+                projectModel.deleteQuestion( q ) ;
+            }
+            catch( IllegalStateException e ) {
+                log.error( "Failed to delete question {}", q.getQRef(), e ) ;
+                AppUtil.showErrorMsg( this, e.getMessage() ) ;
+            }
+        }
+        answerTable.refreshTable() ;
+    }
+    
+    private String toQIdList( List<Question> questions ) {
+        return questions.stream()
+                        .map( q -> q.getQID().toString() )
+                        .collect( Collectors.joining( ", " ) ) ;
     }
     
     public void setOCRGeneratedAnswers( String text ) {

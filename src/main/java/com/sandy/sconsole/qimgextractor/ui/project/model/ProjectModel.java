@@ -9,6 +9,7 @@ import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -215,6 +216,10 @@ public class ProjectModel {
     
     private void notifyListenersQuestionImgDeleted( QuestionImage qImg ) {
         questionRepo.refresh() ;
+        notifyListenersQuestionImgDeletedNoRefresh( qImg ) ;
+    }
+
+    private void notifyListenersQuestionImgDeletedNoRefresh( QuestionImage qImg ) {
         listeners.forEach( l -> l.questionImgDeleted( qImg ) ) ;
     }
     
@@ -264,7 +269,108 @@ public class ProjectModel {
             log.warn( "Failed to delete question image file: <img-dir>/{}", imgFile.getName() ) ;
         }
     }
-    
+
+    // Deletes all the images (including parts) of the given question and
+    // removes its references from the persisted state. The LCT context images
+    // are deleted only if this is the last question in its LCT group.
+    // Questions synced to either the dev or the prod server can't be deleted.
+    public void deleteQuestion( Question question ) {
+
+        if( question.isSyncedToAnyServer() ) {
+            throw new IllegalStateException( "Question " + question.getQRef() +
+                                             " is synced to server; cannot delete" ) ;
+        }
+
+        List<QuestionImage> toDelete = new ArrayList<>( question.getOwnQImgList() ) ;
+
+        boolean deleteLctCtx = false ;
+        QuestionImageCluster lctCtxCluster = question.getLctCtxImgCluster() ;
+        if( question.isLCT() && lctCtxCluster != null ) {
+            // Compare by QID and not identity - the question instance might be
+            // stale if the repo has been refreshed since (e.g. bulk deletes).
+            String qId = question.getQID().toString() ;
+            String lctRoot = question.getLCTRoot() ;
+            deleteLctCtx = questionRepo.getQuestionList().stream()
+                    .noneMatch( q -> !q.getQID().toString().equals( qId ) &&
+                                     lctRoot.equals( q.getLCTRoot() ) ) ;
+            if( deleteLctCtx ) {
+                toDelete.addAll( lctCtxCluster.getQImgList() ) ;
+            }
+        }
+
+        // Remove from the page models. This persists the page region metadata.
+        toDelete.forEach( qImg -> qImg.getPageImg().deleteQuestionImg( qImg ) ) ;
+
+        // Rebuild the question repo once. This persists question-info.json
+        // without the deleted question.
+        questionRepo.refresh() ;
+        toDelete.forEach( this::notifyListenersQuestionImgDeletedNoRefresh ) ;
+
+        // Physically delete the files.
+        for( QuestionImage qImg : toDelete ) {
+            File imgFile = qImg.getImgFile() ;
+            if( imgFile.delete() ) {
+                log.info( "Deleted question image file: <img-dir>/{}", imgFile.getName() ) ;
+            }
+            else {
+                log.warn( "Failed to delete question image file: <img-dir>/{}", imgFile.getName() ) ;
+            }
+        }
+
+        removeAITopicMapEntry( question.getQID().toString() ) ;
+
+        if( toDelete.contains( context.getLastSavedImg() ) ) {
+            context.setLastSavedImage( getLastQuestionImg() ) ;
+        }
+
+        log.info( "Deleted question {}. Part images = {}, LCT context deleted = {}",
+                  question.getQRef(), question.getOwnQImgList().size(), deleteLctCtx ) ;
+    }
+
+    private QuestionImage getLastQuestionImg() {
+        QuestionImage lastQImg = null ;
+        for( PageImage pageImg : pageImages ) {
+            for( QuestionImage qImg : pageImg.getQImgList() ) {
+                if( lastQImg == null ||
+                    qImg.getQId().compareTo( lastQImg.getQId() ) > 0 ) {
+                    lastQImg = qImg ;
+                }
+            }
+        }
+        return lastQImg ;
+    }
+
+    private void removeAITopicMapEntry( String qId ) {
+
+        File aiTopicMapFile = new File( workDir, "ai-topic-map.json" ) ;
+        if( !aiTopicMapFile.exists() ) {
+            return ;
+        }
+
+        try {
+            JSONObject json = new JSONObject( FileUtils.readFileToString( aiTopicMapFile, "UTF-8" ) ) ;
+
+            // Keys may use '_' as the separator, see AITopicSuggestionRepo
+            List<String> keysToRemove = new ArrayList<>() ;
+            Iterator<?> keys = json.keys() ;
+            while( keys.hasNext() ) {
+                String key = ( String )keys.next() ;
+                if( key.replace( "_", "/" ).equals( qId ) ) {
+                    keysToRemove.add( key ) ;
+                }
+            }
+
+            if( !keysToRemove.isEmpty() ) {
+                keysToRemove.forEach( json::remove ) ;
+                FileUtils.writeStringToFile( aiTopicMapFile, json.toString( 2 ), "UTF-8" ) ;
+                log.info( "Removed AI topic map entry for {}", qId ) ;
+            }
+        }
+        catch( Exception e ) {
+            log.error( "Error removing AI topic map entry for {}", qId, e ) ;
+        }
+    }
+
     public void setSelectedPageImg( PageImage selectedPageImg ) {
         context.setSelectedPageImg( selectedPageImg ) ;
         for( PageImage pageImage : pageImages ) {

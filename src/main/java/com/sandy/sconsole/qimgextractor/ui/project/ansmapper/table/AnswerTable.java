@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table;
 
+import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
@@ -11,6 +12,9 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Stack;
 
 @Slf4j
@@ -19,13 +23,18 @@ public class AnswerTable extends JTable {
     private static final Font HEADER_FONT = new Font( "Helvetica", Font.PLAIN, 14 ) ;
     private static final Font TABLE_FONT = new Font( "Courier", Font.PLAIN, 12 ) ;
     
+    private final AnswerMapperUI parent ;
     private final ProjectModel projectModel ;
     private final AnswerTableModel answerTableModel ;
     private final AnswerTableDefaultCellRenderer cellRenderer = new AnswerTableDefaultCellRenderer() ;
     private final AnswerTableMMTCellRenderer mmtCellRenderer = new AnswerTableMMTCellRenderer() ;
     
-    public AnswerTable( ProjectModel projectModel ) {
-        this.projectModel = projectModel ;
+    private final JPopupMenu popupMenu ;
+    private Question popupQuestion ;
+    
+    public AnswerTable( AnswerMapperUI parent ) {
+        this.parent = parent ;
+        this.projectModel = parent.getProjectModel() ;
         this.answerTableModel = new AnswerTableModel( projectModel, this ) ;
         super.setRowHeight( 30 ) ;
         super.setShowGrid( true ) ;
@@ -36,6 +45,46 @@ public class AnswerTable extends JTable {
         
         decorateTableHeader() ;
         setColumnWidths() ;
+        
+        this.popupMenu = createPopupMenu() ;
+        addTableListeners() ;
+    }
+    
+    private JPopupMenu createPopupMenu() {
+        JPopupMenu popup = new JPopupMenu() ;
+        JMenuItem deleteQuestion = new JMenuItem( "Delete Question" ) ;
+        deleteQuestion.addActionListener( e -> {
+            if( popupQuestion != null ) {
+                parent.deleteQuestions( List.of( popupQuestion ) ) ;
+            }
+        } ) ;
+        popup.add( deleteQuestion ) ;
+        return popup ;
+    }
+    
+    private void addTableListeners() {
+        super.addMouseListener( new MouseAdapter() {
+            public void mousePressed( MouseEvent e )  { handlePopupTrigger( e ) ; }
+            public void mouseReleased( MouseEvent e ) { handlePopupTrigger( e ) ; }
+        } ) ;
+    }
+    
+    private void handlePopupTrigger( MouseEvent e ) {
+        if( !e.isPopupTrigger() ) {
+            return ;
+        }
+        
+        int row = rowAtPoint( e.getPoint() ) ;
+        int col = columnAtPoint( e.getPoint() ) ;
+        if( row < 0 || col < 0 ) {
+            return ;
+        }
+        
+        popupQuestion = answerTableModel.getQuestionAt( row, col ) ;
+        if( popupQuestion != null ) {
+            setSelectedCell( row, col ) ;
+            popupMenu.show( e.getComponent(), e.getX(), e.getY() ) ;
+        }
     }
     
     private void decorateTableHeader() {

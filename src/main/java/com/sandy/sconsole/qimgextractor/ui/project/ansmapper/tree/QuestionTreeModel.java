@@ -31,6 +31,7 @@ public class QuestionTreeModel extends DefaultTreeModel
         for( Question question : projectModel.getQuestionRepo().getQuestionList() ) {
             this.rootNode.add( createQuestionNode( question ) );
         }
+        this.reload() ;
     }
     
     private DefaultMutableTreeNode createQuestionNode( Question question ) {

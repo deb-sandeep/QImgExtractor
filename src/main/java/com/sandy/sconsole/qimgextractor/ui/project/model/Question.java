@@ -76,6 +76,15 @@ public class Question extends QuestionImageCluster
     public void addLCTCtxImgCluster( QuestionImageCluster lctCtxCluster ) {
         this.lctCtxImgCluster = lctCtxCluster ;
     }
+
+    public QuestionImageCluster getLctCtxImgCluster() {
+        return lctCtxImgCluster ;
+    }
+
+    // Unlike getQImgList(), this excludes the shared LCT context images.
+    public List<QuestionImage> getOwnQImgList() {
+        return super.qImgList ;
+    }
     
     @Override
     public int compareTo( Question q ) {
@@ -296,7 +305,12 @@ public class Question extends QuestionImageCluster
     public boolean isSynced() {
         return getSyncInfo().syncTime != null ;
     }
-    
+
+    // Unlike isSynced(), this is independent of the active profile.
+    public boolean isSyncedToAnyServer() {
+        return devSyncInfo.syncTime != null || prodSyncInfo.syncTime != null ;
+    }
+
     public boolean isModifiedAfterSync() {
         SyncInfo syncInfo = getSyncInfo() ;
         return isSynced() && !syncInfo.syncToken.equals( getHashCode() ) ;
