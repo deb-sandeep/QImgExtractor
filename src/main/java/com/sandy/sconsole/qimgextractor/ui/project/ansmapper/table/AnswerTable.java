@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
@@ -31,7 +32,12 @@ public class AnswerTable extends JTable {
     
     private final JPopupMenu popupMenu ;
     private Question popupQuestion ;
-    
+    private int popupRow = -1 ;
+    private int popupCol = -1 ;
+
+    private JMenuItem pushAnswersDownMI ;
+    private JMenuItem pullAnswersUpMI ;
+
     public AnswerTable( AnswerMapperUI parent ) {
         this.parent = parent ;
         this.projectModel = parent.getProjectModel() ;
@@ -58,8 +64,61 @@ public class AnswerTable extends JTable {
                 parent.deleteQuestions( List.of( popupQuestion ) ) ;
             }
         } ) ;
+
+        pushAnswersDownMI = new JMenuItem( "Push Answers Down" ) ;
+        pushAnswersDownMI.addActionListener( e -> pushAnswersDown() ) ;
+
+        pullAnswersUpMI = new JMenuItem( "Delete Answer & Pull Up" ) ;
+        pullAnswersUpMI.addActionListener( e -> pullAnswersUp() ) ;
+
+        popup.add( pushAnswersDownMI ) ;
+        popup.add( pullAnswersUpMI ) ;
+        popup.addSeparator() ;
         popup.add( deleteQuestion ) ;
         return popup ;
+    }
+
+    private void pushAnswersDown() {
+        if( popupQuestion == null ) {
+            return ;
+        }
+
+        String lastAnswer = answerTableModel.getLastAnswerInColumn( popupCol ) ;
+        if( lastAnswer != null ) {
+            int choice = JOptionPane.showConfirmDialog( this,
+                    "The last answer in this column (" + lastAnswer + ") will be lost.\nContinue?",
+                    "Push Answers Down", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE ) ;
+            if( choice != JOptionPane.YES_OPTION ) {
+                return ;
+            }
+        }
+
+        stopEditing() ;
+        reportDroppedAnswers( answerTableModel.pushAnswersDown( popupRow, popupCol ) ) ;
+        setSelectedCell( popupRow, popupCol ) ;
+    }
+
+    private void pullAnswersUp() {
+        if( popupQuestion == null ) {
+            return ;
+        }
+        stopEditing() ;
+        reportDroppedAnswers( answerTableModel.pullAnswersUp( popupRow, popupCol ) ) ;
+        setSelectedCell( popupRow, popupCol ) ;
+    }
+
+    private void stopEditing() {
+        if( isEditing() ) {
+            getCellEditor().cancelCellEditing() ;
+        }
+    }
+
+    private void reportDroppedAnswers( List<String> droppedAnswers ) {
+        if( !droppedAnswers.isEmpty() ) {
+            String msg = "Dropped incompatible answers: " + String.join( ", ", droppedAnswers ) ;
+            log.info( msg ) ;
+            QImgExtractor.logStatusMsg( msg ) ;
+        }
     }
     
     private void addTableListeners() {
@@ -82,6 +141,11 @@ public class AnswerTable extends JTable {
         
         popupQuestion = answerTableModel.getQuestionAt( row, col ) ;
         if( popupQuestion != null ) {
+            popupRow = row ;
+            popupCol = col ;
+            boolean isAnswerCol = answerTableModel.isAnswerColumn( col ) ;
+            pushAnswersDownMI.setEnabled( isAnswerCol ) ;
+            pullAnswersUpMI.setEnabled( isAnswerCol ) ;
             setSelectedCell( row, col ) ;
             popupMenu.show( e.getComponent(), e.getX(), e.getY() ) ;
         }

@@ -222,8 +222,13 @@ public class Question extends QuestionImageCluster
         }
     }
     
+    public void clearAnswer() {
+        this.answer = null ;
+        this.mmtAnswer = null ;
+    }
+
     public void setRawAnswer( String ans ) throws InvalidAnswerException {
-        
+
         if( ans == null || ans.trim().isEmpty() ) {
             throw new InvalidAnswerException( "Answer cannot be empty" ) ;
         }
@@ -261,7 +266,11 @@ public class Question extends QuestionImageCluster
     private void formatAndStoreMCQAnswer( String ans )
             throws InvalidAnswerException {
         
-        String[] parts = ans.split( "," );
+        // Options can be entered either comma separated (a,b,c) or as a
+        // contiguous run of characters (abc), one option per character.
+        String trimmed = ans.trim() ;
+        String[] parts = trimmed.contains( "," ) ? trimmed.split( "," )
+                                                 : trimmed.replaceAll( "\\s", "" ).split( "" ) ;
         StringBuilder answerText = new StringBuilder();
         for( String part : parts ) {
             part = part.trim() ;

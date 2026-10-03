@@ -147,7 +147,7 @@ public class AnswerTableModel extends DefaultTableModel {
     
     @Override
     public boolean isCellEditable( int row, int column ) {
-        if( column == 1 || column == 3 || column == 5 ) {
+        if( isAnswerColumn( column ) ) {
             List<Question> questions = getQuestionsForColumn( column ) ;
             return row < questions.size() ;
         }
@@ -182,17 +182,93 @@ public class AnswerTableModel extends DefaultTableModel {
                 ansText.append( ansStack.pop() ) ;
             }
             q.setRawAnswer( ansText.toString() ) ;
-            
-            // If we are going back to a more nascent stage, then
-            // erase the advanced stage markers
-            if( projectModel.getState().isTopicsMapped() ||
-                projectModel.getState().isSavedToServer() ) {
-                projectModel.getState().setAnswersMapped( true ) ;
-            }
+            markAnswersChanged() ;
             fireTableCellUpdated( row, col ) ;
         }
         else {
             throw new Question.InvalidAnswerException( "Invalid row: " + row + ", column: " + col ) ;
         }
+    }
+
+    // If we are going back to a more nascent stage, then
+    // erase the advanced stage markers
+    private void markAnswersChanged() {
+        if( projectModel.getState().isTopicsMapped() ||
+            projectModel.getState().isSavedToServer() ) {
+            projectModel.getState().setAnswersMapped( true ) ;
+        }
+    }
+
+    public boolean isAnswerColumn( int column ) {
+        return column == 1 || column == 3 || column == 5 ;
+    }
+
+    // Returns the answer of the last question in the column, which will be
+    // lost if the answers are pushed down.
+    public String getLastAnswerInColumn( int col ) {
+        List<Question> questions = getQuestionsForColumn( col ) ;
+        return questions.isEmpty() ? null : questions.get( questions.size()-1 ).getAnswer() ;
+    }
+
+    // Clears the answer at the given cell and shifts all the answers below
+    // it one row down. The answer of the last question falls off. Answers
+    // which don't validate against the target question type are dropped.
+    // Returns descriptions of the dropped answers.
+    public List<String> pushAnswersDown( int row, int col ) {
+
+        List<Question> questions = getQuestionsForColumn( col ) ;
+        List<String> droppedAnswers = new ArrayList<>() ;
+        if( !isAnswerColumn( col ) || row >= questions.size() ) {
+            return droppedAnswers ;
+        }
+
+        List<String> answers = questions.stream().map( Question::getAnswer ).toList() ;
+        for( int i=questions.size()-1; i>row; i-- ) {
+            transferAnswer( answers.get( i-1 ), questions.get( i ), droppedAnswers ) ;
+        }
+        questions.get( row ).clearAnswer() ;
+
+        postAnswerShift() ;
+        return droppedAnswers ;
+    }
+
+    // Deletes the answer at the given cell and shifts all the answers below
+    // it one row up. The last question's answer is cleared. Answers which
+    // don't validate against the target question type are dropped.
+    // Returns descriptions of the dropped answers.
+    public List<String> pullAnswersUp( int row, int col ) {
+
+        List<Question> questions = getQuestionsForColumn( col ) ;
+        List<String> droppedAnswers = new ArrayList<>() ;
+        if( !isAnswerColumn( col ) || row >= questions.size() ) {
+            return droppedAnswers ;
+        }
+
+        List<String> answers = questions.stream().map( Question::getAnswer ).toList() ;
+        for( int i=row; i<questions.size()-1; i++ ) {
+            transferAnswer( answers.get( i+1 ), questions.get( i ), droppedAnswers ) ;
+        }
+        questions.get( questions.size()-1 ).clearAnswer() ;
+
+        postAnswerShift() ;
+        return droppedAnswers ;
+    }
+
+    private void transferAnswer( String answer, Question target, List<String> droppedAnswers ) {
+        target.clearAnswer() ;
+        if( answer != null ) {
+            try {
+                target.setRawAnswer( answer ) ;
+            }
+            catch( Question.InvalidAnswerException e ) {
+                droppedAnswers.add( target.getQID() + " <- " + answer ) ;
+            }
+        }
+    }
+
+    private void postAnswerShift() {
+        markAnswersChanged() ;
+        fireTableDataChanged() ;
+        projectModel.getQuestionRepo().save() ;
     }
 }
