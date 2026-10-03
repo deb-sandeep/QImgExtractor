@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgExtractorPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
@@ -253,6 +254,113 @@ public class ProjectModel {
         }
     }
     
+    // Changes the subject code of the given question images, renaming their
+    // files and region metadata. Answers are carried over to the renamed
+    // questions, topics are not since they are subject specific.
+    // Nothing is changed if any affected question is synced to a server or
+    // if a renamed file would clash with an existing question image.
+    public void changeSubject( List<QuestionImage> qImgs, String subjectCode ) {
+
+        ParserUtil.validateSubjectCode( subjectCode ) ;
+
+        Set<QuestionImage> targets = Collections.newSetFromMap( new IdentityHashMap<>() ) ;
+        qImgs.stream()
+             .filter( qImg -> !qImg.getSubjectCode().equals( subjectCode ) )
+             .forEach( targets::add ) ;
+        if( targets.isEmpty() ) {
+            return ;
+        }
+
+        List<String> synced = questionRepo.getQuestionList().stream()
+                .filter( Question::isSyncedToAnyServer )
+                .filter( q -> q.getQImgList().stream().anyMatch( targets::contains ) )
+                .map( q -> q.getQID().toString() )
+                .toList() ;
+        if( !synced.isEmpty() ) {
+            throw new IllegalStateException( "Synced questions can't change subject: " +
+                                             String.join( ", ", synced ) ) ;
+        }
+
+        // Compute the new file names upfront and check for clashes. A clash
+        // can be with an existing file or between two renamed images, e.g.
+        // P_SCA_1 and C_SCA_1 both becoming M_SCA_1.
+        Map<QuestionImage, QuestionImage> renamedMap = new IdentityHashMap<>() ;
+        Set<String> newFileNames = new HashSet<>() ;
+        List<String> clashes = new ArrayList<>() ;
+        for( QuestionImage qImg : targets ) {
+            QuestionImage renamed = qImg.getClone() ;
+            renamed.setSubjectCode( subjectCode ) ;
+            String newFileName = renamed.getLongFileName() ;
+            if( !newFileNames.add( newFileName ) ||
+                new File( extractedImgDir, newFileName ).exists() ) {
+                clashes.add( renamed.getShortFileNameWithoutExtension() ) ;
+            }
+            renamedMap.put( qImg, renamed ) ;
+        }
+        if( !clashes.isEmpty() ) {
+            throw new IllegalStateException( "Question images already exist for: " +
+                                             String.join( ", ", clashes ) ) ;
+        }
+
+        // Key is the new QID
+        Map<String, String> answers = new HashMap<>() ;
+        for( Question q : questionRepo.getQuestionList() ) {
+            if( q.getAnswer() == null ) continue ;
+            for( QuestionImage qImg : q.getOwnQImgList() ) {
+                if( targets.contains( qImg ) ) {
+                    answers.putIfAbsent( renamedMap.get( qImg ).getQId().toString(), q.getAnswer() ) ;
+                }
+            }
+        }
+
+        Map<QuestionImage, String> oldTagNames = new IdentityHashMap<>() ;
+        Set<PageImage> modifiedPages = new LinkedHashSet<>() ;
+        try {
+            for( QuestionImage qImg : targets ) {
+                File oldFile = qImg.getImgFile() ;
+                File newFile = new File( oldFile.getParentFile(), renamedMap.get( qImg ).getLongFileName() ) ;
+                FileUtils.moveFile( oldFile, newFile ) ;
+
+                oldTagNames.put( qImg, qImg.getImgRegionMetadata().getTag() ) ;
+                qImg.setSubjectCode( subjectCode ) ;
+                qImg.getImgRegionMetadata().setTag( qImg.getShortFileNameWithoutExtension() ) ;
+                qImg.setImgFile( newFile ) ;
+                modifiedPages.add( qImg.getPageImg() ) ;
+            }
+        }
+        catch( IOException e ) {
+            log.error( "Error renaming question image file.", e ) ;
+            showErrorMsg( "Failed to rename question image file. " +
+                          oldTagNames.size() + " of " + targets.size() + " images were renamed.", e ) ;
+        }
+        finally {
+            modifiedPages.forEach( PageImage::saveQuestionImgMetadata ) ;
+        }
+
+        questionRepo.refresh() ;
+        boolean answersCarried = false ;
+        for( Question q : questionRepo.getQuestionList() ) {
+            String answer = answers.get( q.getQID().toString() ) ;
+            if( answer != null && q.getAnswer() == null ) {
+                try {
+                    q.setAnswer( answer ) ;
+                    answersCarried = true ;
+                }
+                catch( Question.InvalidAnswerException e ) {
+                    log.error( "Could not carry over answer for {}", q.getQRef(), e ) ;
+                }
+            }
+        }
+        if( answersCarried ) {
+            questionRepo.saveInBackground() ;
+        }
+
+        oldTagNames.forEach( ( qImg, oldTagName ) -> listeners.forEach(
+                l -> l.questionTagNameChanged( qImg, oldTagName, qImg.getShortFileNameWithoutExtension() ) ) ) ;
+
+        log.info( "Changed subject of {} question images to {}", oldTagNames.size(), subjectCode ) ;
+    }
+
     public void questionImgDeleted( QuestionImage qImg ) {
         // Delete it from the model
         qImg.getPageImg().deleteQuestionImg( qImg ) ;

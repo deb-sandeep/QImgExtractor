@@ -299,6 +299,17 @@ public class ImageScraperUI extends JPanel
         projectModel.getState().setImgCuttingWip( true ) ;
     }
     
+    public void changeSubject( List<QuestionImage> qImgs, String subjectCode ) {
+        try {
+            projectModel.changeSubject( qImgs, subjectCode ) ;
+            projectModel.getState().setImgCuttingWip( true ) ;
+        }
+        catch( IllegalStateException e ) {
+            log.error( "Failed to change subject to {}", subjectCode, e ) ;
+            showErrorMsg( this, e.getMessage() ) ;
+        }
+    }
+
     public void questionImgTagNameChanged( QuestionImage qImg, String newTagName ) {
         projectModel.questionImgTagNameChanged( qImg, newTagName ) ;
         projectModel.getState().setImgCuttingWip( true ) ;

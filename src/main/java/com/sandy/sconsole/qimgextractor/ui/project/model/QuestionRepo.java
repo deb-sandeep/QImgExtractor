@@ -63,6 +63,10 @@ public class QuestionRepo {
 
             syncWithPersistedState() ;
         }
+        saveInBackground() ;
+    }
+
+    void saveInBackground() {
         new SwingWorker<>() {
             protected Void doInBackground() {
                 save() ;
