@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.sandy.sconsole.qimgextractor.util.AppUtil.confirmDestructiveAction;
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
 
 @Component
@@ -74,14 +75,90 @@ public class ProjectModel {
         log.info( "    Images dir  : <project-dir>/{}", extractedImgDir.getName() ) ;
         log.info( "    Loading pages...." ) ;
         
+        // Every step below that would drop metadata or delete files asks the
+        // user first. Declining a step throws ProjectLoadAbortedException
+        // before that step writes anything; overwritten metadata files are
+        // kept as .bak copies.
         loadPageImages() ;
+        confirmDroppingInvalidRegions() ;
         if( appConfig.isRepairProjectOnStartup() ) {
             log.info( "    Repairing project artefacts...." ) ;
             repairProjectArtefacts() ;
         }
-        
+
         log.info( "    Initializing question repo...." ) ;
         this.questionRepo = new QuestionRepo( this ) ;
+        confirmDroppingOrphanedQuestions() ;
+        this.questionRepo.refresh() ;
+    }
+
+    // Regions that could not be loaded (image missing, unparseable name) or
+    // regions files that could not be read at all are dropped when the page
+    // metadata is next saved.
+    private void confirmDroppingInvalidRegions() {
+
+        List<String> details = new ArrayList<>() ;
+        List<PageImage> affectedPages = new ArrayList<>() ;
+        for( PageImage pageImg : pageImages ) {
+            if( pageImg.getMetadataReadError() != null ) {
+                details.add( pageImg.getRegionsFileName() + " : unreadable (" +
+                             pageImg.getMetadataReadError() + ")" ) ;
+                affectedPages.add( pageImg ) ;
+            }
+            else if( !pageImg.getRejectedRegions().isEmpty() ) {
+                for( String rejected : pageImg.getRejectedRegions() ) {
+                    details.add( pageImg.getRegionsFileName() + " : " + rejected ) ;
+                }
+                affectedPages.add( pageImg ) ;
+            }
+        }
+        if( details.isEmpty() ) {
+            return ;
+        }
+
+        boolean proceed = confirmDestructiveAction( "Invalid Region Metadata",
+                details.size() + " question region(s) could not be loaded and will be " +
+                "removed from the page metadata.\n" +
+                "A .bak copy of each affected regions file will be kept.",
+                details ) ;
+        if( !proceed ) {
+            throw new ProjectLoadAbortedException( details.size() + " invalid question region(s)" ) ;
+        }
+
+        for( PageImage pageImg : affectedPages ) {
+            try {
+                pageImg.backupAndSaveQuestionImgMetadata() ;
+            }
+            catch( IOException e ) {
+                throw new ProjectLoadAbortedException( "Could not back up " +
+                        pageImg.getRegionsFileName() + " : " + e.getMessage() ) ;
+            }
+        }
+    }
+
+    private void confirmDroppingOrphanedQuestions() {
+
+        List<String> orphans = questionRepo.findPersistedQIdsWithoutImages() ;
+        if( orphans.isEmpty() ) {
+            return ;
+        }
+
+        boolean proceed = confirmDestructiveAction( "Questions Without Images",
+                orphans.size() + " question(s) in question-info.json have no question " +
+                "image in this project.\n" +
+                "Their answers, topics and sync information will be removed.\n" +
+                "A .bak copy of question-info.json will be kept.",
+                orphans ) ;
+        if( !proceed ) {
+            throw new ProjectLoadAbortedException( orphans.size() + " question(s) without images" ) ;
+        }
+
+        try {
+            questionRepo.backupPersistenceFile() ;
+        }
+        catch( IOException e ) {
+            throw new ProjectLoadAbortedException( "Could not back up question-info.json : " + e.getMessage() ) ;
+        }
     }
     
     // Assumption: Once a project has been loaded, no new pages can be added
@@ -187,8 +264,17 @@ public class ProjectModel {
                 toDelete.remove( subImgFile ) ;
             }
         }
-        
+
         if( !toDelete.isEmpty() ) {
+            List<String> names = toDelete.stream().map( File::getName ).sorted().toList() ;
+            boolean proceed = confirmDestructiveAction( "Delete Extraneous Images",
+                    toDelete.size() + " file(s) in question-images have no matching " +
+                    "region metadata and will be permanently deleted.",
+                    names ) ;
+            if( !proceed ) {
+                throw new ProjectLoadAbortedException( toDelete.size() + " extraneous image file(s)" ) ;
+            }
+
             for( File file : toDelete ) {
                 if( file.delete() ) {
                     log.warn( "      Deleted extraneous image file: <img-dir>/{}", file.getName() ) ;

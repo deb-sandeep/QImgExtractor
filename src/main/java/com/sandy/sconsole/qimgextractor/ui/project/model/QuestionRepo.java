@@ -9,6 +9,7 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 import javax.swing.*;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -20,10 +21,53 @@ public class QuestionRepo {
     @Getter
     private final List<Question> questionList = new ArrayList<>() ;
     
+    // The repo is empty until refresh() is called. This lets the project model
+    // check findPersistedQIdsWithoutImages() before the first refresh rewrites
+    // question-info.json.
     QuestionRepo( ProjectModel projectModel ) {
         this.projectModel = projectModel ;
         this.persistenceFile = new File( projectModel.getWorkDir(), "question-info.json" ) ;
-        refresh() ;
+    }
+
+    // Questions saved in question-info.json that have no question image in the
+    // project. A refresh drops them from the file along with their answers,
+    // topics and sync information.
+    List<String> findPersistedQIdsWithoutImages() {
+        List<String> orphans = new ArrayList<>() ;
+        if( !persistenceFile.exists() ) {
+            return orphans ;
+        }
+
+        Set<String> currentQIds = new HashSet<>() ;
+        for( PageImage pageImg : projectModel.getPageImages() ) {
+            for( QuestionImage qImg : pageImg.getQImgList() ) {
+                currentQIds.add( qImg.getQId().toString() ) ;
+            }
+        }
+
+        try {
+            String content = FileUtils.readFileToString( persistenceFile, "UTF-8" ) ;
+            JSONArray questions = new JSONObject( content ).getJSONArray( "questions" ) ;
+            for( int i = 0; i < questions.length(); i++ ) {
+                String qid = questions.getJSONObject( i ).getString( "qid" ) ;
+                if( !currentQIds.contains( qid ) ) {
+                    orphans.add( qid ) ;
+                }
+            }
+        }
+        catch( Exception e ) {
+            log.error( "Error reading persisted questions", e ) ;
+            orphans.add( "question-info.json could not be read (" + e.getMessage() +
+                         ") - it will be overwritten" ) ;
+        }
+        return orphans ;
+    }
+
+    void backupPersistenceFile() throws IOException {
+        if( persistenceFile.exists() ) {
+            FileUtils.copyFile( persistenceFile,
+                                new File( persistenceFile.getParentFile(), persistenceFile.getName() + ".bak" ) ) ;
+        }
     }
     
     void refresh() {

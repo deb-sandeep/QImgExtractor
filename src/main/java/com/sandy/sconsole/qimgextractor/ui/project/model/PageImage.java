@@ -9,6 +9,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import java.awt.*;
 import java.io.*;
@@ -40,7 +41,13 @@ public class PageImage implements Comparable<PageImage> {
     @Getter private final int pageNumber ; // Derived
     
     @Getter private final List<QuestionImage> qImgList = new ArrayList<>() ;
-    
+
+    // Problems found while loading the regions file. Neither is written back
+    // to disk on load - the project model asks the user first, since saving
+    // would permanently drop the affected region metadata.
+    @Getter private final List<String> rejectedRegions = new ArrayList<>() ;
+    @Getter private String metadataReadError = null ;
+
     @Getter @Setter
     private PageImageState state = null ;
     
@@ -60,29 +67,45 @@ public class PageImage implements Comparable<PageImage> {
                 List<SelectedRegionMetadata> regionMetaList = mapper.readValue( qImgMetaFile, new TypeReference<>() {} );
                 
                 for( SelectedRegionMetadata metadata : regionMetaList ) {
-                    addQuestionImg( metadata ) ;
+                    String problem = validateQuestionMetadata( metadata ) ;
+                    if( problem == null ) {
+                        File imgFile = getQuestionImgFile( metadata ) ;
+                        addQuestionImg( new QuestionImage( this, imgFile, metadata ), false ) ;
+                    }
+                    else {
+                        rejectedRegions.add( metadata.getTag() + " : " + problem ) ;
+                    }
                 }
                 Collections.sort( qImgList ) ;
-                saveQuestionImgMetadata() ;
+                if( rejectedRegions.isEmpty() ) {
+                    saveQuestionImgMetadata() ;
+                }
             }
             catch( Exception e ) {
                 log.error( "Error reading image info.", e ) ;
-                showErrorMsg( "Error reading image info", e ) ;
+                metadataReadError = e.getMessage() ;
             }
         }
+    }
+
+    // Saves the region metadata after keeping a copy of the file as it was
+    // on disk. Used when the user agrees to drop rejected/unreadable regions.
+    public void backupAndSaveQuestionImgMetadata() throws IOException {
+        File metadataFile = getQuestionImgMetadataFile() ;
+        if( metadataFile.exists() ) {
+            File backup = new File( metadataFile.getParentFile(), metadataFile.getName() + ".bak" ) ;
+            FileUtils.copyFile( metadataFile, backup ) ;
+        }
+        saveQuestionImgMetadata() ;
+    }
+
+    public String getRegionsFileName() {
+        return getQuestionImgMetadataFile().getName() ;
     }
     
     private File getQuestionImgMetadataFile() {
         return new File( projectModel.getWorkDir(),
                          stripExtension( imgFile ) + ".regions.json" );
-    }
-    
-    private void addQuestionImg( SelectedRegionMetadata imgRegionMetadata ) {
-        if( isQuestionMetadataValid( imgRegionMetadata ) ) {
-            File imgFile = getQuestionImgFile( imgRegionMetadata ) ;
-            QuestionImage qImg = new QuestionImage( this, imgFile, imgRegionMetadata ) ;
-            addQuestionImg( qImg, false ) ;
-        }
     }
     
     public void addQuestionImg( QuestionImage qImg, boolean persistMetadata ) {
@@ -100,24 +123,25 @@ public class PageImage implements Comparable<PageImage> {
     // Sub-image information is valid when
     // 1 - The corresponding file exists
     // 2 - The name of the corresponding file is of valid syntax
-    private boolean isQuestionMetadataValid( SelectedRegionMetadata regionMetadata ) {
-        
+    // Returns null if valid, else a description of the problem.
+    private String validateQuestionMetadata( SelectedRegionMetadata regionMetadata ) {
+
         // Validation 1: The file for this question-image exists
         File qImgFile = getQuestionImgFile( regionMetadata ) ;
         if( !qImgFile.exists() ) {
             log.error( "Question image does not exist: {}", qImgFile.getName() ) ;
-            return false ;
+            return "image file not found (" + qImgFile.getName() + ")" ;
         }
-        
+
         // Validation 2: The name of the file is syntactically valid
         try {
             new QuestionImage( this, qImgFile, regionMetadata ) ;
         }
         catch( Exception e ) {
             log.error( "Sub image name is not syntactically valid: {}", qImgFile.getName(), e ) ;
-            return false ;
+            return "name not valid (" + e.getMessage() + ")" ;
         }
-        return true ;
+        return null ;
     }
     
     public void saveQuestionImgMetadata() {

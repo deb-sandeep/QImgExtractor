@@ -5,6 +5,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.MessageStatusComponent;
 import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectLoadAbortedException;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.util.ProjectDirectoryView;
 import com.sandy.sconsole.qimgextractor.ui.util.ProjectDirectoryFileSystemView;
@@ -113,8 +114,18 @@ public class MainFrame extends JFrame {
         log.info( "## Opening project: {} ...", projectDir.getAbsolutePath() );
         if( isValidProjectDir( projectDir ) ) {
             closeCurrentProject() ;
-            
-            projectModel.initialize( projectDir ) ;
+
+            try {
+                projectModel.initialize( projectDir ) ;
+            }
+            catch( ProjectLoadAbortedException e ) {
+                log.warn( "## Project load aborted: {}", e.getMessage() ) ;
+                JOptionPane.showMessageDialog( this,
+                        "Project load aborted: " + e.getMessage() + ".\n" +
+                        "The declined change was not made.",
+                        "Load Aborted", JOptionPane.INFORMATION_MESSAGE ) ;
+                return ;
+            }
             currentProjectPanel = new ProjectPanel( this, projectModel ) ;
             appMenuBar.setCurrentProjectPanel( currentProjectPanel ) ;
             super.setTitle( projectDir.getName() ) ;

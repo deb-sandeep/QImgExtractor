@@ -8,6 +8,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.List;
 
 public class AppUtil {
     
@@ -19,6 +20,29 @@ public class AppUtil {
         return fileName ;
     }
     
+    // Asks the user to confirm an operation that will delete files or drop
+    // persisted data. The details list the affected items. Returns true only
+    // if the user explicitly chooses to proceed - closing the dialog aborts.
+    public static boolean confirmDestructiveAction( String title, String msg,
+                                                    List<String> details ) {
+        JTextArea textArea = new JTextArea( String.join( "\n", details ) ) ;
+        textArea.setEditable( false ) ;
+        textArea.setColumns( 70 ) ;
+        textArea.setRows( Math.min( Math.max( details.size(), 3 ), 15 ) ) ;
+
+        JPanel panel = new JPanel( new BorderLayout( 0, 8 ) ) ;
+        panel.add( new JLabel( "<html>" + msg.replace( "\n", "<br>" ) + "</html>" ), BorderLayout.NORTH ) ;
+        panel.add( new JScrollPane( textArea ), BorderLayout.CENTER ) ;
+
+        Object[] options = { "Proceed", "Abort" } ;
+        MainFrame frame = QImgExtractor.getBean( MainFrame.class ) ;
+        int choice = JOptionPane.showOptionDialog( frame, panel, title,
+                                                   JOptionPane.YES_NO_OPTION,
+                                                   JOptionPane.WARNING_MESSAGE,
+                                                   null, options, options[1] ) ;
+        return choice == 0 ;
+    }
+
     public static void showErrorMsg( String msg ) {
         MainFrame frame = QImgExtractor.getBean( MainFrame.class ) ;
         showErrorMsg( frame, msg ) ;
