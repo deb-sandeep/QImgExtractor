@@ -46,6 +46,7 @@ public class ImageScraperUI extends JPanel
     
     private final ImgSaveDialog saveDialog ;
     private final CloseableTabbedPane tabPane;
+    private final PageQuestionTreePanel treePanel ;
     
     private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>() ;
     private final ExecutorService executor = Executors.newFixedThreadPool( 1 ) ;
@@ -63,6 +64,7 @@ public class ImageScraperUI extends JPanel
         this.mainFrame = projectPanel.getMainFrame() ;
         this.saveDialog = new ImgSaveDialog( projectModel ) ;
         this.tabPane = new CloseableTabbedPane() ;
+        this.treePanel = new PageQuestionTreePanel( this ) ;
         
         setUpUI() ;
     }
@@ -74,7 +76,7 @@ public class ImageScraperUI extends JPanel
         tabPane.addTabCloseListener( (tabIndex, component ) -> tabClosing( component ) ) ;
         
         add( tabPane, BorderLayout.CENTER ) ;
-        add( new PageQuestionTreePanel( this ), BorderLayout.WEST ) ;
+        add( treePanel, BorderLayout.WEST ) ;
     }
     
     public void loadPageImages() {
@@ -439,17 +441,27 @@ public class ImageScraperUI extends JPanel
     public void toggleAnswerKeyMarkerForActivePage() {
         ImgExtractorPanel curPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
         if( curPanel != null ) {
-            boolean hasAnswerKeys = curPanel.getPageImg().getState().isHasAnswerKeys() ;
-            curPanel.getPageImg().getState().setHasAnswerKeys( !hasAnswerKeys ) ;
-            projectModel.savePageState() ;
-            
-            if( curPanel.getPageImg().getState().isHasAnswerKeys() ) {
-                tabPane.raiseAlert( curPanel ) ;
+            toggleAnswerKeyMarker( curPanel.getPageImg() ) ;
+        }
+    }
+    
+    public void toggleAnswerKeyMarker( PageImage pageImg ) {
+        boolean hasAnswerKeys = !pageImg.getState().isHasAnswerKeys() ;
+        pageImg.getState().setHasAnswerKeys( hasAnswerKeys ) ;
+        projectModel.savePageState() ;
+        
+        // The page might not be open in a tab, in which case only the
+        // tree needs to reflect the change.
+        ImgExtractorPanel panel = panelMap.get( pageImg ) ;
+        if( panel != null ) {
+            if( hasAnswerKeys ) {
+                tabPane.raiseAlert( panel ) ;
             }
             else {
-                tabPane.lowerAlert( curPanel ) ;
+                tabPane.lowerAlert( panel ) ;
             }
         }
+        treePanel.getTree().repaint() ;
     }
 
     // This method is called just before the panel is made visible. Can be used

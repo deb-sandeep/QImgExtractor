@@ -112,14 +112,18 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         JMenuItem closeTab = new JMenuItem( "Close Tab" ) ;
         JMenuItem closeRemaining = new JMenuItem( "Close Remaining Tabs" ) ;
         JMenuItem openRemaining = new JMenuItem( "Open Remaining Tabs" ) ;
+        JMenuItem toggleAnsMarker = new JMenuItem( "Toggle Ans Marker" ) ;
         
         closeTab.addActionListener( this ) ;
         closeRemaining.addActionListener( this ) ;
         openRemaining.addActionListener( this ) ;
+        toggleAnsMarker.addActionListener( this ) ;
         
         popup.add( closeTab ) ;
         popup.add( closeRemaining ) ;
         popup.add( openRemaining ) ;
+        popup.addSeparator() ;
+        popup.add( toggleAnsMarker ) ;
         return popup;
     }
     
@@ -238,6 +242,7 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
             case "Close Tab" -> parentPanel.closePageImageTab( (PageImage )userObject ) ;
             case "Close Remaining Tabs" -> parentPanel.closeAllRemainingTabs( (PageImage )userObject ) ;
             case "Open Remaining Tabs" -> parentPanel.openAllRemainingTabs( (PageImage)userObject ) ;
+            case "Toggle Ans Marker" -> parentPanel.toggleAnswerKeyMarker( (PageImage)userObject ) ;
         }
     }
     
