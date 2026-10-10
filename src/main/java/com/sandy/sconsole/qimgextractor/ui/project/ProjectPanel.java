@@ -64,6 +64,11 @@ public class ProjectPanel extends JPanel {
         imgScraperUI.loadPageImages() ;
     }
     
+    public void showQuestionImage( String qImgFileName ) {
+        activateQuestionScraperUI() ;
+        imgScraperUI.showQuestionImage( qImgFileName ) ;
+    }
+    
     public void destroy() {
         this.imgScraperUI.destroy() ;
     }

@@ -193,6 +193,11 @@ public class ImgExtractorPanel extends JPanel
         listener.selectedRegionAdded( pageImg, newRegionInfo ) ;
     }
     
+    public boolean scrollToRegion( String tag ) {
+        validate() ;
+        return imgCanvas.scrollToRegion( tag ) ;
+    }
+
     public void setModeStatus( String mode) {
         modeStatus.log( mode ) ;
     }

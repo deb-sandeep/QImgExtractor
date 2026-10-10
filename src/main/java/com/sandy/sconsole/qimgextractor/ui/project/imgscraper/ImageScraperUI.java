@@ -50,6 +50,12 @@ public class ImageScraperUI extends JPanel
     private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>() ;
     private final ExecutorService executor = Executors.newFixedThreadPool( 1 ) ;
     
+    // Navigation requests (from remote commands) which arrive while the page
+    // images are still being loaded are parked here and served once the
+    // load completes. Accessed only on the EDT.
+    private boolean pageImagesLoaded = false ;
+    private String pendingQImgFileName = null ;
+    
     public ImageScraperUI( ProjectPanel projectPanel ) {
         
         this.projectPanel = projectPanel ;
@@ -104,6 +110,13 @@ public class ImageScraperUI extends JPanel
                 mainFrame.logStausMsg( "Page images loaded." ) ;
                 projectModel.getContext().setPauseSavePageState( false ) ;
                 projectModel.savePageState() ;
+                
+                pageImagesLoaded = true ;
+                if( pendingQImgFileName != null ) {
+                    String qImgFileName = pendingQImgFileName ;
+                    pendingQImgFileName = null ;
+                    showQuestionImage( qImgFileName ) ;
+                }
             }
         }.execute() ;
     }
@@ -328,6 +341,55 @@ public class ImageScraperUI extends JPanel
                 invokeLater( () -> tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ) ;
             }
         }) ;
+    }
+    
+    // Selects the tab of the page containing the question image and scrolls
+    // the page so that the question region is visible. The file name is of
+    // the format <srcId>.<pageNum>.<tagName>[(<partNumber>)].png
+    // Must be called on the EDT.
+    public void showQuestionImage( String qImgFileName ) {
+        if( !pageImagesLoaded ) {
+            pendingQImgFileName = qImgFileName ;
+            return ;
+        }
+        
+        QuestionImage qImg = findQuestionImage( qImgFileName ) ;
+        if( qImg == null ) {
+            log.warn( "Question image {} not found in project.", qImgFileName ) ;
+            mainFrame.logStausMsg( "Question image not found : " + qImgFileName ) ;
+            return ;
+        }
+        
+        PageImage pageImg = qImg.getPageImg() ;
+        String tag = qImg.getImgRegionMetadata().getTag() ;
+        if( !panelMap.containsKey( pageImg ) ) {
+            // Adds the tab asynchronously, hence the selection below is
+            // done in a subsequent EDT task.
+            loadPageImg( pageImg ) ;
+        }
+        
+        invokeLater( () -> {
+            ImgExtractorPanel panel = panelMap.get( pageImg ) ;
+            if( panel == null ) return ;
+            tabPane.setSelectedComponent( panel ) ;
+            invokeLater( () -> {
+                if( !panel.scrollToRegion( tag ) ) {
+                    log.warn( "Region {} not found on page {}.", tag, pageImg.getImgFile().getName() ) ;
+                }
+            } ) ;
+            mainFrame.logStausMsg( "Showing question image : " + qImgFileName ) ;
+        } ) ;
+    }
+    
+    private QuestionImage findQuestionImage( String qImgFileName ) {
+        for( PageImage pageImg : projectModel.getPageImages() ) {
+            for( QuestionImage qImg : pageImg.getQImgList() ) {
+                if( qImg.getImgFile().getName().equals( qImgFileName ) ) {
+                    return qImg ;
+                }
+            }
+        }
+        return null ;
     }
     
     public void showNextTab() {

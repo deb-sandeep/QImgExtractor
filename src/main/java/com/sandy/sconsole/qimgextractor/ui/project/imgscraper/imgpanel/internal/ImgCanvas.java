@@ -157,6 +157,18 @@ public class ImgCanvas extends JLabel {
         return regionSelector.containsTag( tagName ) ;
     }
     
+    // Scrolls the enclosing viewport (only if required) so that the region
+    // with the given tag is visible. Returns false if the tag is not found.
+    public boolean scrollToRegion( String tag ) {
+        Rectangle bounds = regionSelector.getRegionBounds( tag ) ;
+        if( bounds == null ) {
+            return false ;
+        }
+        bounds.grow( 20, 20 ) ;
+        scrollRectToVisible( bounds ) ;
+        return true ;
+    }
+
     public void deleteSelectedRegion( String tag ) {
         regionSelector.deleteSelectedRegion( tag ) ;
     }

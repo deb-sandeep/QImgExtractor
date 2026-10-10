@@ -110,6 +110,28 @@ public class MainFrame extends JFrame {
         }
     }
     
+    // Invoked on the EDT in response to a remote command. Opens the project
+    // (closing the active one) unless it is already open, brings the page
+    // containing the question image into view and scrolls to the image.
+    public void showQuestionImage( File projectDir, String qImgFileName ) {
+        if( getExtendedState() == Frame.ICONIFIED ) {
+            setExtendedState( Frame.NORMAL ) ;
+        }
+        toFront() ;
+        
+        boolean projectAlreadyOpen = currentProjectPanel != null &&
+                projectModel.getBaseDir().getAbsoluteFile().equals( projectDir.getAbsoluteFile() ) ;
+        if( !projectAlreadyOpen ) {
+            openProject( projectDir ) ;
+        }
+        
+        // currentProjectPanel is null if the project load was aborted.
+        if( currentProjectPanel != null &&
+            projectModel.getBaseDir().getAbsoluteFile().equals( projectDir.getAbsoluteFile() ) ) {
+            currentProjectPanel.showQuestionImage( qImgFileName ) ;
+        }
+    }
+    
     public void openProject( File projectDir ) {
         log.info( "## Opening project: {} ...", projectDir.getAbsolutePath() );
         if( isValidProjectDir( projectDir ) ) {

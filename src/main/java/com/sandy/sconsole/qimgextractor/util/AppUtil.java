@@ -118,6 +118,31 @@ public class AppUtil {
         return false ;
     }
     
+    // Searches the directory tree under baseDir for a valid project directory
+    // with the given name. Project directories are not descended into.
+    // Returns null if no such project is found.
+    public static File findProjectDir( File baseDir, String projectName ) {
+        File[] subDirs = baseDir.listFiles( f -> f.isDirectory() && !f.isHidden() ) ;
+        if( subDirs == null ) {
+            return null ;
+        }
+        for( File dir : subDirs ) {
+            boolean isProjectDir = new File( dir, "pages" ).isDirectory() ;
+            if( isProjectDir ) {
+                if( dir.getName().equals( projectName ) && isValidProjectDir( dir ) ) {
+                    return dir ;
+                }
+            }
+            else {
+                File projectDir = findProjectDir( dir, projectName ) ;
+                if( projectDir != null ) {
+                    return projectDir ;
+                }
+            }
+        }
+        return null ;
+    }
+
     public static String getHash( String input ) {
         return new String( Hex.encodeHex( DigestUtils.md5( input ) ) ) ;
     }

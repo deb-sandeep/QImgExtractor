@@ -238,6 +238,17 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         }
         return false ;
     }
+
+    // Returns the bounds of the region in the (scaled) canvas coordinates,
+    // or null if no region with the given tag exists.
+    public Rectangle getRegionBounds( String tagName ) {
+        for( SelectedRegion region : oldRegions ) {
+            if( region.getTag().equals( tagName ) ) {
+                return new Rectangle( region.getRegionBounds() ) ;
+            }
+        }
+        return null ;
+    }
     
     public void toggleVMarkSelectionMode() {
         setVMarkSelectionMode( !inVMarkSelectionMode ) ;
