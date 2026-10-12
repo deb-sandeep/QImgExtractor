@@ -86,36 +86,39 @@ public class AnswerTableModel extends DefaultTableModel {
         return "" ;
     }
     
+    // A single line of input fills the column downwards from the edited
+    // cell. With multi-line input, the first line fills the edited column
+    // from the edited cell and each subsequent line fills the next answer
+    // column from the top.
     @Override
     public void setValueAt( Object value, int row, int col ) {
-        if( value instanceof String ansText ) {
-            Stack<String> ansStack = new Stack<>() ;
-            if( ansText.indexOf( ' ' ) != -1 ) {
-                String[] parts = ansText.split( " " ) ;
-                for( int i=parts.length-1; i>=0; i-- ) {
-                    String part = parts[i].trim() ;
-                    if( !part.isEmpty() ) {
-                        ansStack.push( part.trim() ) ;
-                    }
-                }
+        if( value instanceof String text ) {
+            List<String> lines = text.lines()
+                                     .map( String::trim )
+                                     .filter( l -> !l.isEmpty() )
+                                     .toList() ;
+            if( lines.isEmpty() ) {
+                lines = List.of( text ) ;
             }
-            else if( ansText.length() > 3 && ansText.matches( "[A-Da-d1-4]+" ) ) {
-                for( int i=ansText.length()-1; i>=0; i-- ) {
-                    char c =  ansText.charAt( i ) ;
-                    if( c == 'a' || c == 'b' || c == 'c' || c == 'd' ) {
-                        c = Character.toUpperCase( c ) ;
-                    }
-                    ansStack.push( c + "" ) ;
-                }
-            }
-            else {
-                ansStack.push( ansText ) ;
+            
+            int lastAnsCol = col + 2*(lines.size()-1) ;
+            if( lastAnsCol >= COL_COUNT ) {
+                AppUtil.showErrorMsg( lines.size() + " lines of input but only " +
+                        ((COL_COUNT-col)/2) + " answer column(s) to fill." ) ;
+                return ;
             }
             
             try {
-                while( !ansStack.isEmpty() ) {
-                    setRawAnswer( row, col, ansStack ) ;
-                    row++ ;
+                for( String line : lines ) {
+                    Stack<String> ansStack = tokenizeAnswers( line ) ;
+                    while( !ansStack.isEmpty() ) {
+                        setRawAnswer( row, col, ansStack ) ;
+                        row++ ;
+                    }
+                    if( col < lastAnsCol ) {
+                        row = 0 ;
+                        col += 2 ;
+                    }
                 }
                 table.setSelectedCell( row, col ) ;
                 projectModel.getQuestionRepo().save() ;
@@ -124,6 +127,34 @@ public class AnswerTableModel extends DefaultTableModel {
                 AppUtil.showErrorMsg( e.getMessage() ) ;
             }
         }
+    }
+    
+    // Splits the text by spaces if it has any, else into characters if it
+    // is a run of SCA options. The first answer is at the top of the stack.
+    private Stack<String> tokenizeAnswers( String ansText ) {
+        Stack<String> ansStack = new Stack<>() ;
+        if( ansText.indexOf( ' ' ) != -1 ) {
+            String[] parts = ansText.split( " " ) ;
+            for( int i=parts.length-1; i>=0; i-- ) {
+                String part = parts[i].trim() ;
+                if( !part.isEmpty() ) {
+                    ansStack.push( part.trim() ) ;
+                }
+            }
+        }
+        else if( ansText.length() > 3 && ansText.matches( "[A-Da-d1-4]+" ) ) {
+            for( int i=ansText.length()-1; i>=0; i-- ) {
+                char c =  ansText.charAt( i ) ;
+                if( c == 'a' || c == 'b' || c == 'c' || c == 'd' ) {
+                    c = Character.toUpperCase( c ) ;
+                }
+                ansStack.push( c + "" ) ;
+            }
+        }
+        else {
+            ansStack.push( ansText ) ;
+        }
+        return ansStack ;
     }
     
     public Question getQuestionAt( int row, int column ) {

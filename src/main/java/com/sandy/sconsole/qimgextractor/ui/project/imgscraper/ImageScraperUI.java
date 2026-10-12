@@ -57,6 +57,10 @@ public class ImageScraperUI extends JPanel
     private boolean pageImagesLoaded = false ;
     private String pendingQImgFileName = null ;
     
+    // When true, all page panels (including ones opened later) are zoomed
+    // so that the complete page height is visible.
+    private boolean fitPageZoom = false ;
+    
     public ImageScraperUI( ProjectPanel projectPanel ) {
         
         this.projectPanel = projectPanel ;
@@ -155,6 +159,9 @@ public class ImageScraperUI extends JPanel
             tabPane.addTab( file.getName(), imgPanel ) ;
             if( pageImg.getState().isHasAnswerKeys() ) {
                 tabPane.raiseAlert( imgPanel ) ;
+            }
+            if( fitPageZoom ) {
+                imgPanel.zoomToFitHeight( getImgViewportHeight() ) ;
             }
         } ) ;
     }
@@ -464,6 +471,31 @@ public class ImageScraperUI extends JPanel
         treePanel.getTree().repaint() ;
     }
 
+    public void zoomAllToFitPage() {
+        fitPageZoom = true ;
+        int viewportHeight = getImgViewportHeight() ;
+        panelMap.values().forEach( p -> p.zoomToFitHeight( viewportHeight ) ) ;
+    }
+    
+    public void zoomAllToDefault() {
+        fitPageZoom = false ;
+        panelMap.values().forEach( ImgExtractorPanel::zoomToDefault ) ;
+    }
+    
+    // All tabs share the same size, but only the selected one is guaranteed
+    // to have been laid out, so prefer it and fall back to any laid out panel.
+    private int getImgViewportHeight() {
+        ImgExtractorPanel selPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
+        if( selPanel != null && selPanel.getImgViewportHeight() > 0 ) {
+            return selPanel.getImgViewportHeight() ;
+        }
+        return panelMap.values().stream()
+                       .mapToInt( ImgExtractorPanel::getImgViewportHeight )
+                       .filter( h -> h > 0 )
+                       .findFirst()
+                       .orElse( 0 ) ;
+    }
+    
     // This method is called just before the panel is made visible. Can be used
     // to update the UI state based on any changes that have happened through
     // other project modules.

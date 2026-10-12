@@ -51,6 +51,7 @@ public class AnswerTable extends JTable {
         
         decorateTableHeader() ;
         setColumnWidths() ;
+        setMultiLineCellEditor() ;
         
         this.popupMenu = createPopupMenu() ;
         addTableListeners() ;
@@ -158,6 +159,14 @@ public class AnswerTable extends JTable {
         header.setForeground( Color.WHITE ) ;
         header.setPreferredSize( new Dimension(header.getWidth(), 20 ) ) ;
         header.setResizingAllowed( false );
+    }
+    
+    // The default editor's text field turns pasted newlines into spaces.
+    // Keep them so that multi-line input can be spread across columns.
+    private void setMultiLineCellEditor() {
+        JTextField editorField = new JTextField() ;
+        editorField.getDocument().putProperty( "filterNewlines", Boolean.FALSE ) ;
+        super.setDefaultEditor( Object.class, new DefaultCellEditor( editorField ) ) ;
     }
     
     private void setColumnWidths() {

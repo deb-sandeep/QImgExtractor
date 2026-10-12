@@ -42,6 +42,13 @@ public class ImgExtractorPanel extends JPanel
     
     @Getter private PageImage pageImg = null ;
     
+    private int origImgHeight = 0 ;
+    private int defaultScaleSliderVal = 50 ;
+    
+    // Set while the slider is being moved programmatically to reflect a
+    // scale factor which has already been applied to the canvas.
+    private boolean suppressSliderEvents = false ;
+    
     public ImgExtractorPanel( ImgCanvasListener listener ) {
         super( new BorderLayout() ) ;
         this.listener = listener ;
@@ -130,9 +137,11 @@ public class ImgExtractorPanel extends JPanel
             BufferedImage img = ImageIO.read( pageImg.getImgFile() ) ;
             imgCanvas.setOriginalImage( img, pageImg.getSelectedRegionsMetadataList() ) ;
             
+            origImgHeight = img.getHeight() ;
+            
             double sf = ( double )preferredImgWidth / img.getWidth() ;
-            int sliderVal = convertScaleFactorToSliderValue( sf ) ;
-            this.imgScaleSlider.setValue( sliderVal ) ;
+            defaultScaleSliderVal = convertScaleFactorToSliderValue( sf ) ;
+            this.imgScaleSlider.setValue( defaultScaleSliderVal ) ;
             
             fileNameStatus.log( pageImg.getImgFile().getName() ) ;
         }
@@ -143,12 +152,55 @@ public class ImgExtractorPanel extends JPanel
     
     public void stateChanged( ChangeEvent c ) {
         
-        if( !this.imgScaleSlider.getValueIsAdjusting() ) {
-            
-            double scaleFactor = convertSliderValueToScaleFactor( this.imgScaleSlider.getValue() ) ;
-            this.imgCanvas.scaleImage( scaleFactor ) ;
-            this.imgScrollPane.setViewportView( imgCanvas ) ;
-            this.sliderValueLabel.setText( String.format( "%.0f%%", scaleFactor*100 ) ) ;
+        if( !suppressSliderEvents && !this.imgScaleSlider.getValueIsAdjusting() ) {
+            applyScaleFactor( convertSliderValueToScaleFactor( this.imgScaleSlider.getValue() ) ) ;
+        }
+    }
+    
+    private void applyScaleFactor( double scaleFactor ) {
+        this.imgCanvas.scaleImage( scaleFactor ) ;
+        this.imgScrollPane.setViewportView( imgCanvas ) ;
+        this.sliderValueLabel.setText( String.format( "%.0f%%", scaleFactor*100 ) ) ;
+    }
+    
+    /**
+     * Height available to the image inside the scroll pane, excluding the
+     * scroll pane border. Returns 0 if this panel has not been laid out yet.
+     */
+    public int getImgViewportHeight() {
+        Insets insets = imgScrollPane.getInsets() ;
+        return Math.max( 0, imgScrollPane.getHeight() - insets.top - insets.bottom ) ;
+    }
+    
+    /**
+     * Zooms the image such that its full height fits the given viewport
+     * height. The slider can only represent discrete zoom levels, so the
+     * exact scale factor is applied to the canvas and the slider is moved
+     * to the nearest level without triggering a rescale.
+     */
+    public void zoomToFitHeight( int viewportHeight ) {
+        if( origImgHeight <= 0 || viewportHeight <= 0 ) return ;
+        
+        double scaleFactor = ( double )viewportHeight / origImgHeight ;
+        applyScaleFactor( scaleFactor ) ;
+        
+        suppressSliderEvents = true ;
+        try {
+            imgScaleSlider.setValue( convertScaleFactorToSliderValue( scaleFactor ) ) ;
+        }
+        finally {
+            suppressSliderEvents = false ;
+        }
+    }
+    
+    public void zoomToDefault() {
+        if( imgScaleSlider.getValue() == defaultScaleSliderVal ) {
+            // Slider won't fire a change event, but the canvas may be at a
+            // fit-to-height scale which doesn't map exactly to the slider.
+            applyScaleFactor( convertSliderValueToScaleFactor( defaultScaleSliderVal ) ) ;
+        }
+        else {
+            imgScaleSlider.setValue( defaultScaleSliderVal ) ;
         }
     }
     

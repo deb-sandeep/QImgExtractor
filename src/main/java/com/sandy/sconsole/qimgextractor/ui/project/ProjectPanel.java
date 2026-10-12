@@ -112,6 +112,14 @@ public class ProjectPanel extends JPanel {
         imgScraperUI.closeCurrentTab() ;
     }
     
+    public void zoomAllPagesToFitPage() {
+        imgScraperUI.zoomAllToFitPage() ;
+    }
+    
+    public void zoomAllPagesToDefault() {
+        imgScraperUI.zoomAllToDefault() ;
+    }
+    
     public void handleMenuAction( String actionCmd ) {
         Component[] components = getComponents() ;
         for( Component component : components ) {
