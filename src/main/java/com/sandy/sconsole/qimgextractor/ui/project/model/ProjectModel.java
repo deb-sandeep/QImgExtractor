@@ -378,7 +378,9 @@ public class ProjectModel {
     }
 
     // Renames the given question images by applying the mutation to each of
-    // them. Returns the number of images renamed.
+    // them. If carryTopics is true, the topics and the AI topic map entries
+    // of the renamed questions move to their new QIDs, else the AI topic map
+    // entries are removed. Returns the number of images renamed.
     private int renameQuestionImages( List<QuestionImage> qImgs,
                                       Consumer<QuestionImage> mutation,
                                       boolean carryTopics ) {
@@ -438,6 +440,7 @@ public class ProjectModel {
         }
 
         Map<QuestionImage, String> oldTagNames = new IdentityHashMap<>() ;
+        Map<String, String> aiTopicMapKeyChanges = new HashMap<>() ;
         Set<PageImage> modifiedPages = new LinkedHashSet<>() ;
         try {
             for( QuestionImage qImg : targets ) {
@@ -446,7 +449,9 @@ public class ProjectModel {
                 FileUtils.moveFile( oldFile, newFile ) ;
 
                 oldTagNames.put( qImg, qImg.getImgRegionMetadata().getTag() ) ;
+                String oldQId = qImg.getQId().toString() ;
                 mutation.accept( qImg ) ;
+                aiTopicMapKeyChanges.put( oldQId, carryTopics ? qImg.getQId().toString() : null ) ;
                 qImg.getImgRegionMetadata().setTag( qImg.getShortFileNameWithoutExtension() ) ;
                 qImg.setImgFile( newFile ) ;
                 modifiedPages.add( qImg.getPageImg() ) ;
@@ -460,6 +465,7 @@ public class ProjectModel {
         finally {
             modifiedPages.forEach( PageImage::saveQuestionImgMetadata ) ;
         }
+        updateAITopicMapKeys( aiTopicMapKeyChanges ) ;
 
         questionRepo.refresh() ;
         boolean stateCarried = false ;
@@ -587,33 +593,57 @@ public class ProjectModel {
     }
 
     private void removeAITopicMapEntry( String qId ) {
+        updateAITopicMapKeys( Collections.singletonMap( qId, null ) ) ;
+    }
+
+    // Moves AI topic map entries from old QIDs to new ones. A null new QID
+    // removes the entry. Keys keep their separator style, they may use '_'
+    // as the separator, see AITopicSuggestionRepo.
+    private void updateAITopicMapKeys( Map<String, String> qIdChanges ) {
 
         File aiTopicMapFile = new File( workDir, "ai-topic-map.json" ) ;
-        if( !aiTopicMapFile.exists() ) {
+        if( qIdChanges.isEmpty() || !aiTopicMapFile.exists() ) {
             return ;
         }
 
         try {
             JSONObject json = new JSONObject( FileUtils.readFileToString( aiTopicMapFile, "UTF-8" ) ) ;
 
-            // Keys may use '_' as the separator, see AITopicSuggestionRepo
-            List<String> keysToRemove = new ArrayList<>() ;
-            Iterator<?> keys = json.keys() ;
-            while( keys.hasNext() ) {
-                String key = ( String )keys.next() ;
-                if( key.replace( "_", "/" ).equals( qId ) ) {
-                    keysToRemove.add( key ) ;
+            List<String> keys = new ArrayList<>() ;
+            json.keys().forEachRemaining( key -> keys.add( ( String )key ) ) ;
+
+            // All matching entries are taken out before any is put back, so
+            // that a new key can't be mistaken for an old one.
+            Map<String, Object> movedEntries = new LinkedHashMap<>() ;
+            boolean modified = false ;
+            for( String key : keys ) {
+                String qId = key.replace( "_", "/" ) ;
+                if( !qIdChanges.containsKey( qId ) ) {
+                    continue ;
+                }
+                Object entry = json.remove( key ) ;
+                modified = true ;
+
+                String newQId = qIdChanges.get( qId ) ;
+                if( newQId == null ) {
+                    log.info( "Removed AI topic map entry for {}", qId ) ;
+                }
+                else {
+                    String newKey = key.contains( "/" ) ? newQId : newQId.replace( "/", "_" ) ;
+                    movedEntries.put( newKey, entry ) ;
+                    log.info( "Moved AI topic map entry for {} to {}", qId, newQId ) ;
                 }
             }
 
-            if( !keysToRemove.isEmpty() ) {
-                keysToRemove.forEach( json::remove ) ;
+            for( Map.Entry<String, Object> entry : movedEntries.entrySet() ) {
+                json.put( entry.getKey(), entry.getValue() ) ;
+            }
+            if( modified ) {
                 FileUtils.writeStringToFile( aiTopicMapFile, json.toString( 2 ), "UTF-8" ) ;
-                log.info( "Removed AI topic map entry for {}", qId ) ;
             }
         }
         catch( Exception e ) {
-            log.error( "Error removing AI topic map entry for {}", qId, e ) ;
+            log.error( "Error updating AI topic map entries for {}", qIdChanges.keySet(), e ) ;
         }
     }
 

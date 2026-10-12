@@ -57,6 +57,8 @@ public class TopicMapperUI extends JPanel {
     // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
+        // Question renames elsewhere can move AI topic map entries to new QIDs.
+        reloadAISuggestions() ;
         topicTreePanel.refreshTree() ;
         questionTreePanel.refreshTree() ;
         boolean nextQSelected = topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
