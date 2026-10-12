@@ -63,6 +63,38 @@ public class QuestionRepo {
         return orphans ;
     }
 
+    // Reads question-info.json directly so that the check can be made without
+    // loading the project. A project is considered synced if it has at least
+    // one question and every question has been synced to the server of the
+    // active profile.
+    public static boolean isProjectSynced( File projectDir, boolean devProfile ) {
+        File file = new File( projectDir, ".workspace/question-info.json" ) ;
+        if( !file.exists() ) {
+            return false ;
+        }
+
+        String syncInfoKey = devProfile ? "devSyncInfo" : "prodSyncInfo" ;
+        try {
+            String content = FileUtils.readFileToString( file, "UTF-8" ) ;
+            JSONArray questions = new JSONObject( content ).getJSONArray( "questions" ) ;
+            if( questions.length() == 0 ) {
+                return false ;
+            }
+            for( int i = 0; i < questions.length(); i++ ) {
+                JSONObject qJson = questions.getJSONObject( i ) ;
+                if( !qJson.has( syncInfoKey ) ||
+                    qJson.getJSONObject( syncInfoKey ).isNull( "syncTime" ) ) {
+                    return false ;
+                }
+            }
+            return true ;
+        }
+        catch( Exception e ) {
+            log.error( "Error reading persisted questions of {}", projectDir, e ) ;
+            return false ;
+        }
+    }
+
     void backupPersistenceFile() throws IOException {
         if( persistenceFile.exists() ) {
             FileUtils.copyFile( persistenceFile,

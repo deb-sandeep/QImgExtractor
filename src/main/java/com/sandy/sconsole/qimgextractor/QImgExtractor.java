@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor;
 
 import com.sandy.sconsole.qimgextractor.ui.MainFrame;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionRepo;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.AppState;
 import lombok.Getter;
@@ -87,6 +88,11 @@ public class QImgExtractor
         if( dirPath != null ) {
             File dir = new File( dirPath ) ;
             if( dir.exists() ) {
+                if( QuestionRepo.isProjectSynced( dir, appConfig.isDevProfile() ) ) {
+                    log.info( "Not opening last project {} as it is synced to the server.", dirPath ) ;
+                    mainFrame.openProjectFrom( dir.getParentFile() ) ;
+                    return ;
+                }
                 mainFrame.openProject( dir ) ;
             }
         }

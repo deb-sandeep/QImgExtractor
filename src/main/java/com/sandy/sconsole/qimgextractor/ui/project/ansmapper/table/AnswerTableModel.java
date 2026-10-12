@@ -213,20 +213,11 @@ public class AnswerTableModel extends DefaultTableModel {
                 ansText.append( ansStack.pop() ) ;
             }
             q.setRawAnswer( ansText.toString() ) ;
-            markAnswersChanged() ;
+            projectModel.answersChanged() ;
             fireTableCellUpdated( row, col ) ;
         }
         else {
             throw new Question.InvalidAnswerException( "Invalid row: " + row + ", column: " + col ) ;
-        }
-    }
-
-    // If we are going back to a more nascent stage, then
-    // erase the advanced stage markers
-    private void markAnswersChanged() {
-        if( projectModel.getState().isTopicsMapped() ||
-            projectModel.getState().isSavedToServer() ) {
-            projectModel.getState().setAnswersMapped( true ) ;
         }
     }
 
@@ -298,7 +289,7 @@ public class AnswerTableModel extends DefaultTableModel {
     }
 
     private void postAnswerShift() {
-        markAnswersChanged() ;
+        projectModel.answersChanged() ;
         fireTableDataChanged() ;
         projectModel.getQuestionRepo().save() ;
     }

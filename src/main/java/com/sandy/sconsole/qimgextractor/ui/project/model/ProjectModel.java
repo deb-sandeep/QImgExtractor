@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.confirmDestructiveAction;
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.showErrorMsg;
@@ -349,12 +350,43 @@ public class ProjectModel {
 
         ParserUtil.validateSubjectCode( subjectCode ) ;
 
+        List<QuestionImage> targets = qImgs.stream()
+                .filter( qImg -> !qImg.getSubjectCode().equals( subjectCode ) )
+                .toList() ;
+        int count = renameQuestionImages( targets, qImg -> qImg.setSubjectCode( subjectCode ), false ) ;
+        if( count > 0 ) {
+            log.info( "Changed subject of {} question images to {}", count, subjectCode ) ;
+        }
+    }
+
+    // Changes the question type of the given question images, renaming their
+    // files and region metadata. Answers and topics are carried over to the
+    // renamed questions. LCT questions can't change type. Nothing is changed
+    // if any affected question is synced to a server or if a renamed file
+    // would clash with an existing question image.
+    public void changeQuestionType( List<QuestionImage> qImgs, String questionType ) {
+
+        ParserUtil.validateQuestionType( questionType ) ;
+
+        List<QuestionImage> targets = qImgs.stream()
+                .filter( qImg -> !qImg.getQId().getQuestionType().equals( questionType ) )
+                .toList() ;
+        int count = renameQuestionImages( targets, qImg -> qImg.setQuestionType( questionType ), true ) ;
+        if( count > 0 ) {
+            log.info( "Changed type of {} question images to {}", count, questionType ) ;
+        }
+    }
+
+    // Renames the given question images by applying the mutation to each of
+    // them. Returns the number of images renamed.
+    private int renameQuestionImages( List<QuestionImage> qImgs,
+                                      Consumer<QuestionImage> mutation,
+                                      boolean carryTopics ) {
+
         Set<QuestionImage> targets = Collections.newSetFromMap( new IdentityHashMap<>() ) ;
-        qImgs.stream()
-             .filter( qImg -> !qImg.getSubjectCode().equals( subjectCode ) )
-             .forEach( targets::add ) ;
+        targets.addAll( qImgs ) ;
         if( targets.isEmpty() ) {
-            return ;
+            return 0 ;
         }
 
         List<String> synced = questionRepo.getQuestionList().stream()
@@ -363,7 +395,7 @@ public class ProjectModel {
                 .map( q -> q.getQID().toString() )
                 .toList() ;
         if( !synced.isEmpty() ) {
-            throw new IllegalStateException( "Synced questions can't change subject: " +
+            throw new IllegalStateException( "Synced questions can't be renamed: " +
                                              String.join( ", ", synced ) ) ;
         }
 
@@ -375,7 +407,7 @@ public class ProjectModel {
         List<String> clashes = new ArrayList<>() ;
         for( QuestionImage qImg : targets ) {
             QuestionImage renamed = qImg.getClone() ;
-            renamed.setSubjectCode( subjectCode ) ;
+            mutation.accept( renamed ) ;
             String newFileName = renamed.getLongFileName() ;
             if( !newFileNames.add( newFileName ) ||
                 new File( extractedImgDir, newFileName ).exists() ) {
@@ -390,11 +422,17 @@ public class ProjectModel {
 
         // Key is the new QID
         Map<String, String> answers = new HashMap<>() ;
+        Map<String, Topic> topics = new HashMap<>() ;
         for( Question q : questionRepo.getQuestionList() ) {
-            if( q.getAnswer() == null ) continue ;
             for( QuestionImage qImg : q.getOwnQImgList() ) {
                 if( targets.contains( qImg ) ) {
-                    answers.putIfAbsent( renamedMap.get( qImg ).getQId().toString(), q.getAnswer() ) ;
+                    String newQId = renamedMap.get( qImg ).getQId().toString() ;
+                    if( q.getAnswer() != null ) {
+                        answers.putIfAbsent( newQId, q.getAnswer() ) ;
+                    }
+                    if( carryTopics && q.getTopic() != null ) {
+                        topics.putIfAbsent( newQId, q.getTopic() ) ;
+                    }
                 }
             }
         }
@@ -408,7 +446,7 @@ public class ProjectModel {
                 FileUtils.moveFile( oldFile, newFile ) ;
 
                 oldTagNames.put( qImg, qImg.getImgRegionMetadata().getTag() ) ;
-                qImg.setSubjectCode( subjectCode ) ;
+                mutation.accept( qImg ) ;
                 qImg.getImgRegionMetadata().setTag( qImg.getShortFileNameWithoutExtension() ) ;
                 qImg.setImgFile( newFile ) ;
                 modifiedPages.add( qImg.getPageImg() ) ;
@@ -424,27 +462,41 @@ public class ProjectModel {
         }
 
         questionRepo.refresh() ;
-        boolean answersCarried = false ;
+        boolean stateCarried = false ;
         for( Question q : questionRepo.getQuestionList() ) {
-            String answer = answers.get( q.getQID().toString() ) ;
+            String qId = q.getQID().toString() ;
+            String answer = answers.get( qId ) ;
             if( answer != null && q.getAnswer() == null ) {
                 try {
                     q.setAnswer( answer ) ;
-                    answersCarried = true ;
+                    stateCarried = true ;
                 }
                 catch( Question.InvalidAnswerException e ) {
                     log.error( "Could not carry over answer for {}", q.getQRef(), e ) ;
                 }
             }
+            Topic topic = topics.get( qId ) ;
+            if( topic != null && q.getTopic() == null ) {
+                q.setTopic( topic ) ;
+                stateCarried = true ;
+            }
         }
-        if( answersCarried ) {
+        if( stateCarried ) {
             questionRepo.saveInBackground() ;
         }
 
         oldTagNames.forEach( ( qImg, oldTagName ) -> listeners.forEach(
                 l -> l.questionTagNameChanged( qImg, oldTagName, qImg.getShortFileNameWithoutExtension() ) ) ) ;
 
-        log.info( "Changed subject of {} question images to {}", oldTagNames.size(), subjectCode ) ;
+        return oldTagNames.size() ;
+    }
+
+    // Called after answers are changed. If the project has moved past answer
+    // mapping, it is brought back to the answers mapped stage.
+    public void answersChanged() {
+        if( state.isTopicsMapped() || state.isSavedToServer() ) {
+            state.setAnswersMapped( true ) ;
+        }
     }
 
     public void questionImgDeleted( QuestionImage qImg ) {

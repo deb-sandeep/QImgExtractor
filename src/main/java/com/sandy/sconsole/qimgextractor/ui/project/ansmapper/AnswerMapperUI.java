@@ -56,6 +56,17 @@ public class AnswerMapperUI extends JPanel {
         imgPanel.refreshAnswerKeyPages() ;
         answerTable.refreshTable() ;
     }
+
+    public void extractAnswers() {
+        imgPanel.openAnswerExtractorDialog() ;
+    }
+
+    // Called after answers (and possibly question types) are changed outside
+    // the answer table.
+    public void answersImported() {
+        questionTreePanel.refreshTree() ;
+        answerTable.refreshTable() ;
+    }
     
     public void deleteQuestions( List<Question> questions ) {
         

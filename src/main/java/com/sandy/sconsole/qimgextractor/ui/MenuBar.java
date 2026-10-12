@@ -33,6 +33,7 @@ public class MenuBar extends JMenuBar {
     private JMenuItem qSyncCompleteMI;
     
     private JMenuItem markAnsKeyMI;
+    private JMenuItem extractAnswersMI;
     
     private JMenuItem zoomFitPageMI;
     private JMenuItem zoomDefaultMI;
@@ -86,6 +87,11 @@ public class MenuBar extends JMenuBar {
         markAnsKeyMI.addActionListener( e ->
                 getCurrentProjectPanel().ifPresent( ProjectPanel::toggleAnswerKeyMarkerForActivePage ) ) ;
 
+        extractAnswersMI = new JMenuItem( "Extract Answers [Active Ans Key]" ) ;
+        extractAnswersMI.setAccelerator( cmdKey( KeyEvent.VK_E ) ) ;
+        extractAnswersMI.addActionListener( e ->
+                getCurrentProjectPanel().ifPresent( ProjectPanel::extractAnswers ) ) ;
+
         closeTabMI = new JMenuItem( "Close Active Tab" ) ;
         closeTabMI.setAccelerator( cmdKey( KeyEvent.VK_W ) ) ;
         closeTabMI.addActionListener( e ->
@@ -105,6 +111,7 @@ public class MenuBar extends JMenuBar {
         projectMenu.add( reloadAISuggestionsMI ) ;
         projectMenu.add( autoAssocTopicsMI ) ;
         projectMenu.add( markAnsKeyMI ) ;
+        projectMenu.add( extractAnswersMI ) ;
         projectMenu.add( closeTabMI ) ;
 
         projectMenu.addSeparator() ;
@@ -267,6 +274,7 @@ public class MenuBar extends JMenuBar {
         // When a project is set, the zoom items have already been enabled
         // by the ProjectPanel constructor via setEditorMode.
         if( !enabled ) {
+            extractAnswersMI.setEnabled( false ) ;
             zoomFitPageMI.setEnabled( false ) ;
             zoomDefaultMI.setEnabled( false ) ;
         }
@@ -288,6 +296,7 @@ public class MenuBar extends JMenuBar {
 
         autoAssocTopicsMI.setEnabled( false ) ;
         markAnsKeyMI.setEnabled( false ) ;
+        extractAnswersMI.setEnabled( false ) ;
         closeTabMI.setEnabled( false ) ;
         zoomFitPageMI.setEnabled( false ) ;
         zoomDefaultMI.setEnabled( false ) ;
@@ -306,6 +315,7 @@ public class MenuBar extends JMenuBar {
                 break ;
             case ANSWER_MAPPER:
                 imageScrapersMI.setEnabled( true ) ;
+                extractAnswersMI.setEnabled( true ) ;
                 topicMappingMI.setEnabled( true ) ;
                 qSyncMI.setEnabled( true ) ;
                 break ;

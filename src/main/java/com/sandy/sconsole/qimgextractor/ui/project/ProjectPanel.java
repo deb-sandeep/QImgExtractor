@@ -108,6 +108,10 @@ public class ProjectPanel extends JPanel {
         imgScraperUI.toggleAnswerKeyMarkerForActivePage() ;
     }
 
+    public void extractAnswers() {
+        answerMapperUI.extractAnswers() ;
+    }
+
     public void closeActiveImageScraperTab() {
         imgScraperUI.closeCurrentTab() ;
     }

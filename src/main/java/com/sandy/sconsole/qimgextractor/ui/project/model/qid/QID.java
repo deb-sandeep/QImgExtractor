@@ -106,6 +106,17 @@ public abstract class QID implements Comparable<QID>{
         return false ;
     }
     
+    // LCT questions can't change type in either direction, since an LCT QID
+    // carries an LCT sequence and may be a context entry without a number.
+    public void setQuestionType( String questionType ) {
+        validateQuestionType( questionType ) ;
+        if( isLCT() || questionType.equals( LCT ) ) {
+            throw new IllegalArgumentException( "Can't change type of " + this +
+                                                " to " + questionType + ". LCT types can't be changed." ) ;
+        }
+        this.questionType = questionType ;
+    }
+
     public void incrementQuestionNumber() {
         if( !isLCTContext ) {
             this.questionNumber += 1 ;

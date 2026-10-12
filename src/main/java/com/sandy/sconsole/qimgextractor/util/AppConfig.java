@@ -30,6 +30,12 @@ public class AppConfig {
     
     @Value( "true" )
     private boolean hideSyncedSrcFolders = true ;
+
+    @Value( "${claudeExecutable:${user.home}/.local/bin/claude}" )
+    private String claudeExecutable ;
+
+    @Value( "${answerExtractorWorkDir:${user.home}/Documents/StudyNotes/question-bank}" )
+    private File answerExtractorWorkDir ;
     
     public boolean isDevProfile() {
         return profile.equals( "dev" ) ;

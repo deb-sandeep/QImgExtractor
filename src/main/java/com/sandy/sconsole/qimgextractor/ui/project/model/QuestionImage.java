@@ -46,6 +46,10 @@ public class QuestionImage implements Comparable<QuestionImage> {
     public QuestionImage getClone() {
         return new QuestionImage( pageImg, imgFile, imgRegionMetadata ) ;
     }
+
+    public void setQuestionType( String questionType ) {
+        this.qId.setQuestionType( questionType ) ;
+    }
     
     private void parseFileName( String fileName )
         throws IllegalArgumentException {

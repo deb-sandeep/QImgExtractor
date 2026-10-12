@@ -228,42 +228,53 @@ public class Question extends QuestionImageCluster
     }
 
     public void setRawAnswer( String ans ) throws InvalidAnswerException {
-
+        
+        String qType = qID.getQuestionType() ;
+        this.answer = formatRawAnswer( qType, ans ) ;
+        this.mmtAnswer = qType.equals( QID.MMT ) ? new MMTAnswer( this.answer ) : null ;
+    }
+    
+    // Validates a raw answer against the given question type and returns it in
+    // the form it is stored. Lets callers check an answer against a type
+    // without modifying any question.
+    public static String formatRawAnswer( String qType, String ans )
+            throws InvalidAnswerException {
+        
         if( ans == null || ans.trim().isEmpty() ) {
             throw new InvalidAnswerException( "Answer cannot be empty" ) ;
         }
         
-        String qType = qID.getQuestionType() ;
-        switch( qType ) {
-            case QID.SCA, QID.LCT, QID.ART -> formatAndStoreSCAAnswer( ans ) ;
-            case QID.IVT, QID.NVT -> formatAndStoreNVTAnswer( ans ) ;
-            case QID.MCA -> formatAndStoreMCQAnswer( ans );
-            case QID.MMT -> formatAndStoreMMTAnswer( ans ) ;
-        }
+        return switch( qType ) {
+            case QID.SCA, QID.LCT, QID.ART -> formatSCAAnswer( ans ) ;
+            case QID.IVT, QID.NVT -> formatNVTAnswer( ans ) ;
+            case QID.MCA -> formatMCQAnswer( ans ) ;
+            case QID.MMT -> new MMTAnswer( cleanMMTInputText( ans ) ).toString() ;
+            default -> throw new InvalidAnswerException( "Unknown question type " + qType ) ;
+        } ;
     }
     
-    private void validateSCAChoice( String text ) throws InvalidAnswerException {
+    private static void validateSCAChoice( String text ) throws InvalidAnswerException {
         if( !text.matches( "^[A-Da-d1-4]$" ) ) {
             throw new InvalidAnswerException( "Answer must be either A, B, C or D. Found " + text + " instead." ) ;
         }
     }
     
-    private void formatAndStoreSCAAnswer( String ans ) throws InvalidAnswerException {
+    private static String formatSCAAnswer( String ans ) throws InvalidAnswerException {
         validateSCAChoice( ans );
-        this.answer = ans.toUpperCase() ;
+        return ans.toUpperCase() ;
     }
     
-    private void formatAndStoreNVTAnswer( String ans ) throws InvalidAnswerException {
+    private static String formatNVTAnswer( String ans ) throws InvalidAnswerException {
         try {
             Double.parseDouble( ans );
-            this.answer = ans.trim();
+            return ans.trim();
         }
         catch( Exception e ) {
             throw new InvalidAnswerException( "Answer must be a number. Found " + ans + " instead." );
         }
     }
     
-    private void formatAndStoreMCQAnswer( String ans )
+    private static String formatMCQAnswer( String ans )
             throws InvalidAnswerException {
         
         // Options can be entered either comma separated (a,b,c) or as a
@@ -280,18 +291,10 @@ public class Question extends QuestionImageCluster
         if( answerText.charAt( answerText.length() - 1 ) == ',' ) {
             answerText.deleteCharAt( answerText.length() - 1 );
         }
-        this.answer = answerText.toString() ;
+        return answerText.toString() ;
     }
     
-    private void formatAndStoreMMTAnswer( String ans )
-        throws InvalidAnswerException {
-        
-        String cleanedAnswer = cleanMMTInputText( ans ) ;
-        this.mmtAnswer = new MMTAnswer( cleanedAnswer ) ;
-        this.answer = this.mmtAnswer.toString() ;
-    }
-    
-    private String cleanMMTInputText( String text ) {
+    private static String cleanMMTInputText( String text ) {
         log.debug( "Cleaning MMT input text: {}", text ) ;
         final String VALID_CHARS = "ABCDpqrstPQRSTF,#" ;
         StringBuilder sb = new StringBuilder() ;

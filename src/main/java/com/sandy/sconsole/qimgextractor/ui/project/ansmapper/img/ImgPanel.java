@@ -1,5 +1,6 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.img;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
@@ -7,6 +8,9 @@ import com.sandy.sconsole.qimgextractor.util.AppUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +29,37 @@ public class ImgPanel extends JPanel {
         setPreferredSize( new Dimension( 1000, 300 ) ) ;
         setLayout( new BorderLayout() ) ;
         add( tabbedPane, BorderLayout.CENTER ) ;
+        add( createExtractAnswersButton(), BorderLayout.SOUTH ) ;
+
+        tabbedPane.addMouseListener( new MouseAdapter() {
+            @Override
+            public void mouseClicked( MouseEvent e ) {
+                int tabIndex = tabbedPane.indexAtLocation( e.getX(), e.getY() ) ;
+                if( tabIndex >= 0 ) {
+                    copyToClipboard( tabbedPane.getTitleAt( tabIndex ) ) ;
+                }
+            }
+        } ) ;
+    }
+    
+    private JButton createExtractAnswersButton() {
+        JButton button = new JButton( "Extract Answers" ) ;
+        button.addActionListener( e -> openAnswerExtractorDialog() ) ;
+        return button ;
+    }
+
+    public void openAnswerExtractorDialog() {
+        int tabIndex = tabbedPane.getSelectedIndex() ;
+        String pageName = tabIndex >= 0 ? tabbedPane.getTitleAt( tabIndex ) : null ;
+        new AnswerExtractorDialog( SwingUtilities.getWindowAncestor( this ), parent, pageName )
+                .setVisible( true ) ;
+    }
+
+    private void copyToClipboard( String text ) {
+        Toolkit.getDefaultToolkit()
+               .getSystemClipboard()
+               .setContents( new StringSelection( text ), null ) ;
+        QImgExtractor.logStatusMsg( "Copied to clipboard : " + text ) ;
     }
     
     public void refreshAnswerKeyPages() {

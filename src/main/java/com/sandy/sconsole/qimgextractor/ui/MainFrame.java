@@ -110,6 +110,12 @@ public class MainFrame extends JFrame {
         }
     }
     
+    // Shows the open project dialog starting in the given directory.
+    public void openProjectFrom( File startDir ) {
+        projectDirChooser.setCurrentDirectory( startDir ) ;
+        openProject() ;
+    }
+    
     // Invoked on the EDT in response to a remote command. Opens the project
     // (closing the active one) unless it is already open, brings the page
     // containing the question image into view and scrolls to the image.
