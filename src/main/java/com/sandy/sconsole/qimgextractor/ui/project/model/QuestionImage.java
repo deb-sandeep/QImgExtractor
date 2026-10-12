@@ -112,6 +112,30 @@ public class QuestionImage implements Comparable<QuestionImage> {
         this.qId.parse( parts ) ;
     }
     
+    // Sets the subject code and QID from a tag name without a part number,
+    // keeping this image's part number. A fresh QID is parsed so that no
+    // state (e.g. LCT sequence) leaks over from the old QID.
+    public void setQuestionTag( String tagName ) {
+
+        Stack<String> parts = parseToStack( stripFileExtension( tagName ) ) ;
+
+        String newSubjectCode = parts.pop() ;
+        validateSubjectCode( newSubjectCode ) ;
+
+        QID newQId = QSrcFactory.getQSrcComponentFactory( srcId )
+                                .getNewQIDInstance( this ) ;
+        newQId.parse( parts ) ;
+
+        this.subjectCode = newSubjectCode ;
+        this.qId = newQId ;
+    }
+
+    // Returns <subjectCode>_<QID file part>, i.e. the tag name without
+    // the part number.
+    public String getQuestionTag() {
+        return this.subjectCode + "_" + this.qId.getFilePartName() ;
+    }
+
     // Returns <tagName>[(<partNumber>)]
     public String getShortFileNameWithoutExtension() {
         

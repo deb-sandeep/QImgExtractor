@@ -113,6 +113,32 @@ public class AnswerMapperUI extends JPanel {
         answerTable.refreshTable() ;
     }
     
+    public void renameQuestion( Question question ) {
+
+        if( question.isSyncedToAnyServer() ) {
+            AppUtil.showErrorMsg( this, "Synced questions can't be renamed: " + question.getQID() ) ;
+            return ;
+        }
+
+        String oldTagName = question.getOwnQImgList().get( 0 ).getQuestionTag() ;
+        String newTagName = ( String )JOptionPane.showInputDialog( this,
+                "New tag name for " + question.getQID() + " (without part number):",
+                "Rename Question", JOptionPane.PLAIN_MESSAGE, null, null, oldTagName ) ;
+        if( newTagName == null || newTagName.isBlank() ) {
+            return ;
+        }
+
+        try {
+            projectModel.renameQuestion( question, newTagName ) ;
+        }
+        catch( IllegalArgumentException | IllegalStateException e ) {
+            log.error( "Failed to rename question {}", question.getQRef(), e ) ;
+            AppUtil.showErrorMsg( this, e.getMessage() ) ;
+        }
+        questionTreePanel.refreshTree() ;
+        answerTable.refreshTable() ;
+    }
+
     private String toQIdList( List<Question> questions ) {
         return questions.stream()
                         .map( q -> q.getQID().toString() )

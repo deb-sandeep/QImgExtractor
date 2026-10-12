@@ -3,6 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgExtractorPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.ParserUtil;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
@@ -377,10 +378,60 @@ public class ProjectModel {
         }
     }
 
+    // Renames a question to the given tag name (<subjectCode>_<QID parts>,
+    // without part number), renaming the files and region metadata of all
+    // its own images. Part numbers are kept. Answers are carried over;
+    // topics are carried over only if the subject is unchanged. Shared LCT
+    // context images are not touched, so a question can't be moved into or
+    // out of LCT, or renamed to an LCT context. Nothing is changed if the
+    // question is synced to a server or a renamed file would clash with an
+    // existing question image.
+    public void renameQuestion( Question question, String newTagName ) {
+
+        List<QuestionImage> qImgs = question.getOwnQImgList() ;
+        QuestionImage firstImg = qImgs.get( 0 ) ;
+
+        String tagName = newTagName.trim() ;
+        if( tagName.contains( "(" ) || !firstImg.isValidTagName( tagName ) ) {
+            throw new IllegalArgumentException( "Invalid question tag name: " + tagName ) ;
+        }
+
+        QuestionImage probe = firstImg.getClone() ;
+        probe.setQuestionTag( tagName ) ;
+        QID newQId = probe.getQId() ;
+        if( newQId.isLCTContext() ) {
+            throw new IllegalArgumentException( "A question can't be renamed to an LCT context." ) ;
+        }
+        if( newQId.isLCT() != question.isLCT() ) {
+            throw new IllegalArgumentException( "A question can't be moved into or out of LCT." ) ;
+        }
+        if( probe.getQuestionTag().equals( firstImg.getQuestionTag() ) ) {
+            return ;
+        }
+
+        // The file clash check in renameQuestionImages is per page, so it
+        // misses an existing question with the same QID on another page.
+        boolean exists = questionRepo.getQuestionList().stream()
+                .anyMatch( q -> q.getQID().toString().equals( newQId.toString() ) ) ;
+        if( exists ) {
+            throw new IllegalStateException( "Question " + newQId + " already exists." ) ;
+        }
+
+        String oldQId = question.getQID().toString() ;
+        boolean sameSubject = probe.getSubjectCode().equals( firstImg.getSubjectCode() ) ;
+        int count = renameQuestionImages( qImgs, qImg -> qImg.setQuestionTag( tagName ), sameSubject ) ;
+        if( count > 0 ) {
+            log.info( "Renamed question {} to {} ({} images)", oldQId, newQId, count ) ;
+        }
+    }
+
     // Renames the given question images by applying the mutation to each of
-    // them. If carryTopics is true, the topics and the AI topic map entries
-    // of the renamed questions move to their new QIDs, else the AI topic map
-    // entries are removed. Returns the number of images renamed.
+    // them. The persisted state of the renamed questions (answer, topic, sync
+    // info) in question-info.json moves to their new QIDs, along with the
+    // region tags in the pages' regions files. If carryTopics is true, the
+    // topics and the AI topic map entries move too, else the topics are
+    // cleared and the AI topic map entries removed. Returns the number of
+    // images renamed.
     private int renameQuestionImages( List<QuestionImage> qImgs,
                                       Consumer<QuestionImage> mutation,
                                       boolean carryTopics ) {
@@ -422,18 +473,18 @@ public class ProjectModel {
                                              String.join( ", ", clashes ) ) ;
         }
 
-        // Key is the new QID
-        Map<String, String> answers = new HashMap<>() ;
-        Map<String, Topic> topics = new HashMap<>() ;
+        // Snapshot the persisted state (answer, topic, sync info) of the
+        // affected questions, keyed by the new QID. After the refresh the
+        // renamed images form questions under the new QIDs, which have no
+        // entries in question-info.json, so the state is restored from here.
+        // If several old questions map to one new QID, the first one wins.
+        Map<String, JSONObject> carriedStates = new HashMap<>() ;
         for( Question q : questionRepo.getQuestionList() ) {
             for( QuestionImage qImg : q.getOwnQImgList() ) {
                 if( targets.contains( qImg ) ) {
                     String newQId = renamedMap.get( qImg ).getQId().toString() ;
-                    if( q.getAnswer() != null ) {
-                        answers.putIfAbsent( newQId, q.getAnswer() ) ;
-                    }
-                    if( carryTopics && q.getTopic() != null ) {
-                        topics.putIfAbsent( newQId, q.getTopic() ) ;
+                    if( !carriedStates.containsKey( newQId ) ) {
+                        carriedStates.put( newQId, getCarriedState( q, carryTopics ) ) ;
                     }
                 }
             }
@@ -468,33 +519,44 @@ public class ProjectModel {
         updateAITopicMapKeys( aiTopicMapKeyChanges ) ;
 
         questionRepo.refresh() ;
-        boolean stateCarried = false ;
         for( Question q : questionRepo.getQuestionList() ) {
-            String qId = q.getQID().toString() ;
-            String answer = answers.get( qId ) ;
-            if( answer != null && q.getAnswer() == null ) {
+            JSONObject state = carriedStates.get( q.getQID().toString() ) ;
+            if( state != null ) {
                 try {
-                    q.setAnswer( answer ) ;
-                    stateCarried = true ;
+                    q.deserializeFrom( state ) ;
                 }
-                catch( Question.InvalidAnswerException e ) {
-                    log.error( "Could not carry over answer for {}", q.getQRef(), e ) ;
+                catch( Exception e ) {
+                    log.error( "Could not carry over state for {}: {}", q.getQRef(), state, e ) ;
                 }
-            }
-            Topic topic = topics.get( qId ) ;
-            if( topic != null && q.getTopic() == null ) {
-                q.setTopic( topic ) ;
-                stateCarried = true ;
             }
         }
-        if( stateCarried ) {
-            questionRepo.saveInBackground() ;
+        // Saved synchronously so that question-info.json holds the carried
+        // state before anything else reads it, e.g. the refresh of a
+        // following rename, which would otherwise drop it.
+        if( !carriedStates.isEmpty() ) {
+            questionRepo.save() ;
         }
 
         oldTagNames.forEach( ( qImg, oldTagName ) -> listeners.forEach(
                 l -> l.questionTagNameChanged( qImg, oldTagName, qImg.getShortFileNameWithoutExtension() ) ) ) ;
 
         return oldTagNames.size() ;
+    }
+
+    // Returns the state of the question to carry over to its new QID. Sync
+    // info is carried as is; renames are refused for synced questions, so it
+    // only holds unsynced server ids. Topics are dropped if not carried.
+    private JSONObject getCarriedState( Question q, boolean carryTopic ) {
+        try {
+            JSONObject state = q.getStateSerializedForm() ;
+            if( !carryTopic ) {
+                state.put( "topic", JSONObject.NULL ) ;
+            }
+            return state ;
+        }
+        catch( Exception e ) {
+            throw new IllegalStateException( "Could not read the state of " + q.getQID(), e ) ;
+        }
     }
 
     // Called after answers are changed. If the project has moved past answer

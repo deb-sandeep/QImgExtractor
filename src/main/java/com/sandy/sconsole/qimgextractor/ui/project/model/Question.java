@@ -116,12 +116,21 @@ public class Question extends QuestionImageCluster
     }
     
     public JSONObject getSerializedForm() throws Exception {
-        
-        JSONObject json = new JSONObject() ;
+
+        JSONObject json = getStateSerializedForm() ;
         json.put( "qid", qID.toString() ) ;
         json.put( "lctSeq", qID.getLctSequence() ) ;
         json.put( "lctCtxImages", getImgInfoList( lctCtxImgCluster ) ) ;
         json.put( "questionImages", getImgInfoList( this ) ) ;
+        return json ;
+    }
+
+    // The persisted state that isn't derived from the question images, i.e.
+    // what deserializeFrom() restores. Used to move the state of a question
+    // to its new QID when it is renamed.
+    public JSONObject getStateSerializedForm() throws Exception {
+
+        JSONObject json = new JSONObject() ;
         json.put( "answer", answer ) ;
         
         if( topic != null ) {

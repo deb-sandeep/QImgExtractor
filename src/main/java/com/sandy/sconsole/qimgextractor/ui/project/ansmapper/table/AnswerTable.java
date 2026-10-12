@@ -72,9 +72,18 @@ public class AnswerTable extends JTable {
         pullAnswersUpMI = new JMenuItem( "Delete Answer & Pull Up" ) ;
         pullAnswersUpMI.addActionListener( e -> pullAnswersUp() ) ;
 
+        JMenuItem renameQuestion = new JMenuItem( "Rename Question..." ) ;
+        renameQuestion.addActionListener( e -> {
+            if( popupQuestion != null ) {
+                stopEditing() ;
+                parent.renameQuestion( popupQuestion ) ;
+            }
+        } ) ;
+
         popup.add( pushAnswersDownMI ) ;
         popup.add( pullAnswersUpMI ) ;
         popup.addSeparator() ;
+        popup.add( renameQuestion ) ;
         popup.add( deleteQuestion ) ;
         return popup ;
     }
