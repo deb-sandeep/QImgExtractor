@@ -16,6 +16,8 @@ import java.util.*;
 // deduced type of an answer is not used for matching. A question's type is
 // changed only within the numeric types (an integer answer means IVT, a
 // decimal means NVT) and from SCA to MCA when the answer has several letters.
+// A decimal with a zero fractional part (158.00) counts as an integer and is
+// stored without the fraction.
 @Slf4j
 public class AnswerImportPlan {
 
@@ -41,6 +43,7 @@ public class AnswerImportPlan {
 
     private static final String INTEGER_PATTERN = "^-?\\d+$" ;
     private static final String DECIMAL_PATTERN = "^-?(\\d+\\.\\d*|\\.\\d+)$" ;
+    private static final String WHOLE_DECIMAL_PATTERN = "^-?\\d+\\.0*$" ;
     private static final String RANGE_PATTERN   = "^-?[\\d.]+\\s*-\\s*-?[\\d.]+$" ;
     private static final String MULTI_LETTER_PATTERN = "^[A-Da-d]{2,}$" ;
 
@@ -108,6 +111,9 @@ public class AnswerImportPlan {
         }
 
         String newType = getTargetType( oldType, answer ) ;
+        if( newType.equals( QID.IVT ) && answer.matches( WHOLE_DECIMAL_PATTERN ) ) {
+            answer = answer.substring( 0, answer.indexOf( '.' ) ) ;
+        }
         if( !newType.equals( oldType ) && q.isSyncedToAnyServer() ) {
             skipped.add( new Skipped( qId, answer,
                     "needs type " + newType + " but the question is synced to a server" ) ) ;
@@ -130,7 +136,8 @@ public class AnswerImportPlan {
     private static String getTargetType( String currentType, String answer ) {
         return switch( currentType ) {
             case QID.IVT, QID.NVT -> {
-                if( answer.matches( INTEGER_PATTERN ) ) yield QID.IVT ;
+                if( answer.matches( INTEGER_PATTERN ) ||
+                    answer.matches( WHOLE_DECIMAL_PATTERN ) ) yield QID.IVT ;
                 if( answer.matches( DECIMAL_PATTERN ) ) yield QID.NVT ;
                 yield currentType ;
             }
