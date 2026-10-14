@@ -12,8 +12,11 @@ import java.util.*;
 // without changing anything, so that the changes can be previewed before
 // they are applied.
 //
-// A question is identified by its subject and printed question number. The
-// deduced type of an answer is not used for matching. A question's type is
+// A question is identified by its subject and printed question number. Some
+// papers restart the numbering for the numeric questions (P_SCA_1..20 then
+// P_IVT_1..10), so a number can match one question of each kind. Only then
+// is the deduced type of the answer used, to pick the numeric (IVT/NVT) or
+// the non-numeric question. A question's type is
 // changed only within the numeric types (an integer answer means IVT, a
 // decimal means NVT) and from SCA to MCA when the answer has several letters.
 // A decimal with a zero fractional part (158.00) counts as an integer and is
@@ -68,13 +71,19 @@ public class AnswerImportPlan {
             }
 
             List<Question> matches = questionMap.getOrDefault( ref, List.of() ) ;
+            if( matches.size() > 1 && entry.deducedType() != null ) {
+                boolean numeric = isNumericType( entry.deducedType() ) ;
+                matches = matches.stream()
+                        .filter( q -> isNumericType( q.getQID().getQuestionType() ) == numeric )
+                        .toList() ;
+            }
             if( matches.isEmpty() ) {
                 plan.skipped.add( new Skipped( ref, entry.answer(), "no such question in the project" ) ) ;
                 continue ;
             }
             if( matches.size() > 1 ) {
                 plan.skipped.add( new Skipped( ref, entry.answer(),
-                        matches.size() + " questions have this number" ) ) ;
+                        matches.size() + " questions of this kind have this number" ) ) ;
                 continue ;
             }
 
@@ -93,6 +102,10 @@ public class AnswerImportPlan {
             map.computeIfAbsent( key, k -> new ArrayList<>() ).add( q ) ;
         }
         return map ;
+    }
+
+    private static boolean isNumericType( String type ) {
+        return QID.IVT.equals( type ) || QID.NVT.equals( type ) ;
     }
 
     private void planEntry( Question q, ExtractedAnswers.Entry entry ) {
@@ -146,17 +159,20 @@ public class AnswerImportPlan {
         } ;
     }
 
-    // The ids in a section should be contiguous and no id should repeat
-    // across the paper.
+    // The ids should be contiguous and no id should repeat across the paper.
+    // Numeric and non-numeric answers are checked separately as their
+    // numbering may restart from 1.
     private void checkIdSequence( ExtractedAnswers extracted ) {
 
         Map<String, List<Integer>> idsBySection = new LinkedHashMap<>() ;
-        Set<Integer> seen = new HashSet<>() ;
-        Set<Integer> duplicates = new TreeSet<>() ;
+        Set<String> seen = new HashSet<>() ;
+        Set<String> duplicates = new TreeSet<>() ;
         for( ExtractedAnswers.Entry entry : extracted.getEntries() ) {
-            idsBySection.computeIfAbsent( entry.section(), s -> new ArrayList<>() ).add( entry.id() ) ;
-            if( !seen.add( entry.id() ) ) {
-                duplicates.add( entry.id() ) ;
+            String kind = isNumericType( entry.deducedType() ) ? "numeric" : "non-numeric" ;
+            idsBySection.computeIfAbsent( entry.section() + " (" + kind + ")",
+                                          s -> new ArrayList<>() ).add( entry.id() ) ;
+            if( !seen.add( kind + " " + entry.id() ) ) {
+                duplicates.add( kind + " " + entry.id() ) ;
             }
         }
 
@@ -268,7 +284,8 @@ public class AnswerImportPlan {
     private static Question findQuestion( ProjectModel projectModel, Item item ) {
         List<Question> matches = projectModel.getQuestionRepo().getQuestionList().stream()
                 .filter( q -> q.getQID().getSubjectCode().equals( item.subjectCode() ) &&
-                              q.getQID().getQuestionNumber() == item.number() )
+                              q.getQID().getQuestionNumber() == item.number() &&
+                              isNumericType( q.getQID().getQuestionType() ) == isNumericType( item.oldType() ) )
                 .toList() ;
         return matches.size() == 1 ? matches.get( 0 ) : null ;
     }
