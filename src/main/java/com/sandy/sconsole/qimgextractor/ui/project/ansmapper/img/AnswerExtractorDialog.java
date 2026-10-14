@@ -5,6 +5,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.extract.AnswerImportPlan;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.extract.ExtractedAnswers;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -18,15 +19,19 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 // Runs a prompt (typically the /extract-answers skill) in an ephemeral,
 // non-interactive Claude Code session and streams its reply as it arrives.
 // If a page name is given, the prompt is submitted as soon as the dialog
 // opens. Ok imports the answers in the reply's <extracted-answers> block into the
-// project, after showing a preview of the changes.
+// project, after showing a preview of the changes. If the reply has a valid
+// answers block, the preview is shown as soon as the session finishes. The
+// preview also offers to delete the questions the answer key has no answer for.
 @Slf4j
 public class AnswerExtractorDialog extends JDialog {
 
@@ -111,7 +116,7 @@ public class AnswerExtractorDialog extends JDialog {
     }
 
     private JPanel createButtonPanel() {
-        okBtn.addActionListener( e -> importAnswers() ) ;
+        okBtn.addActionListener( e -> importAnswers( false ) ) ;
         cancelBtn.addActionListener( e -> dismiss() ) ;
 
         JPanel btnPanel = new JPanel( new FlowLayout( FlowLayout.RIGHT ) ) ;
@@ -125,8 +130,14 @@ public class AnswerExtractorDialog extends JDialog {
         return panel ;
     }
 
-    private void importAnswers() {
+    // If auto is set, the import was triggered by the session finishing and a
+    // reply without a valid answers block is left in the dialog for review.
+    private void importAnswers( boolean auto ) {
 
+        // The dialog may have been dismissed while the session was finishing.
+        if( auto && ( replyText == null || !isDisplayable() ) ) {
+            return ;
+        }
         if( replyText == null ) {
             AppUtil.showErrorMsg( this, "There is no reply to import. Submit the prompt first." ) ;
             return ;
@@ -139,28 +150,75 @@ public class AnswerExtractorDialog extends JDialog {
         }
         catch( IllegalArgumentException e ) {
             log.error( "Could not parse the extracted answers.", e ) ;
-            AppUtil.showErrorMsg( this, e.getMessage() ) ;
+            if( !auto ) {
+                AppUtil.showErrorMsg( this, e.getMessage() ) ;
+            }
             return ;
         }
 
-        if( !plan.hasChanges() ) {
+        List<Question> unanswered = plan.getUnansweredQuestions(
+                projectModel.getQuestionRepo().getQuestionList() ) ;
+
+        if( !plan.hasChanges() && unanswered.isEmpty() ) {
             JOptionPane.showMessageDialog( this, createSummaryPane( "Nothing to import.\n\n" + plan.toSummary() ),
                     "Import Answers", JOptionPane.INFORMATION_MESSAGE ) ;
             return ;
         }
 
-        int choice = JOptionPane.showConfirmDialog( this, createSummaryPane( plan.toSummary() ),
+        String summary = plan.toSummary() ;
+        JCheckBox deleteCB = null ;
+        Object message = createSummaryPane( summary ) ;
+        if( !unanswered.isEmpty() ) {
+            summary += "\nNOT IN ANSWER KEY\n  " + toQIdList( unanswered ) + "\n" ;
+            deleteCB = new JCheckBox( "Delete the " + unanswered.size() +
+                                      " question(s) not in the answer key (images are deleted permanently)", true ) ;
+            message = new Object[]{ createSummaryPane( summary ), deleteCB } ;
+        }
+
+        int choice = JOptionPane.showConfirmDialog( this, message,
                 "Import Answers - Confirm Changes", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE ) ;
         if( choice != JOptionPane.OK_OPTION ) {
             return ;
         }
 
-        applyImportPlan( plan ) ;
+        List<String> toDelete = ( deleteCB != null && deleteCB.isSelected() ) ?
+                unanswered.stream().map( q -> q.getQID().toString() ).toList() :
+                List.of() ;
+        applyImportPlan( plan, toDelete ) ;
+    }
+
+    private static String toQIdList( List<Question> questions ) {
+        return questions.stream()
+                        .map( q -> q.getQID().toString() )
+                        .collect( Collectors.joining( ", " ) ) ;
+    }
+
+    // Deletes the questions with the given QIDs. The questions are looked up
+    // afresh as applying the import plan rebuilds the question list. Returns
+    // descriptions of the questions that could not be deleted.
+    private List<String> deleteQuestions( List<String> qIds ) {
+        List<String> failures = new ArrayList<>() ;
+        for( String qId : qIds ) {
+            Question q = projectModel.getQuestionRepo().getQuestionList().stream()
+                    .filter( x -> x.getQID().toString().equals( qId ) )
+                    .findFirst().orElse( null ) ;
+            if( q == null || q.getAnswer() != null ) {
+                continue ;
+            }
+            try {
+                projectModel.deleteQuestion( q ) ;
+            }
+            catch( RuntimeException e ) {
+                log.error( "Failed to delete question {}", qId, e ) ;
+                failures.add( qId + " : not deleted. " + e.getMessage() ) ;
+            }
+        }
+        return failures ;
     }
 
     // Applying the plan renames question images and saves the question repo,
     // so it is done in the background while the busy label is shown.
-    private void applyImportPlan( AnswerImportPlan plan ) {
+    private void applyImportPlan( AnswerImportPlan plan, List<String> qIdsToDelete ) {
 
         importing = true ;
         setControlsEnabled( false ) ;
@@ -177,14 +235,17 @@ public class AnswerExtractorDialog extends JDialog {
             protected void done() {
                 importing = false ;
                 busyLabel.setVisible( false ) ;
-                answerMapperUI.answersImported() ;
 
                 List<String> failures ;
                 try {
-                    failures = get() ;
+                    failures = new ArrayList<>( get() ) ;
+                    // Deletion notifies the UI listeners, so it is done on the EDT.
+                    failures.addAll( deleteQuestions( qIdsToDelete ) ) ;
+                    answerMapperUI.answersImported() ;
                 }
                 catch( Exception e ) {
                     log.error( "Could not import the extracted answers.", e ) ;
+                    answerMapperUI.answersImported() ;
                     AppUtil.showErrorMsg( AnswerExtractorDialog.this,
                             "Could not import the extracted answers.\n" + e.getMessage() ) ;
                     setControlsEnabled( true ) ;
@@ -196,8 +257,10 @@ public class AnswerExtractorDialog extends JDialog {
                             createSummaryPane( "These changes could not be applied:\n\n" + String.join( "\n", failures ) ),
                             "Import Answers", JOptionPane.WARNING_MESSAGE ) ;
                 }
-                QImgExtractor.logStatusMsg( "Imported extracted answers." ) ;
+                QImgExtractor.logStatusMsg( "Imported extracted answers." +
+                        ( qIdsToDelete.isEmpty() ? "" : " Deleted " + qIdsToDelete.size() + " unanswered question(s)." ) ) ;
                 dismiss() ;
+                answerMapperUI.answerImportCompleted() ;
             }
         }.execute() ;
     }
@@ -262,6 +325,7 @@ public class AnswerExtractorDialog extends JDialog {
                 promptTF.setEnabled( true ) ;
                 okBtn.setEnabled( true ) ;
                 worker = null ;
+                importAnswers( true ) ;
             }
         } ;
         worker.execute() ;

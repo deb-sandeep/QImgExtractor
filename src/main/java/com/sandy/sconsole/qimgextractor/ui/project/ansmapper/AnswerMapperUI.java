@@ -66,6 +66,13 @@ public class AnswerMapperUI extends JPanel {
     public void answersImported() {
         questionTreePanel.refreshTree() ;
         answerTable.refreshTable() ;
+        projectPanel.answersImported() ;
+    }
+    
+    // Called after the answer import dialog has successfully imported the
+    // answers and closed.
+    public void answerImportCompleted() {
+        SwingUtilities.invokeLater( projectPanel::continueWorkflowAfterAnswers ) ;
     }
     
     public void deleteQuestions( List<Question> questions ) {

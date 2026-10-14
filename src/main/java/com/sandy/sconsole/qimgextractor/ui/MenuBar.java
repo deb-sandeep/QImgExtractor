@@ -274,6 +274,7 @@ public class MenuBar extends JMenuBar {
     // Enables the sync actions which apply only to the question sync view.
     // Sync all pending is not one of them - it is available whenever a
     // project is open and switches to the question sync view by itself.
+    // Extract answers likewise switches to the answer mapper by itself.
     private void setSyncActionsEnabled( boolean enabled ) {
         expandAllAction.setEnabled( enabled ) ;
         collapseAllAction.setEnabled( enabled ) ;
@@ -295,13 +296,13 @@ public class MenuBar extends JMenuBar {
         closeProjectAction.setEnabled( enabled ) ;
         reloadAISuggestionsAction.setEnabled( enabled ) ;
         syncAllPendingAction.setEnabled( enabled ) ;
+        extractAnswersAction.setEnabled( enabled ) ;
 
         // When a project is set, the zoom items have already been enabled
         // by the ProjectPanel constructor via setEditorMode.
         if( !enabled ) {
             markAnsKeyAction.setEnabled( false ) ;
             closeTabAction.setEnabled( false ) ;
-            extractAnswersAction.setEnabled( false ) ;
             zoomFitPageAction.setEnabled( false ) ;
             zoomWidthAction.setEnabled( false ) ;
         }
@@ -323,7 +324,6 @@ public class MenuBar extends JMenuBar {
 
         autoAssocTopicsAction.setEnabled( false ) ;
         markAnsKeyAction.setEnabled( false ) ;
-        extractAnswersAction.setEnabled( false ) ;
         closeTabAction.setEnabled( false ) ;
         zoomFitPageAction.setEnabled( false ) ;
         zoomWidthAction.setEnabled( false ) ;
@@ -342,7 +342,6 @@ public class MenuBar extends JMenuBar {
                 break ;
             case ANSWER_MAPPER:
                 imageScraperAction.setEnabled( true ) ;
-                extractAnswersAction.setEnabled( true ) ;
                 topicMappingAction.setEnabled( true ) ;
                 qSyncAction.setEnabled( true ) ;
                 break ;

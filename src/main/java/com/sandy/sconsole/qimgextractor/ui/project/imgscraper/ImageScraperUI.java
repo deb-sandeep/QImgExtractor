@@ -55,6 +55,11 @@ public class ImageScraperUI extends JPanel
     // images are still being loaded are parked here and served once the
     // load completes. Accessed only on the EDT.
     private boolean pageImagesLoaded = false ;
+    
+    // Set once a question image is cut in this session. Closing pages while
+    // cutting doesn't end the page review, as pages yet to be cut have no
+    // question images.
+    private boolean imgCutInSession = false ;
     private String pendingQImgFileName = null ;
     
     // When true, all page panels (including ones opened later) are zoomed
@@ -182,6 +187,16 @@ public class ImageScraperUI extends JPanel
         panelMap.remove( panel.getPageImg() ) ;
         projectModel.removeListener( panel ) ;
         projectModel.setPageImgClosed( panel.getPageImg() ) ;
+        
+        // Closing the last open page with question images ends the page
+        // review. Pages without question images (e.g. the answer key) may
+        // still be open. Run later so that the closing completes first.
+        boolean closedQuestionPage = !panel.getPageImg().getQImgList().isEmpty() ;
+        boolean questionPageOpen = panelMap.keySet().stream()
+                                           .anyMatch( p -> !p.getQImgList().isEmpty() ) ;
+        if( pageImagesLoaded && !imgCutInSession && closedQuestionPage && !questionPageOpen ) {
+            invokeLater( projectPanel::questionPagesReviewed ) ;
+        }
     }
     
     @Override
@@ -263,6 +278,7 @@ public class ImageScraperUI extends JPanel
             // 6. Reset the force next question flag
             projectModel.getContext().setForceNextImgFlag( false ) ;
             projectModel.getState().setImgCuttingWip( true ) ;
+            imgCutInSession = true ;
             
             mainFrame.logStausMsg( "   Saved image file : " + selectedFile.getName() );
         }

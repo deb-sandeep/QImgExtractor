@@ -10,7 +10,6 @@ import java.awt.*;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
-import static javax.swing.SwingUtilities.invokeLater;
 
 @Slf4j
 public class TopicTreePanel extends JPanel {
@@ -67,6 +66,5 @@ public class TopicTreePanel extends JPanel {
     
     public void refreshTree() {
         tree.refreshTree() ;
-        invokeLater( () -> tree.setExpanded( true ) ) ;
     }
 }

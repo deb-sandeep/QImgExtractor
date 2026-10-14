@@ -54,9 +54,9 @@ public class BaseTree extends JTree implements TreeSelectionListener {
         Object userObject = node.getUserObject() ;
         if( userObject instanceof Question q ) {
             if( q.equals( question ) ) {
-                super.setSelectionPath( new TreePath( node.getPath() ) ) ;
-                super.makeVisible( new TreePath( node.getPath() ) ) ;
-                super.scrollPathToVisible( new TreePath( node.getPath() ) ) ;
+                TreePath path = new TreePath( node.getPath() ) ;
+                super.setSelectionPath( path ) ;
+                showSelectedPath( path ) ;
                 return true ;
             }
         }
@@ -70,6 +70,12 @@ public class BaseTree extends JTree implements TreeSelectionListener {
             }
         }
         return false ;
+    }
+    
+    // Brings a programmatically selected path into view.
+    protected void showSelectedPath( TreePath path ) {
+        super.makeVisible( path ) ;
+        super.scrollPathToVisible( path ) ;
     }
     
     public void setExpanded( boolean expanded ) {

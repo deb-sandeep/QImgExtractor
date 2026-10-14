@@ -7,6 +7,7 @@ import com.sandy.sconsole.qimgextractor.ui.core.statusbar.StatusBar;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectLoadAbortedException;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
 import com.sandy.sconsole.qimgextractor.ui.util.ProjectDirectoryView;
 import com.sandy.sconsole.qimgextractor.ui.util.ProjectDirectoryFileSystemView;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
@@ -21,6 +22,8 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.isValidProjectDir;
 
@@ -186,6 +189,59 @@ public class MainFrame extends JFrame {
             super.setTitle( "" ) ;
             revalidate() ;
             repaint() ;
+        }
+    }
+    
+    // Called when all the questions of the current project have been synced.
+    // Marks the project as server synced and offers to open the next project,
+    // which is the first sibling directory after this one (by name) that is
+    // a valid project and not yet synced to the server.
+    public void projectSyncCompleted( int numQuestions ) {
+        
+        File projectDir = projectModel.getBaseDir() ;
+        projectModel.getState().setQSyncedToServer( true ) ;
+        logStausMsg( "Project " + projectDir.getName() + " marked as server synced." ) ;
+        
+        File nextProjectDir = findNextUnsyncedProject( projectDir ) ;
+        if( nextProjectDir == null ) {
+            closeCurrentProject() ;
+            JOptionPane.showMessageDialog( this,
+                    "All " + numQuestions + " questions synced. Project marked as server synced.\n\n" +
+                    "No more unsynced projects in " + projectDir.getParentFile().getName() + ".",
+                    "Project Synced", JOptionPane.INFORMATION_MESSAGE ) ;
+            return ;
+        }
+        
+        int choice = JOptionPane.showConfirmDialog( this,
+                "All " + numQuestions + " questions synced. Project marked as server synced.\n\n" +
+                "Open the next project " + nextProjectDir.getName() + "?",
+                "Project Synced", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE ) ;
+        if( choice == JOptionPane.YES_OPTION ) {
+            openProject( nextProjectDir ) ;
+        }
+    }
+    
+    private File findNextUnsyncedProject( File projectDir ) {
+        File[] siblings = projectDir.getParentFile().listFiles(
+                f -> f.isDirectory() && !f.isHidden() &&
+                     f.getName().compareTo( projectDir.getName() ) > 0 ) ;
+        if( siblings == null ) {
+            return null ;
+        }
+        return Arrays.stream( siblings )
+                     .sorted( Comparator.comparing( File::getName ) )
+                     .filter( f -> isValidProjectDir( f ) && !isSyncedToServer( f ) )
+                     .findFirst()
+                     .orElse( null ) ;
+    }
+    
+    private boolean isSyncedToServer( File projectDir ) {
+        try {
+            return new ProjectState( projectDir ).isSavedToServer() ;
+        }
+        catch( RuntimeException e ) {
+            log.warn( "Skipping project {}. Could not read its state.", projectDir.getName(), e ) ;
+            return true ;
         }
     }
     

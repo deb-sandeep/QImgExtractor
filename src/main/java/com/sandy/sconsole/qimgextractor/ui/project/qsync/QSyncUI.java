@@ -34,6 +34,8 @@ public class QSyncUI extends JPanel {
     private final QSyncLogPanel logPanel ;
     private final QSyncAPIClient apiClient ;
     
+    private boolean syncAllRunning = false ;
+    
     public QSyncUI( ProjectPanel projectPanel ) {
         this.projectPanel = projectPanel ;
         this.projectModel = projectPanel.getProjectModel() ;
@@ -79,8 +81,37 @@ public class QSyncUI extends JPanel {
             treeTable.expandSyllabus() ;
         }
         else if( AC_SYNC_ALL_PENDING.equals( actionCommand ) ) {
-            new Thread( treeTableModel::syncAllSyncPendingQuestions ).start() ;
+            syncAllPending() ;
         }
+    }
+    
+    private void syncAllPending() {
+        if( syncAllRunning ) {
+            return ;
+        }
+        syncAllRunning = true ;
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                treeTableModel.syncAllSyncPendingQuestions() ;
+                return null ;
+            }
+            
+            @Override
+            protected void done() {
+                syncAllRunning = false ;
+                try {
+                    get() ;
+                }
+                catch( Exception e ) {
+                    log.error( "Sync all pending failed.", e ) ;
+                    logPanel.log( "Sync all pending failed." ) ;
+                    logPanel.log( ExceptionUtils.getStackTrace( e ) ) ;
+                    return ;
+                }
+                projectPanel.syncAllPendingCompleted() ;
+            }
+        }.execute() ;
     }
     
     public void syncQuestion( Question question ) {

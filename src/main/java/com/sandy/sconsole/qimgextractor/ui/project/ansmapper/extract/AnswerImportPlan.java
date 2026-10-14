@@ -54,6 +54,12 @@ public class AnswerImportPlan {
     @Getter private final List<Skipped> skipped = new ArrayList<>() ;
     @Getter private final List<String> warnings = new ArrayList<>() ;
 
+    // The questions the answer key says something about, even if the answer
+    // could not be imported. An entry which could not be pinned down to a
+    // single question covers all the questions with its subject and number.
+    private final Set<String> coveredQIds = new HashSet<>() ;
+    private final Set<String> coveredRefs = new HashSet<>() ;
+
     private AnswerImportPlan() {}
 
     public static AnswerImportPlan build( ExtractedAnswers extracted, List<Question> questions ) {
@@ -65,6 +71,7 @@ public class AnswerImportPlan {
             String ref = entry.subjectCode() + "/" + entry.id() ;
 
             if( entry.isError() || entry.answer() == null ) {
+                plan.coveredRefs.add( ref ) ;
                 plan.skipped.add( new Skipped( ref, entry.answer(),
                         entry.answer() == null ? "unreadable in the answer key" : "not an answer" ) ) ;
                 continue ;
@@ -77,6 +84,9 @@ public class AnswerImportPlan {
                         .filter( q -> isNumericType( q.getQID().getQuestionType() ) == numeric )
                         .toList() ;
             }
+            if( matches.size() != 1 ) {
+                plan.coveredRefs.add( ref ) ;
+            }
             if( matches.isEmpty() ) {
                 plan.skipped.add( new Skipped( ref, entry.answer(), "no such question in the project" ) ) ;
                 continue ;
@@ -88,6 +98,7 @@ public class AnswerImportPlan {
             }
 
             Question q = matches.get( 0 ) ;
+            plan.coveredQIds.add( q.getQID().toString() ) ;
             plan.planEntry( q, entry ) ;
         }
 
@@ -190,6 +201,18 @@ public class AnswerImportPlan {
         if( !duplicates.isEmpty() ) {
             warnings.add( "Question numbers repeated across sections: " + duplicates ) ;
         }
+    }
+
+    // Questions which have no answer and are not mentioned in the answer key,
+    // i.e. the ones which will still be unanswered after the import. Synced
+    // questions are left out as they can't be deleted.
+    public List<Question> getUnansweredQuestions( List<Question> questions ) {
+        return questions.stream()
+                .filter( q -> q.getAnswer() == null && !q.isSyncedToAnyServer() )
+                .filter( q -> !coveredQIds.contains( q.getQID().toString() ) )
+                .filter( q -> !coveredRefs.contains( q.getQID().getSubjectCode() + "/" +
+                                                     q.getQID().getQuestionNumber() ) )
+                .toList() ;
     }
 
     public boolean hasChanges() {

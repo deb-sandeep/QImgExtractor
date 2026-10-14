@@ -65,6 +65,9 @@ public class TopicMapperUI extends JPanel {
         if( !nextQSelected ) {
             classifierPanel.displayQuestion( null ) ;
         }
+        // On opening, only the unclassified questions are shown. After that,
+        // the topic tree is expanded or collapsed only by the user.
+        topicTreePanel.getTree().expandOnlyUnclassified() ;
     }
     
     public void questionSelected( Question question, JTree tree ) {
@@ -72,7 +75,6 @@ public class TopicMapperUI extends JPanel {
             selectedQuestion = question ;
             showAISuggestionsInStatusBar( question ) ;
             classifierPanel.displayQuestion( question ) ;
-            topicTreePanel.getTree().expandTreeIntelligently( question ) ;
             if( tree instanceof TopicTree ) {
                 questionTreePanel.getTree().selectQuestion( question ) ;
             }
@@ -99,6 +101,19 @@ public class TopicMapperUI extends JPanel {
         }
 
         saveQuestionsInBackground() ;
+        if( wasUnclassified ) {
+            syncIfAllClassified() ;
+        }
+    }
+    
+    // Once the last unclassified question gets a topic, the questions are
+    // synced. Run later so that the association completes first.
+    private void syncIfAllClassified() {
+        boolean unclassified = projectModel.getQuestionRepo().getQuestionList()
+                .stream().anyMatch( q -> q.getTopic() == null ) ;
+        if( !unclassified ) {
+            SwingUtilities.invokeLater( projectPanel::syncAllPending ) ;
+        }
     }
 
     public void associateTopicToAllUnclassifiedQuestions( Topic topic ) {
@@ -134,6 +149,7 @@ public class TopicMapperUI extends JPanel {
         saveQuestionsInBackground() ;
         QImgExtractor.logStatusMsg( "Associated \"" + topic.getName() + "\" with " +
                                     targets.size() + " question(s)" ) ;
+        syncIfAllClassified() ;
     }
 
     private static String syllabusForSubject( String subjectCode ) {
@@ -209,6 +225,9 @@ public class TopicMapperUI extends JPanel {
 
         QImgExtractor.logStatusMsg( "Auto-associated " + report.mapped + " topic(s)" ) ;
         showReport( report ) ;
+        if( report.mapped > 0 ) {
+            syncIfAllClassified() ;
+        }
     }
 
     private void showReport( AutoAssociationReport report ) {
