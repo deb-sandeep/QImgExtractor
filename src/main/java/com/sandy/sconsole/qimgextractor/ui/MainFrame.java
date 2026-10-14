@@ -62,6 +62,7 @@ public class MainFrame extends JFrame {
         
         Container contentPane = getContentPane() ;
         contentPane.setLayout( new BorderLayout() ) ;
+        contentPane.add( new ToolBar( appMenuBar ), BorderLayout.NORTH ) ;
         contentPane.add( createStatusBar(), BorderLayout.SOUTH ) ;
     }
     
