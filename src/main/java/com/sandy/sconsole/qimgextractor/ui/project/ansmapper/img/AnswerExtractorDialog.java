@@ -24,7 +24,8 @@ import java.util.function.Consumer;
 
 // Runs a prompt (typically the /extract-answers skill) in an ephemeral,
 // non-interactive Claude Code session and streams its reply as it arrives.
-// Ok imports the answers in the reply's <extracted-answers> block into the
+// If a page name is given, the prompt is submitted as soon as the dialog
+// opens. Ok imports the answers in the reply's <extracted-answers> block into the
 // project, after showing a preview of the changes.
 @Slf4j
 public class AnswerExtractorDialog extends JDialog {
@@ -40,11 +41,16 @@ public class AnswerExtractorDialog extends JDialog {
     private final JTextField promptTF = new JTextField() ;
     private final JButton submitBtn = new JButton( "Submit" ) ;
     private final JButton okBtn = new JButton( "Ok" ) ;
+    private final JButton cancelBtn = new JButton( "Cancel" ) ;
     private final JTextArea outputTA = new JTextArea() ;
     private final JLabel busyLabel = new JLabel( "Claude is working ..." ) ;
 
     private SwingWorker<Void, String> worker = null ;
     private Process process = null ;
+
+    // Set while the confirmed answers are being applied to the project. The
+    // dialog can't be dismissed during this time.
+    private boolean importing = false ;
 
     // The complete reply of the last finished session.
     private volatile String replyText = null ;
@@ -80,6 +86,13 @@ public class AnswerExtractorDialog extends JDialog {
         setDefaultCloseOperation( DO_NOTHING_ON_CLOSE ) ;
         addWindowListener( new java.awt.event.WindowAdapter() {
             @Override
+            public void windowOpened( java.awt.event.WindowEvent e ) {
+                if( pageName != null ) {
+                    submit() ;
+                }
+            }
+
+            @Override
             public void windowClosing( java.awt.event.WindowEvent e ) {
                 dismiss() ;
             }
@@ -98,8 +111,6 @@ public class AnswerExtractorDialog extends JDialog {
     }
 
     private JPanel createButtonPanel() {
-        JButton cancelBtn = new JButton( "Cancel" ) ;
-
         okBtn.addActionListener( e -> importAnswers() ) ;
         cancelBtn.addActionListener( e -> dismiss() ) ;
 
@@ -144,15 +155,58 @@ public class AnswerExtractorDialog extends JDialog {
             return ;
         }
 
-        List<String> failures = plan.apply( projectModel ) ;
-        answerMapperUI.answersImported() ;
-        if( !failures.isEmpty() ) {
-            JOptionPane.showMessageDialog( this,
-                    createSummaryPane( "These changes could not be applied:\n\n" + String.join( "\n", failures ) ),
-                    "Import Answers", JOptionPane.WARNING_MESSAGE ) ;
-        }
-        QImgExtractor.logStatusMsg( "Imported extracted answers." ) ;
-        dismiss() ;
+        applyImportPlan( plan ) ;
+    }
+
+    // Applying the plan renames question images and saves the question repo,
+    // so it is done in the background while the busy label is shown.
+    private void applyImportPlan( AnswerImportPlan plan ) {
+
+        importing = true ;
+        setControlsEnabled( false ) ;
+        busyLabel.setText( "Importing answers ..." ) ;
+        busyLabel.setVisible( true ) ;
+
+        new SwingWorker<List<String>, Void>() {
+            @Override
+            protected List<String> doInBackground() {
+                return plan.apply( projectModel ) ;
+            }
+
+            @Override
+            protected void done() {
+                importing = false ;
+                busyLabel.setVisible( false ) ;
+                answerMapperUI.answersImported() ;
+
+                List<String> failures ;
+                try {
+                    failures = get() ;
+                }
+                catch( Exception e ) {
+                    log.error( "Could not import the extracted answers.", e ) ;
+                    AppUtil.showErrorMsg( AnswerExtractorDialog.this,
+                            "Could not import the extracted answers.\n" + e.getMessage() ) ;
+                    setControlsEnabled( true ) ;
+                    return ;
+                }
+
+                if( !failures.isEmpty() ) {
+                    JOptionPane.showMessageDialog( AnswerExtractorDialog.this,
+                            createSummaryPane( "These changes could not be applied:\n\n" + String.join( "\n", failures ) ),
+                            "Import Answers", JOptionPane.WARNING_MESSAGE ) ;
+                }
+                QImgExtractor.logStatusMsg( "Imported extracted answers." ) ;
+                dismiss() ;
+            }
+        }.execute() ;
+    }
+
+    private void setControlsEnabled( boolean enabled ) {
+        promptTF.setEnabled( enabled ) ;
+        submitBtn.setEnabled( enabled ) ;
+        okBtn.setEnabled( enabled ) ;
+        cancelBtn.setEnabled( enabled ) ;
     }
 
     private JScrollPane createSummaryPane( String text ) {
@@ -174,6 +228,7 @@ public class AnswerExtractorDialog extends JDialog {
         submitBtn.setEnabled( false ) ;
         promptTF.setEnabled( false ) ;
         okBtn.setEnabled( false ) ;
+        busyLabel.setText( "Claude is working ..." ) ;
         busyLabel.setVisible( true ) ;
         replyText = null ;
         outputTA.setText( "" ) ;
@@ -306,6 +361,9 @@ public class AnswerExtractorDialog extends JDialog {
     }
 
     private void dismiss() {
+        if( importing ) {
+            return ;
+        }
         if( process != null && process.isAlive() ) {
             process.descendants().forEach( ProcessHandle::destroy ) ;
             process.destroy() ;

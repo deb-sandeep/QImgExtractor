@@ -33,7 +33,7 @@ public class ToolBar extends JToolBar {
 
     // View menu --------------------------------------------------------------
     private static final boolean SHOW_ZOOM_FIT_PAGE          = true ;
-    private static final boolean SHOW_ZOOM_DEFAULT           = true ;
+    private static final boolean SHOW_ZOOM_WIDTH             = true ;
 
     // Sync menu --------------------------------------------------------------
     private static final boolean SHOW_EXPAND_ALL             = true ;
@@ -74,7 +74,7 @@ public class ToolBar extends JToolBar {
         addGroupSeparator() ;
 
         addButton( SHOW_ZOOM_FIT_PAGE, menuBar.getZoomFitPageAction() ) ;
-        addButton( SHOW_ZOOM_DEFAULT,  menuBar.getZoomDefaultAction() ) ;
+        addButton( SHOW_ZOOM_WIDTH,    menuBar.getZoomWidthAction() ) ;
         addGroupSeparator() ;
 
         addButton( SHOW_EXPAND_ALL,       menuBar.getExpandAllAction() ) ;

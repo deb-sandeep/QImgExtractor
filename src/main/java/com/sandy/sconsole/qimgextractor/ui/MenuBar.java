@@ -46,7 +46,7 @@ public class MenuBar extends JMenuBar {
     
     // View menu actions
     private Action zoomFitPageAction ;
-    private Action zoomDefaultAction ;
+    private Action zoomWidthAction ;
     
     // Sync menu actions
     private Action expandAllAction ;
@@ -54,17 +54,14 @@ public class MenuBar extends JMenuBar {
     private Action expandSyllabusAction ;
     private Action showOnlyUnsyncedAction ;
     private Action syncAllPendingAction ;
-    
-    private final JMenu syncMenu ;
             
     MenuBar( MainFrame mainFrame ) {
         this.mainFrame = mainFrame ;
-        this.syncMenu = getSyncMenu() ;
         
         super.add( getFileMenu() ) ;
         super.add( getProjectMenu() ) ;
         super.add( getViewMenu() ) ;
-        super.add( syncMenu ) ;
+        super.add( getSyncMenu() ) ;
         
         setCurrentProjectPanel( null ) ;
     }
@@ -137,16 +134,16 @@ public class MenuBar extends JMenuBar {
     private JMenu getViewMenu() {
         
         zoomFitPageAction = action( "Zoom to Fit Page [All Pages]", "zoom_fit",
-                cmdKey( KeyEvent.VK_9 ),
+                cmdKey( KeyEvent.VK_0 ),
                 e -> getCurrentProjectPanel().ifPresent( ProjectPanel::zoomAllPagesToFitPage ) ) ;
         
-        zoomDefaultAction = action( "Default Zoom [All Pages]", "zoom_default",
-                cmdKey( KeyEvent.VK_0 ),
-                e -> getCurrentProjectPanel().ifPresent( ProjectPanel::zoomAllPagesToDefault ) ) ;
+        zoomWidthAction = action( "Zoom to Fit Width [All Pages]", "zoom_default",
+                cmdKey( KeyEvent.VK_9 ),
+                e -> getCurrentProjectPanel().ifPresent( ProjectPanel::zoomAllPagesToWidth ) ) ;
         
         JMenu viewMenu = new JMenu( "View" ) ;
         viewMenu.add( zoomFitPageAction ) ;
-        viewMenu.add( zoomDefaultAction ) ;
+        viewMenu.add( zoomWidthAction ) ;
         return viewMenu ;
     }
     
@@ -257,7 +254,7 @@ public class MenuBar extends JMenuBar {
         
         syncAllPendingAction = action( "Sync All Pending", "sync_all_pending",
                 cmdKey( KeyEvent.VK_S, InputEvent.SHIFT_DOWN_MASK ),
-                e -> handleSyncAction( QSyncUI.AC_SYNC_ALL_PENDING ) ) ;
+                e -> getCurrentProjectPanel().ifPresent( ProjectPanel::syncAllPending ) ) ;
         
         JMenu syncMenu = new JMenu( "Sync" ) ;
         syncMenu.add( expandAllAction ) ;
@@ -274,15 +271,14 @@ public class MenuBar extends JMenuBar {
         getCurrentProjectPanel().ifPresent( p -> p.handleMenuAction( actionCmd ) ) ;
     }
     
-    // The sync actions are enabled only when the sync menu is enabled, so
-    // that the toolbar buttons follow the menu's enabled state.
+    // Enables the sync actions which apply only to the question sync view.
+    // Sync all pending is not one of them - it is available whenever a
+    // project is open and switches to the question sync view by itself.
     private void setSyncActionsEnabled( boolean enabled ) {
-        syncMenu.setEnabled( enabled ) ;
         expandAllAction.setEnabled( enabled ) ;
         collapseAllAction.setEnabled( enabled ) ;
         expandSyllabusAction.setEnabled( enabled ) ;
         showOnlyUnsyncedAction.setEnabled( enabled ) ;
-        syncAllPendingAction.setEnabled( enabled ) ;
     }
     
     void setCurrentProjectPanel( ProjectPanel currentProjectPanel ) {
@@ -298,6 +294,7 @@ public class MenuBar extends JMenuBar {
         autoAssocTopicsAction.setEnabled( false ) ;
         closeProjectAction.setEnabled( enabled ) ;
         reloadAISuggestionsAction.setEnabled( enabled ) ;
+        syncAllPendingAction.setEnabled( enabled ) ;
 
         // When a project is set, the zoom items have already been enabled
         // by the ProjectPanel constructor via setEditorMode.
@@ -306,7 +303,7 @@ public class MenuBar extends JMenuBar {
             closeTabAction.setEnabled( false ) ;
             extractAnswersAction.setEnabled( false ) ;
             zoomFitPageAction.setEnabled( false ) ;
-            zoomDefaultAction.setEnabled( false ) ;
+            zoomWidthAction.setEnabled( false ) ;
         }
         ansMappingAction.setEnabled( enabled ) ;
         topicMappingAction.setEnabled( enabled ) ;
@@ -329,7 +326,7 @@ public class MenuBar extends JMenuBar {
         extractAnswersAction.setEnabled( false ) ;
         closeTabAction.setEnabled( false ) ;
         zoomFitPageAction.setEnabled( false ) ;
-        zoomDefaultAction.setEnabled( false ) ;
+        zoomWidthAction.setEnabled( false ) ;
 
         setSyncActionsEnabled( false ) ;
 
@@ -340,7 +337,7 @@ public class MenuBar extends JMenuBar {
                 markAnsKeyAction.setEnabled( true ) ;
                 closeTabAction.setEnabled( true ) ;
                 zoomFitPageAction.setEnabled( true ) ;
-                zoomDefaultAction.setEnabled( true ) ;
+                zoomWidthAction.setEnabled( true ) ;
                 qSyncAction.setEnabled( true ) ;
                 break ;
             case ANSWER_MAPPER:

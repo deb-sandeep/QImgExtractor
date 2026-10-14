@@ -15,6 +15,8 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -49,6 +51,11 @@ public class ImgExtractorPanel extends JPanel
     // scale factor which has already been applied to the canvas.
     private boolean suppressSliderEvents = false ;
     
+    // When true, the image is kept zoomed such that its full height is
+    // visible, re-fitting whenever the scroll pane is resized (including
+    // the first layout, before which the viewport height is unknown).
+    private boolean fitPageMode = false ;
+    
     public ImgExtractorPanel( ImgCanvasListener listener ) {
         super( new BorderLayout() ) ;
         this.listener = listener ;
@@ -68,6 +75,14 @@ public class ImgExtractorPanel extends JPanel
         imgScrollPane.getVerticalScrollBar().setUnitIncrement( 10 ) ;
         imgScrollPane.getHorizontalScrollBar().setUnitIncrement( 10 ) ;
         imgScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED ) ;
+        imgScrollPane.addComponentListener( new ComponentAdapter() {
+            @Override
+            public void componentResized( ComponentEvent e ) {
+                if( fitPageMode ) {
+                    zoomToFitHeight( getImgViewportHeight() ) ;
+                }
+            }
+        } ) ;
         
         imgScaleSlider = new JSlider( JSlider.HORIZONTAL ) ;
         imgScaleSlider.setMinorTickSpacing( 1 ) ;
@@ -153,6 +168,7 @@ public class ImgExtractorPanel extends JPanel
     public void stateChanged( ChangeEvent c ) {
         
         if( !suppressSliderEvents && !this.imgScaleSlider.getValueIsAdjusting() ) {
+            fitPageMode = false ;
             applyScaleFactor( convertSliderValueToScaleFactor( this.imgScaleSlider.getValue() ) ) ;
         }
     }
@@ -193,7 +209,15 @@ public class ImgExtractorPanel extends JPanel
         }
     }
     
-    public void zoomToDefault() {
+    public void setFitPageMode( boolean fitPageMode ) {
+        this.fitPageMode = fitPageMode ;
+        if( fitPageMode ) {
+            zoomToFitHeight( getImgViewportHeight() ) ;
+        }
+    }
+    
+    public void zoomToWidth() {
+        fitPageMode = false ;
         if( imgScaleSlider.getValue() == defaultScaleSliderVal ) {
             // Slider won't fire a change event, but the canvas may be at a
             // fit-to-height scale which doesn't map exactly to the slider.

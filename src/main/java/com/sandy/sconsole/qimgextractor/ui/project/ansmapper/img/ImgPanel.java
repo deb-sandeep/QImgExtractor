@@ -48,9 +48,15 @@ public class ImgPanel extends JPanel {
         return button ;
     }
 
+    // Extracts answers from the first answer key page. The page images are
+    // sorted, unlike the tabs where newly marked pages are appended.
     public void openAnswerExtractorDialog() {
-        int tabIndex = tabbedPane.getSelectedIndex() ;
-        String pageName = tabIndex >= 0 ? tabbedPane.getTitleAt( tabIndex ) : null ;
+        String pageName = projectModel.getPageImages()
+                .stream()
+                .filter( p -> p.getState().isHasAnswerKeys() )
+                .findFirst()
+                .map( p -> AppUtil.stripExtension( p.getImgFile() ) )
+                .orElse( null ) ;
         new AnswerExtractorDialog( SwingUtilities.getWindowAncestor( this ), parent, pageName )
                 .setVisible( true ) ;
     }

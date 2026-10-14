@@ -35,6 +35,8 @@ public class ProjectPanel extends JPanel {
     private final TopicMapperUI topicMapperUI ;
     private final QSyncUI qSyncUI ;
     
+    private EditorMode currentMode = null ;
+    
     public ProjectPanel( MainFrame mainFrame, ProjectModel model ) {
         this.projectModel = model ;
         this.mainFrame = mainFrame ;
@@ -78,6 +80,7 @@ public class ProjectPanel extends JPanel {
         mainFrame.clearAISuggestionMsg() ;
         imgScraperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.IMAGE_SCRAPER.name() ) ;
+        currentMode = EditorMode.IMAGE_SCRAPER ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.IMAGE_SCRAPER ) ;
     }
 
@@ -86,6 +89,7 @@ public class ProjectPanel extends JPanel {
         mainFrame.clearAISuggestionMsg() ;
         answerMapperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.ANSWER_MAPPER.name() ) ;
+        currentMode = EditorMode.ANSWER_MAPPER ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.ANSWER_MAPPER ) ;
     }
     
@@ -93,6 +97,7 @@ public class ProjectPanel extends JPanel {
         log.debug( "Activating TopicMapperUI" ) ;
         topicMapperUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.TOPIC_MAPPER.name() ) ;
+        currentMode = EditorMode.TOPIC_MAPPER ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.TOPIC_MAPPER ) ;
     }
     
@@ -101,6 +106,7 @@ public class ProjectPanel extends JPanel {
         mainFrame.clearAISuggestionMsg() ;
         qSyncUI.handlePreActivation() ;
         cardLayout.show( this, EditorMode.QUESTION_SYNC.name() ) ;
+        currentMode = EditorMode.QUESTION_SYNC ;
         mainFrame.getAppMenuBar().setEditorMode( EditorMode.QUESTION_SYNC ) ;
     }
     
@@ -120,8 +126,17 @@ public class ProjectPanel extends JPanel {
         imgScraperUI.zoomAllToFitPage() ;
     }
     
-    public void zoomAllPagesToDefault() {
-        imgScraperUI.zoomAllToDefault() ;
+    public void zoomAllPagesToWidth() {
+        imgScraperUI.zoomAllToWidth() ;
+    }
+    
+    // Shows the question sync view (if not already visible) so that the
+    // sync progress can be seen, and syncs all the sync pending questions.
+    public void syncAllPending() {
+        if( currentMode != EditorMode.QUESTION_SYNC ) {
+            activateQSyncUI() ;
+        }
+        qSyncUI.handleMenuAction( QSyncUI.AC_SYNC_ALL_PENDING ) ;
     }
     
     public void handleMenuAction( String actionCmd ) {

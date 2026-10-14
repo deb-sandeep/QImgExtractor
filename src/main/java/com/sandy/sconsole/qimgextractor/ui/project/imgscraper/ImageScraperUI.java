@@ -58,8 +58,9 @@ public class ImageScraperUI extends JPanel
     private String pendingQImgFileName = null ;
     
     // When true, all page panels (including ones opened later) are zoomed
-    // so that the complete page height is visible.
-    private boolean fitPageZoom = false ;
+    // so that the complete page height is visible. When false, pages are
+    // zoomed to the default display width.
+    private boolean fitPageZoom = true ;
     
     public ImageScraperUI( ProjectPanel projectPanel ) {
         
@@ -161,7 +162,7 @@ public class ImageScraperUI extends JPanel
                 tabPane.raiseAlert( imgPanel ) ;
             }
             if( fitPageZoom ) {
-                imgPanel.zoomToFitHeight( getImgViewportHeight() ) ;
+                imgPanel.setFitPageMode( true ) ;
             }
         } ) ;
     }
@@ -473,29 +474,14 @@ public class ImageScraperUI extends JPanel
 
     public void zoomAllToFitPage() {
         fitPageZoom = true ;
-        int viewportHeight = getImgViewportHeight() ;
-        panelMap.values().forEach( p -> p.zoomToFitHeight( viewportHeight ) ) ;
+        panelMap.values().forEach( p -> p.setFitPageMode( true ) ) ;
     }
     
-    public void zoomAllToDefault() {
+    public void zoomAllToWidth() {
         fitPageZoom = false ;
-        panelMap.values().forEach( ImgExtractorPanel::zoomToDefault ) ;
+        panelMap.values().forEach( ImgExtractorPanel::zoomToWidth ) ;
     }
-    
-    // All tabs share the same size, but only the selected one is guaranteed
-    // to have been laid out, so prefer it and fall back to any laid out panel.
-    private int getImgViewportHeight() {
-        ImgExtractorPanel selPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
-        if( selPanel != null && selPanel.getImgViewportHeight() > 0 ) {
-            return selPanel.getImgViewportHeight() ;
-        }
-        return panelMap.values().stream()
-                       .mapToInt( ImgExtractorPanel::getImgViewportHeight )
-                       .filter( h -> h > 0 )
-                       .findFirst()
-                       .orElse( 0 ) ;
-    }
-    
+
     // This method is called just before the panel is made visible. Can be used
     // to update the UI state based on any changes that have happened through
     // other project modules.
