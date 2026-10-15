@@ -108,8 +108,7 @@ public class ImgCanvas extends JLabel {
     
     public void scaleImage( double factor ) {
         
-        double regionScaleFactor = factor/scaleFactor ;
-        regionSelector.scaleSelectedRegions( regionScaleFactor ) ;
+        regionSelector.scaleSelectedRegions( factor ) ;
         
         scaleFactor = factor ;
         scaledImg = SwingUtils.getScaledImage( originalImage, scaleFactor ) ;

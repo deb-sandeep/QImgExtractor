@@ -156,6 +156,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
                 if( tag != null ) {
                     log.debug( "  Adding active region to the list of selected regions." ) ;
                     activeRegion.setTag( tag ) ;
+                    activeRegion.setModelCoordinates( canvas.getScaleFactor() ) ;
                     oldRegions.add( activeRegion ) ;
                     
                     log.debug( "  Informing the canvas that a new region has been selected." ) ;
@@ -215,8 +216,9 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         g.drawLine( 0, yPos, canvas.getWidth(), yPos ) ;
     }
     
+    // scaleFactor is absolute: display size relative to the original image
     public void scaleSelectedRegions( double scaleFactor ) {
-        oldRegions.forEach( region -> region.scale( scaleFactor ) ) ;
+        oldRegions.forEach( region -> region.scaleTo( scaleFactor ) ) ;
         clearActiveSelection() ;
     }
     
