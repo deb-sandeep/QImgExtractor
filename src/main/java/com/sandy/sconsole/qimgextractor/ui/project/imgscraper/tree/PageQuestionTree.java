@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
+import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
 public class PageQuestionTree extends JTree implements ActionListener, TreeSelectionListener {
     
@@ -41,6 +41,8 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
     private final JPopupMenu popupMenu ;
     private final JPopupMenu rootPopupMenu ;
     private final JPopupMenu qImgPopupMenu ;
+    private final JPopupMenu multiQImgPopupMenu ;
+    private final JMenuItem multiDeleteMenuItem ;
     
     private DefaultMutableTreeNode selectedNode;
     
@@ -50,7 +52,7 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         
         super.setRootVisible( true ) ;
         super.setFont( TREE_FONT ) ;
-        super.getSelectionModel().setSelectionMode( SINGLE_TREE_SELECTION ) ;
+        super.getSelectionModel().setSelectionMode( DISCONTIGUOUS_TREE_SELECTION ) ;
         super.setRowHeight( 25 ) ;
         super.setEditable( true ) ;
         super.setCellRenderer( new PageQuestionTreeCellRenderer() ) ;
@@ -62,6 +64,8 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         this.popupMenu = createPageImagePopupMenu() ;
         this.rootPopupMenu = createRootPopupMenu() ;
         this.qImgPopupMenu = createQuestionImagePopupMenu() ;
+        this.multiDeleteMenuItem = new JMenuItem( "Delete" ) ;
+        this.multiQImgPopupMenu = createMultiQuestionImagePopupMenu() ;
         
         SwingUtilities.invokeLater( this::expandAll ) ;
     }
@@ -72,7 +76,19 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
             public void mouseClicked( MouseEvent e ) {
                 if( SwingUtilities.isRightMouseButton( e ) ) {
                     int row = getClosestRowForLocation( e.getX(), e.getY() );
-                    setSelectionRow( row );
+                    
+                    // Right-click on an unselected node replaces the selection,
+                    // while right-click on a selected node retains the
+                    // multi-selection.
+                    if( !isRowSelected( row ) ) {
+                        setSelectionRow( row );
+                    }
+                    
+                    if( getSelectionCount() > 1 ) {
+                        showMultiSelectionPopup( e ) ;
+                        return ;
+                    }
+                    
                     DefaultMutableTreeNode node = ( DefaultMutableTreeNode )getLastSelectedPathComponent();
                     if( node != null ) {
                         selectedNode = node;
@@ -89,7 +105,7 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
                 }
                 else {
                     TreePath path = getPathForLocation( e.getX(), e.getY() );
-                    if( path != null ) {
+                    if( path != null && !isMultiSelectGesture( e ) ) {
                         setSelectionPath( path ) ;
                         handleMouseClickOnNode( path, e.getClickCount() ) ;
                     }
@@ -99,6 +115,13 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         
         super.addKeyListener( new KeyAdapter() {
             public void keyPressed( KeyEvent e ) {
+                if( getSelectionCount() > 1 ) {
+                    if( e.getKeyCode() == KeyEvent.VK_DELETE ) {
+                        deleteSelectedQuestionImgs() ;
+                    }
+                    return ;
+                }
+                
                 TreePath path = getSelectionPath() ;
                 if( path != null ) {
                     handleKeyPressedOnNode( path, e ) ;
@@ -143,6 +166,44 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         return popup ;
     }
     
+    // Only the actions which apply to a batch of question images are shown
+    // when more than one node is selected.
+    private JPopupMenu createMultiQuestionImagePopupMenu() {
+        JPopupMenu popup = new JPopupMenu() ;
+        multiDeleteMenuItem.addActionListener( e -> deleteSelectedQuestionImgs() ) ;
+        
+        popup.add( createChangeSubjectMenu( this::changeSubjectOfSelectedImgs ) ) ;
+        popup.add( multiDeleteMenuItem ) ;
+        return popup ;
+    }
+    
+    private boolean isMultiSelectGesture( MouseEvent e ) {
+        return e.isShiftDown() || e.isControlDown() || e.isMetaDown() ;
+    }
+    
+    private void showMultiSelectionPopup( MouseEvent e ) {
+        int numQImgs = getSelectedQuestionImgs().size() ;
+        if( numQImgs > 0 ) {
+            multiDeleteMenuItem.setText( "Delete " + numQImgs + " Question Images" ) ;
+            multiQImgPopupMenu.show( e.getComponent(), e.getX(), e.getY() ) ;
+        }
+    }
+    
+    // Page and root nodes in the selection are ignored, so that a range
+    // selection spanning pages picks up only the question images.
+    private List<QuestionImage> getSelectedQuestionImgs() {
+        List<QuestionImage> qImgs = new ArrayList<>() ;
+        TreePath[] paths = getSelectionPaths() ;
+        if( paths != null ) {
+            for( TreePath path : paths ) {
+                if( SwingUtils.getUserObject( path ) instanceof QuestionImage qImg ) {
+                    qImgs.add( qImg ) ;
+                }
+            }
+        }
+        return qImgs ;
+    }
+    
     private JMenu createChangeSubjectMenu( Consumer<String> subjectChangeHandler ) {
         JMenu menu = new JMenu( "Change Subject" ) ;
         SUBJECT_NAMES.forEach( ( code, name ) -> {
@@ -179,6 +240,29 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
     private void changeSubjectOfSelectedImg( String subjectCode ) {
         if( selectedNode.getUserObject() instanceof QuestionImage qImg ) {
             parentPanel.changeSubject( List.of( qImg ), subjectCode ) ;
+        }
+    }
+    
+    private void changeSubjectOfSelectedImgs( String subjectCode ) {
+        List<QuestionImage> qImgs = getSelectedQuestionImgs() ;
+        if( !qImgs.isEmpty() ) {
+            parentPanel.changeSubject( qImgs, subjectCode ) ;
+        }
+    }
+    
+    private void deleteSelectedQuestionImgs() {
+        List<QuestionImage> qImgs = getSelectedQuestionImgs() ;
+        if( qImgs.isEmpty() ) {
+            return ;
+        }
+        
+        int choice = JOptionPane.showConfirmDialog( parentPanel,
+                "Delete " + qImgs.size() + " question image(s)?\n\n" +
+                "The image files will be permanently deleted.",
+                "Delete Question Images", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE ) ;
+        if( choice == JOptionPane.YES_OPTION ) {
+            clearSelection() ;
+            qImgs.forEach( parentPanel::questionImgDeleted ) ;
         }
     }
     
