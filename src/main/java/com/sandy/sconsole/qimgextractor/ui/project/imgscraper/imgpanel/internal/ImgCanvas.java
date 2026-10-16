@@ -83,6 +83,8 @@ public class ImgCanvas extends JLabel {
         }
         parent.setModeStatus( opMode.toString() + " MODE" ) ;
         regionSelector.clearActiveSelection() ;
+        // Region edges can only be grabbed in COMMAND mode.
+        setCursor( Cursor.getDefaultCursor() ) ;
     }
 
     void setGuideModeStatus( boolean active ) {
@@ -141,6 +143,19 @@ public class ImgCanvas extends JLabel {
                                                           modelRect.width, modelRect.height ) ;
         
         return parent.subImageSelected( subImg, modelRect, selectionEndAction ) ;
+    }
+    
+    Dimension getOriginalImageSize() {
+        return new Dimension( originalImage.getWidth(), originalImage.getHeight() ) ;
+    }
+    
+    // Called when an existing region has been resized. The bounds are in
+    // original image coordinates. Returns true if the question image has been
+    // re-cut with the new bounds, false if the resize should be reverted.
+    boolean regionResized( String tag, Rectangle modelRect ) {
+        BufferedImage subImg = originalImage.getSubimage( modelRect.x, modelRect.y,
+                                                          modelRect.width, modelRect.height ) ;
+        return parent.subImageResized( tag, subImg, modelRect ) ;
     }
     
     public void destroy() {

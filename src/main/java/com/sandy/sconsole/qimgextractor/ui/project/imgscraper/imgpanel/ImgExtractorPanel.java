@@ -265,6 +265,14 @@ public class ImgExtractorPanel extends JPanel
         return null ;
     }
     
+    public boolean subImageResized( String tag, BufferedImage subImg, Rectangle subImgBounds ) {
+        if( listener != null ) {
+            return listener.subImageResized( pageImg, tag, subImg, subImgBounds ) ;
+        }
+        log.warn( "No extracted image listener available." ) ;
+        return false ;
+    }
+    
     public void selectedRegionAdded( SelectedRegionMetadata newRegionInfo ) {
         listener.selectedRegionAdded( pageImg, newRegionInfo ) ;
     }

@@ -31,6 +31,22 @@ public interface ImgCanvasListener {
                               SelectedRegionMetadata regionMeta ) ;
     
     /**
+     * Called when the user has finished resizing the region of an existing
+     * question image. The listener is expected to replace the question image
+     * file with the new extract and update the region metadata.
+     *
+     * @param pageImg The page on which the region was resized.
+     * @param tag The tag of the resized region.
+     * @param image The raster data for the resized region. This is an
+     *        unscaled extract from the original image raster data.
+     * @param subImgBounds The new bounds of the region as per the
+     *        original image coordinate frame.
+     * @return true if the resize was applied, false if it should be reverted.
+     */
+    boolean subImageResized( PageImage pageImg, String tag,
+                             BufferedImage image, Rectangle subImgBounds ) ;
+    
+    /**
      * If the image extractor canvas is in COMMAND mode and a key other than
      * Escape is pressed, it is propagated to the listener as a command key.
      */

@@ -22,6 +22,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -308,6 +310,50 @@ public class ImageScraperUI extends JPanel
         projectModel.notifyListenersNewQuestionImgAdded( pageImage, qImg ) ;
     }
     
+    @Override
+    public boolean subImageResized( PageImage pageImage, String tag,
+                                    BufferedImage img, Rectangle subImgBounds ) {
+
+        QuestionImage qImg = null ;
+        for( QuestionImage q : pageImage.getQImgList() ) {
+            if( q.getImgRegionMetadata().getTag().equals( tag ) ) {
+                qImg = q ;
+                break ;
+            }
+        }
+        if( qImg == null ) {
+            log.error( "No question image with tag {} on page {}.", tag, pageImage.getImgFile().getName() ) ;
+            showErrorMsg( this, "Question image " + tag + " not found. Resize reverted." ) ;
+            return false ;
+        }
+
+        // Write to a temporary file first so that a failed write doesn't
+        // leave the existing question image truncated.
+        File imgFile = qImg.getImgFile() ;
+        File tmpFile = new File( imgFile.getParentFile(), imgFile.getName() + ".tmp" ) ;
+        try {
+            ImageIO.write( img, "png", tmpFile ) ;
+            Files.move( tmpFile.toPath(), imgFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE ) ;
+        }
+        catch( Exception e ) {
+            log.error( "Error saving resized image {}.", imgFile.getName(), e ) ;
+            tmpFile.delete() ;
+            showErrorMsg( "Error saving resized image. Resize reverted.", e ) ;
+            return false ;
+        }
+
+        SelectedRegionMetadata regionMeta = qImg.getImgRegionMetadata() ;
+        regionMeta.setRegionBounds( new Rectangle( subImgBounds ) ) ;
+        regionMeta.setAnchorPoint( new Point( subImgBounds.x, subImgBounds.y ) ) ;
+        pageImage.saveQuestionImgMetadata() ;
+
+        projectModel.getState().setImgCuttingWip( true ) ;
+        mainFrame.logStausMsg( "   Resized image file : " + imgFile.getName() ) ;
+        return true ;
+    }
+
     @Override
     public void processImgCanvasCommandKey( int keyCode ) {
         switch( keyCode ) {

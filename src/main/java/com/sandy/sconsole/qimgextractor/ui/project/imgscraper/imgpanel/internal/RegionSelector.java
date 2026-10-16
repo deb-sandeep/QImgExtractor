@@ -36,6 +36,13 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     private transient int curVMarkPos = -1 ;
     private transient int curHMarkPos = -1 ;
     
+    // An existing region whose edges are being dragged in COMMAND mode. The
+    // resize is committed (image re-cut and metadata updated) on mouse
+    // release, and reverted if the commit fails or is cancelled.
+    private transient SelectedRegion resizingRegion = null ;
+    private transient int resizeEdges = 0 ;
+    private transient Rectangle resizeOrigModelBounds = null ;
+    
     private final List<SelectedRegion> oldRegions = new ArrayList<>() ;
     private final ImgCanvasListener listener ;
     private final VerticalGuides verticalGuides ;
@@ -66,14 +73,111 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
                     }
                 }
             }
+            else if( event.getButton() == MouseEvent.BUTTON1 ) {
+                beginResize( event.getPoint() ) ;
+            }
         }
         canvas.requestFocus() ;
+    }
+    
+    @Override
+    public void mouseDragged( MouseEvent event ) {
+        if( resizingRegion != null ) {
+            Rectangle paintArea = resizingRegion.resize( resizeEdges, event.getPoint(),
+                                                         canvas.getScaleFactor(),
+                                                         canvas.getOriginalImageSize() ) ;
+            canvas.repaint( paintArea ) ;
+            canvas.logActiveRegionSize( resizingRegion.getRegionBounds() ) ;
+        }
+        canvas.logMousePosition( event.getPoint() ) ;
+    }
+    
+    @Override
+    public void mouseReleased( MouseEvent event ) {
+        if( resizingRegion != null && event.getButton() == MouseEvent.BUTTON1 ) {
+            commitResize() ;
+        }
+    }
+    
+    private void beginResize( Point p ) {
+        SelectedRegion region = null ;
+        int edges = 0 ;
+        // Regions added later are painted on top, so they get preference.
+        for( int i=oldRegions.size()-1; i>=0 && edges == 0; i-- ) {
+            region = oldRegions.get( i ) ;
+            edges = region.getEdgesAt( p ) ;
+        }
+        if( edges != 0 ) {
+            resizingRegion = region ;
+            resizeEdges = edges ;
+            resizeOrigModelBounds = region.getModelRegionBounds() ;
+            canvas.repaint( region.getRepaintBounds() ) ;
+            log.debug( "## Resizing region {} from {}", region.getTag(), resizeOrigModelBounds ) ;
+        }
+    }
+    
+    private void commitResize() {
+        SelectedRegion region = resizingRegion ;
+        Rectangle newModelBounds = region.getModelRegionBounds() ;
+        resizingRegion = null ;
+        
+        if( !newModelBounds.equals( resizeOrigModelBounds ) ) {
+            log.debug( "  Region {} resized to {}", region.getTag(), newModelBounds ) ;
+            if( !canvas.regionResized( region.getTag(), newModelBounds ) ) {
+                log.debug( "  Resize not accepted. Reverting region." ) ;
+                Rectangle oldRepaintBounds = region.getRepaintBounds() ;
+                region.setModelRegionBounds( resizeOrigModelBounds, canvas.getScaleFactor() ) ;
+                canvas.repaint( oldRepaintBounds ) ;
+            }
+        }
+        canvas.repaint( region.getRepaintBounds() ) ;
+        canvas.logActiveRegionSize( null ) ;
+        resizeOrigModelBounds = null ;
+    }
+    
+    private void cancelResize() {
+        if( resizingRegion != null ) {
+            Rectangle oldRepaintBounds = resizingRegion.getRepaintBounds() ;
+            resizingRegion.setModelRegionBounds( resizeOrigModelBounds, canvas.getScaleFactor() ) ;
+            canvas.repaint( oldRepaintBounds.union( resizingRegion.getRepaintBounds() ) ) ;
+            resizingRegion = null ;
+            resizeOrigModelBounds = null ;
+            canvas.logActiveRegionSize( null ) ;
+        }
+    }
+    
+    private void updateResizeCursor( Point p ) {
+        int edges = 0 ;
+        if( canvas.isInCommandMode() && !inVMarkSelectionMode ) {
+            for( int i=oldRegions.size()-1; i>=0 && edges == 0; i-- ) {
+                edges = oldRegions.get( i ).getEdgesAt( p ) ;
+            }
+        }
+        canvas.setCursor( Cursor.getPredefinedCursor( getResizeCursorType( edges ) ) ) ;
+    }
+    
+    private static int getResizeCursorType( int edges ) {
+        boolean l = ( edges & SelectedRegion.EDGE_LEFT   ) != 0 ;
+        boolean r = ( edges & SelectedRegion.EDGE_RIGHT  ) != 0 ;
+        boolean t = ( edges & SelectedRegion.EDGE_TOP    ) != 0 ;
+        boolean b = ( edges & SelectedRegion.EDGE_BOTTOM ) != 0 ;
+        
+        if( l && t ) return Cursor.NW_RESIZE_CURSOR ;
+        if( r && t ) return Cursor.NE_RESIZE_CURSOR ;
+        if( l && b ) return Cursor.SW_RESIZE_CURSOR ;
+        if( r && b ) return Cursor.SE_RESIZE_CURSOR ;
+        if( l )      return Cursor.W_RESIZE_CURSOR ;
+        if( r )      return Cursor.E_RESIZE_CURSOR ;
+        if( t )      return Cursor.N_RESIZE_CURSOR ;
+        if( b )      return Cursor.S_RESIZE_CURSOR ;
+        return Cursor.DEFAULT_CURSOR ;
     }
     
     @Override
     public void mouseMoved( MouseEvent event ) {
         
         redrawHMarkerOnMouseMove( event.getY() ) ;
+        updateResizeCursor( event.getPoint() ) ;
         
         if( inRegionSelectMode ) {
             Rectangle paintArea = activeRegion.updateRegion( verticalGuides.getEndSnapPoint( event ) ) ;
@@ -125,6 +229,10 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         for( Iterator<SelectedRegion> iter = oldRegions.iterator(); iter.hasNext(); ) {
             SelectedRegion region = iter.next() ;
             if( region.getTag().equals( tag ) ) {
+                if( region == resizingRegion ) {
+                    resizingRegion = null ;
+                    resizeOrigModelBounds = null ;
+                }
                 iter.remove() ;
                 canvas.repaint( region.getRepaintBounds() ) ;
                 break ;
@@ -181,6 +289,10 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             activeRegion.paint( g ) ;
         }
         
+        if( resizingRegion != null ) {
+            resizingRegion.paint( g ) ;
+        }
+        
         if( inVMarkSelectionMode && curVMarkPos >= 0 ) {
             paintVMarker( curVMarkPos, g, Color.LIGHT_GRAY ) ;
         }
@@ -218,11 +330,14 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     
     // scaleFactor is absolute: display size relative to the original image
     public void scaleSelectedRegions( double scaleFactor ) {
-        oldRegions.forEach( region -> region.scaleTo( scaleFactor ) ) ;
+        // Cleared first, so that a resize in progress is reverted at the
+        // scale it was started in before all regions are rescaled.
         clearActiveSelection() ;
+        oldRegions.forEach( region -> region.scaleTo( scaleFactor ) ) ;
     }
     
     public void clearActiveSelection() {
+        cancelResize() ;
         inRegionSelectMode = false ;
         if( activeRegion != null ) {
             canvas.repaint( activeRegion.getRepaintBounds() ) ;
