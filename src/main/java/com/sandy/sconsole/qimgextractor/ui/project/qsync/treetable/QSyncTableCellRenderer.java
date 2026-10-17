@@ -1,6 +1,9 @@
 package com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
+import com.sandy.sconsole.qimgextractor.ui.core.TopicAssociatorIcon;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.model.TopicAssociator;
 import lombok.extern.slf4j.Slf4j;
 import org.jdesktop.swingx.JXTreeTable;
 
@@ -27,6 +30,7 @@ public class QSyncTableCellRenderer extends DefaultTableCellRenderer {
         label.setFont( new Font( "Courier", Font.PLAIN, 12 ) ) ;
         label.setIcon( null ) ;
         label.setText( "" ) ;
+        label.setToolTipText( null ) ;
         
         if( column == COL_LAST_UPDATE_DATE ) {
             if( value != null ) {
@@ -70,8 +74,30 @@ public class QSyncTableCellRenderer extends DefaultTableCellRenderer {
                 label.setBackground( Color.RED ) ;
             }
         }
+        else if( column == COL_TOPIC_ASSOC ) {
+            renderTopicAssocCell( (Question)value, label ) ;
+        }
         else if( column == COL_SYNC_BTN ) {
             label.setText( value.toString() ) ;
+        }
+    }
+    
+    private void renderTopicAssocCell( Question question, JLabel label ) {
+        if( question.getTopic() == null ) {
+            return ;
+        }
+        // Null if the topic was associated before provenance was recorded.
+        // Such questions are synced as user associations.
+        TopicAssociator associator = question.getTopicAssociator() ;
+        if( associator == null ) {
+            label.setIcon( TopicAssociatorIcon.forAssociator( null, false ) ) ;
+            label.setToolTipText( "Associated before provenance was recorded" ) ;
+            return ;
+        }
+        label.setIcon( TopicAssociatorIcon.forAssociator( associator, false ) ) ;
+        label.setText( associator.getConfidence() + "%" ) ;
+        if( associator.getModel() != null ) {
+            label.setToolTipText( associator.getModel() ) ;
         }
     }
     

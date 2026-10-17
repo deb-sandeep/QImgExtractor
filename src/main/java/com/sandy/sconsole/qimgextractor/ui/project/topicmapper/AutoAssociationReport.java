@@ -10,10 +10,10 @@ public class AutoAssociationReport {
     int alreadyClassified ;
     int mapped ;
     int noRecommendation ;
-    int failedGating ;
+    int unresolvedTopic ;
 
     int notAssociated() {
-        return noRecommendation + failedGating ;
+        return noRecommendation + unresolvedTopic ;
     }
 
     public String toDisplayString() {
@@ -22,7 +22,7 @@ public class AutoAssociationReport {
                 String.format( "Already classified (skipped) : %d%n", alreadyClassified ) +
                 String.format( "Newly associated             : %d%n", mapped ) +
                 String.format( "Not associated               : %d%n", notAssociated() ) +
-                String.format( "    - had recommendations, failed quality gating : %d%n", failedGating ) +
+                String.format( "    - recommended topic ids not in topic master  : %d%n", unresolvedTopic ) +
                 String.format( "    - no recommendation available               : %d%n", noRecommendation ) ;
     }
 }

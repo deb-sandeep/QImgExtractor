@@ -20,4 +20,7 @@ public class QuestionVO {
     private String  answer;
     private Date    serverSyncTime;
     private List<QuestionImageVO> questionImages = new ArrayList<>();
+    private String  topicAssocActor;
+    private String  topicAssocAiModel;
+    private Integer topicAssocConfidence;
 }

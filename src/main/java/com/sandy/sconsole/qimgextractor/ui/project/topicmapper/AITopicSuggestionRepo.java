@@ -30,9 +30,11 @@ import java.util.Map;
 public class AITopicSuggestionRepo {
 
     private final Map<String, List<AITopicSuggestion>> suggestionsByQId = new HashMap<>() ;
+    private final Map<String, AIClassifiedBy> classifiedByQId = new HashMap<>() ;
 
     public void reload() {
         suggestionsByQId.clear() ;
+        classifiedByQId.clear() ;
 
         ProjectModel projectModel = QImgExtractor.getBean( ProjectModel.class ) ;
         File aiTopicMapFile = new File( projectModel.getWorkDir(), "ai-topic-map.json" ) ;
@@ -50,6 +52,10 @@ public class AITopicSuggestionRepo {
                 JSONArray  topicMappings = value.getJSONArray( "topicMappings" ) ;
                 if( topicMappings.length() > 0 ) {
                     parseSuggestions( key, topicMappings ) ;
+                }
+                if( value.has( "classifiedBy" ) && !value.isNull( "classifiedBy" ) ) {
+                    classifiedByQId.put( key.replace( "_", "/" ),
+                                         parseClassifiedBy( value.getJSONObject( "classifiedBy" ) ) ) ;
                 }
             }
         }
@@ -76,11 +82,31 @@ public class AITopicSuggestionRepo {
         suggestionsByQId.put( questionId.replace( "_", "/" ), suggestions ) ;
     }
 
+    private static AIClassifiedBy parseClassifiedBy( JSONObject json )
+            throws JSONException {
+        return new AIClassifiedBy( optString( json, "actor" ),
+                                   optString( json, "agent" ),
+                                   optString( json, "model" ) ) ;
+    }
+
+    private static String optString( JSONObject json, String key )
+            throws JSONException {
+        return json.has( key ) && !json.isNull( key ) ? json.getString( key ) : null ;
+    }
+
     /**
      * @return the recommendation list (confidence-descending) for the given
      *         question, or {@code null} if the AI map has no entry for it.
      */
     public List<AITopicSuggestion> getSuggestions( Question question ) {
         return suggestionsByQId.get( question.getQID().toString() ) ;
+    }
+
+    /**
+     * @return who produced the recommendations of the given question, or
+     *         {@code null} if the AI map entry predates provenance recording.
+     */
+    public AIClassifiedBy getClassifiedBy( Question question ) {
+        return classifiedByQId.get( question.getQID().toString() ) ;
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.TopicAssociator;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.logpanel.QSyncLogPanel;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.net.APIClient;
@@ -75,6 +76,16 @@ public class QSyncAPIClient {
         vo.setLctSequence( question.getQID().getLctSequence() ) ;
         vo.setQuestionNumber( question.getQID().getQuestionNumber() ) ;
         vo.setAnswer( question.getAnswer() ) ;
+        
+        // Topics associated before provenance was recorded are sent as user
+        // associations, which is also what the server backfills them with.
+        TopicAssociator associator = question.getTopicAssociator() ;
+        if( associator == null ) {
+            associator = TopicAssociator.user() ;
+        }
+        vo.setTopicAssocActor( associator.getActor() ) ;
+        vo.setTopicAssocAiModel( associator.getModel() ) ;
+        vo.setTopicAssocConfidence( associator.getConfidence() ) ;
         
         List<QuestionImage> qImgs = question.getQImgList() ;
         for( int i=0; i<qImgs.size(); i++ ) {

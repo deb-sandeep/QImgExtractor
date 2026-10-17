@@ -1,7 +1,9 @@
 package com.sandy.sconsole.qimgextractor.ui.project.topicmapper.topictree;
 
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
+import com.sandy.sconsole.qimgextractor.ui.core.TopicAssociatorIcon;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.model.TopicAssociator;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -33,6 +35,7 @@ public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
                 renderQuestionNode( comp, question, sel ) ;
             }
             else {
+                setToolTipText( null ) ;
                 String nodeName = node.toString() ;
                 if( nodeName.startsWith( "IIT " ) || nodeName.equals( "Unclassified" ) ) {
                     renderSyllabusNode( comp, nodeName ) ;
@@ -54,7 +57,17 @@ public class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
         qLabel = qLabel.replace( "/", "." ) ;
         label.setFont( QUESTION_FONT ) ;
         label.setText( qLabel ) ;
-        label.setIcon( SwingUtils.getIcon( "question" ) ) ;
+        label.setToolTipText( null ) ;
+
+        TopicAssociator associator = question.getTopicAssociator() ;
+        if( associator != null && TopicAssociator.ACTOR_AI.equals( associator.getActor() ) ) {
+            label.setIcon( TopicAssociatorIcon.forAssociator( associator, true ) ) ;
+            label.setToolTipText( "AI associated with " + associator.getConfidence() + "% confidence" +
+                    ( associator.getModel() != null ? " by " + associator.getModel() : "" ) ) ;
+        }
+        else {
+            label.setIcon( SwingUtils.getIcon( "question" ) ) ;
+        }
     }
     
     private void renderSyllabusNode( Component comp, String syllabusName ) {

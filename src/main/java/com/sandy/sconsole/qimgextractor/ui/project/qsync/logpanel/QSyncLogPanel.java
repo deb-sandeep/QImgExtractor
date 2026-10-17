@@ -68,6 +68,9 @@ public class QSyncLogPanel extends JPanel {
         logNVP( "LCT Seq", vo.getLctSequence() ) ;
         logNVP( "Q No", vo.getQuestionNumber() ) ;
         logNVP( "Answer", vo.getAnswer() ) ;
+        logNVP( "Assoc Actor", vo.getTopicAssocActor() ) ;
+        logNVP( "Assoc Model", vo.getTopicAssocAiModel() ) ;
+        logNVP( "Assoc Conf", vo.getTopicAssocConfidence() ) ;
         
         for( QuestionImageVO imageVO : vo.getQuestionImages() ) {
             append( "................" ) ;

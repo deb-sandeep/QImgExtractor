@@ -21,13 +21,15 @@ public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonE
     public static final int COL_LAST_SYNC_DATE = 2 ;
     public static final int COL_LAST_UPDATE_DATE = 3 ;
     public static final int COL_ANSWER = 4 ;
-    public static final int COL_SYNC_BTN = 5 ;
+    public static final int COL_TOPIC_ASSOC = 5 ;
+    public static final int COL_SYNC_BTN = 6 ;
     
     public static final String COL_NAME_LABEL = "Name" ;
     public static final String COL_TYPE_LABEL = "Type" ;
     public static final String COL_LAST_SYNC_DATE_LABEL = "Last Sync" ;
     public static final String COL_LAST_UPDATE_DATE_LABEL = "Last Update" ;
     public static final String COL_ANSWER_LABEL = "Answer" ;
+    public static final String COL_TOPIC_ASSOC_LABEL = "Topic Assoc" ;
     public static final String COL_SYNC_BTN_LABEL = "Sync" ;
     
     public static final Font QUESTION_ROW_FONT     = new Font( "Courier", Font.PLAIN, 11 ) ;
@@ -77,6 +79,7 @@ public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonE
         columnModel.getColumn( COL_LAST_SYNC_DATE ).setPreferredWidth( 150 ) ;
         columnModel.getColumn( COL_LAST_UPDATE_DATE ).setPreferredWidth( 150 ) ;
         columnModel.getColumn( COL_ANSWER ).setPreferredWidth( 150 ) ;
+        columnModel.getColumn( COL_TOPIC_ASSOC ).setPreferredWidth( 90 ) ;
         columnModel.getColumn( COL_SYNC_BTN ).setPreferredWidth( 50 ) ;
     }
     

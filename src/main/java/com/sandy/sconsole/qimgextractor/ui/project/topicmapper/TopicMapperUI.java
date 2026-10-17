@@ -5,6 +5,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Topic;
+import com.sandy.sconsole.qimgextractor.ui.project.model.TopicAssociator;
 import com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.classifier.ClassifierPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.qtree.QuestionTree;
@@ -58,7 +59,9 @@ public class TopicMapperUI extends JPanel {
     // other project modules.
     public void handlePreActivation() {
         // Question renames elsewhere can move AI topic map entries to new QIDs.
-        reloadAISuggestions() ;
+        // The auto association reloads the AI suggestions before it runs.
+        AutoAssociationReport report =
+                new AutoTopicAssociator( projectModel, aiSuggestionRepo ).run() ;
         topicTreePanel.refreshTree() ;
         questionTreePanel.refreshTree() ;
         boolean nextQSelected = topicTreePanel.getTree().selectNextUnclassifiedQuestion() ;
@@ -68,6 +71,12 @@ public class TopicMapperUI extends JPanel {
         // On opening, only the unclassified questions are shown. After that,
         // the topic tree is expanded or collapsed only by the user.
         topicTreePanel.getTree().expandOnlyUnclassified() ;
+
+        if( report.mapped > 0 ) {
+            saveQuestionsInBackground() ;
+            QImgExtractor.logStatusMsg( "Auto-associated " + report.mapped + " topic(s)" ) ;
+            syncIfAllClassified() ;
+        }
     }
     
     public void questionSelected( Question question, JTree tree ) {
@@ -89,7 +98,7 @@ public class TopicMapperUI extends JPanel {
         Question nextQuestion = wasUnclassified ?
             topicTreePanel.getTree().getNextUnclassifiedQuestion( selectedQuestion ) : null ;
 
-        selectedQuestion.setTopic( topic ) ;
+        selectedQuestion.setTopic( topic, TopicAssociator.user() ) ;
         topicTreePanel.getTree().refreshTree() ;
         questionTreePanel.getTree().refreshTree() ;
 
@@ -138,7 +147,7 @@ public class TopicMapperUI extends JPanel {
             return ;
         }
 
-        targets.forEach( q -> q.setTopic( topic ) ) ;
+        targets.forEach( q -> q.setTopic( topic, TopicAssociator.user() ) ) ;
 
         topicTreePanel.refreshTree() ;
         questionTreePanel.refreshTree() ;
@@ -198,6 +207,10 @@ public class TopicMapperUI extends JPanel {
             }
             String name = s.getTopic() != null ? s.getTopic().getName() : "?" ;
             sb.append( name ).append( " (" ).append( s.getConfidenceLevel() ).append( ')' ) ;
+        }
+        AIClassifiedBy classifiedBy = aiSuggestionRepo.getClassifiedBy( question ) ;
+        if( classifiedBy != null && classifiedBy.getModel() != null ) {
+            sb.append( AI_SUGGESTION_SEPARATOR ).append( classifiedBy.getModel() ) ;
         }
         QImgExtractor.logAISuggestionMsg( sb.toString() ) ;
     }

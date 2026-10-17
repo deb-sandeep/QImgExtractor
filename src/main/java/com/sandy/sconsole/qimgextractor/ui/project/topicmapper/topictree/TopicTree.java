@@ -6,6 +6,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.BaseTree;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -28,6 +29,7 @@ public class TopicTree extends BaseTree {
         this.treeModel = new TopicTreeModel( topicMapper.getProjectModel() ) ;
         
         super.setCellRenderer( new TopicTreeCellRenderer() ) ;
+        ToolTipManager.sharedInstance().registerComponent( this ) ;
         super.setModel( treeModel ) ;
         super.setExpandsSelectedPaths( false ) ;
     }

@@ -7,6 +7,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.PageImageState;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectState;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicAssociatorBackfill;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -92,6 +93,12 @@ public class ProjectModel {
         this.questionRepo = new QuestionRepo( this ) ;
         confirmDroppingOrphanedQuestions() ;
         this.questionRepo.refresh() ;
+
+        // Saved synchronously, since the background save queued by refresh()
+        // may have captured the state before the backfill.
+        if( TopicAssociatorBackfill.run( this ) > 0 ) {
+            this.questionRepo.save() ;
+        }
     }
 
     // Regions that could not be loaded (image missing, unparseable name) or

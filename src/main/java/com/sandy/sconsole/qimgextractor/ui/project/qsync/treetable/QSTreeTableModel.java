@@ -127,6 +127,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
             COL_LAST_SYNC_DATE_LABEL,
             COL_LAST_UPDATE_DATE_LABEL,
             COL_ANSWER_LABEL,
+            COL_TOPIC_ASSOC_LABEL,
             COL_SYNC_BTN_LABEL
     } ;
 
@@ -170,6 +171,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
             case COL_NAME,
                  COL_TYPE -> String.class;
             case COL_ANSWER,
+                 COL_TOPIC_ASSOC,
                  COL_SYNC_BTN -> Object.class;
             case COL_LAST_SYNC_DATE,
                  COL_LAST_UPDATE_DATE -> java.util.Date.class;
@@ -236,6 +238,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
                 }
                 yield q.getAnswer() ;
             }
+            case COL_TOPIC_ASSOC -> q ;
             case COL_SYNC_BTN -> "Sync Button" ; // This will be replaced by a button by the renderer
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;
@@ -249,6 +252,7 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
             case COL_LAST_UPDATE_DATE -> qImg.getLastModified() ;
             case COL_LAST_SYNC_DATE,
                  COL_ANSWER,
+                 COL_TOPIC_ASSOC,
                  COL_SYNC_BTN -> null ;
             default -> throw new IllegalStateException( "Unexpected value: " + column ) ;
         } ;

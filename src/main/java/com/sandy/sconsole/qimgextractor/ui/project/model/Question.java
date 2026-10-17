@@ -47,9 +47,14 @@ public class Question extends QuestionImageCluster
     @Getter
     private String answer = null ;
     
-    @Getter @Setter
+    @Getter
     private Topic topic = null ;
-    
+
+    // Who associated the current topic. Null if the topic was associated
+    // before provenance was recorded, i.e. the source is unknown.
+    @Getter
+    private TopicAssociator topicAssociator = null ;
+
     @Getter
     private MMTAnswer mmtAnswer = null ;
     
@@ -134,7 +139,11 @@ public class Question extends QuestionImageCluster
         json.put( "answer", answer ) ;
         
         if( topic != null ) {
-            json.put( "topic", topic.getSerializedForm() ) ;
+            JSONObject topicJson = topic.getSerializedForm() ;
+            if( topicAssociator != null ) {
+                topicJson.put( "topicAssociator", topicAssociator.getSerializedForm() ) ;
+            }
+            json.put( "topic", topicJson ) ;
         }
         else {
             json.put( "topic", JSONObject.NULL ) ;
@@ -171,7 +180,11 @@ public class Question extends QuestionImageCluster
         if( !qJson.isNull( "topic" ) ) {
             JSONObject topicJson = qJson.getJSONObject( "topic" );
             int topicId = topicJson.getInt( "id" ) ;
-            this.setTopic( topicRepo.getTopicById( topicId ) ) ;
+            TopicAssociator associator = null ;
+            if( topicJson.has( "topicAssociator" ) && !topicJson.isNull( "topicAssociator" ) ) {
+                associator = TopicAssociator.deserialize( topicJson.getJSONObject( "topicAssociator" ) ) ;
+            }
+            this.setTopic( topicRepo.getTopicById( topicId ), associator ) ;
         }
         
         if( qJson.has( "devSyncInfo" ) ) {
@@ -223,6 +236,18 @@ public class Question extends QuestionImageCluster
         return list ;
     }
     
+    // The topic and its associator are always set together so that the
+    // associator never describes a stale topic.
+    public void setTopic( Topic topic, TopicAssociator associator ) {
+        this.topic = topic ;
+        this.topicAssociator = topic != null ? associator : null ;
+    }
+
+    public void clearTopic() {
+        this.topic = null ;
+        this.topicAssociator = null ;
+    }
+
     public void setAnswer( String ans ) throws InvalidAnswerException {
         
         this.answer = ans ;
@@ -364,6 +389,11 @@ public class Question extends QuestionImageCluster
         sb.append( qID.toString() ).append( ":" ) ;
         sb.append( topic.getId() ).append( ":" ) ;
         sb.append( answer ).append( ":" ) ;
+        // Only when known, so that questions synced before provenance was
+        // recorded don't show up as modified.
+        if( topicAssociator != null ) {
+            sb.append( topicAssociator ).append( ":" ) ;
+        }
         List<QuestionImage> qImgList = getQImgList() ;
         for( QuestionImage qImg : qImgList ) {
             sb.append( qImg.getImgFile().getName() ).append( ":" ) ;
