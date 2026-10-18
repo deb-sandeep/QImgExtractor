@@ -6,13 +6,16 @@ import com.sandy.sconsole.qimgextractor.ui.project.model.Topic;
 import com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestion;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestionRepo;
+import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AutoTopicAssociator;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
+import com.sandy.sconsole.topicresolver.TopicResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.List;
 
 import static com.sandy.sconsole.qimgextractor.ui.project.model.TopicRepo.* ;
@@ -240,9 +243,8 @@ public class TopicSelectionPanel extends JPanel {
         resetButtonForegrounds( topicPanel ) ;
 
         if( topic == null ) {
-            if( suggestedTopics != null && !suggestedTopics.isEmpty()
-                    && suggestedTopics.get( 0 ).getTopic() != null ) {
-                Topic suggestedTopic = suggestedTopics.get( 0 ).getTopic() ;
+            Topic suggestedTopic = chosenSuggestedTopic( suggestedTopics ) ;
+            if( suggestedTopic != null ) {
                 for( int j = 0; j < topicPanel.getComponentCount(); j++ ) {
                     JButton button = ( JButton )topicPanel.getComponent( j );
                     if( button.getActionCommand().equals( suggestedTopic.getName() ) ) {
@@ -267,4 +269,23 @@ public class TopicSelectionPanel extends JPanel {
         }
     }
     
+    /**
+     * @return the topic auto association would choose from the suggestions, or
+     *         {@code null} if there is none or the topic sequence can't be read.
+     */
+    private Topic chosenSuggestedTopic( List<AITopicSuggestion> suggestedTopics ) {
+        if( suggestedTopics == null || suggestedTopics.isEmpty() ) {
+            return null ;
+        }
+        try {
+            AITopicSuggestion chosen = AutoTopicAssociator.chooseSuggestion(
+                    TopicResolver.current(), suggestedTopics ) ;
+            return chosen != null ? chosen.getTopic() : null ;
+        }
+        catch( IOException e ) {
+            log.error( "Could not load the topic sequence {}. No topic suggested.",
+                       TopicResolver.SEQUENCE_FILE, e ) ;
+            return null ;
+        }
+    }
 }

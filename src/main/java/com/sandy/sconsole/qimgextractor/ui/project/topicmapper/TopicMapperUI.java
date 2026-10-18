@@ -72,7 +72,11 @@ public class TopicMapperUI extends JPanel {
         // the topic tree is expanded or collapsed only by the user.
         topicTreePanel.getTree().expandOnlyUnclassified() ;
 
-        if( report.mapped > 0 ) {
+        if( report.failed() ) {
+            QImgExtractor.logStatusMsg( "Auto topic association failed" ) ;
+            showReport( report ) ;
+        }
+        else if( report.mapped > 0 ) {
             saveQuestionsInBackground() ;
             QImgExtractor.logStatusMsg( "Auto-associated " + report.mapped + " topic(s)" ) ;
             syncIfAllClassified() ;
@@ -234,6 +238,12 @@ public class TopicMapperUI extends JPanel {
             classifierPanel.displayQuestion( null ) ;
         }
 
+        if( report.failed() ) {
+            QImgExtractor.logStatusMsg( "Auto topic association failed" ) ;
+            showReport( report ) ;
+            return ;
+        }
+
         saveQuestionsInBackground() ;
 
         QImgExtractor.logStatusMsg( "Auto-associated " + report.mapped + " topic(s)" ) ;
@@ -252,6 +262,7 @@ public class TopicMapperUI extends JPanel {
 
         JOptionPane.showMessageDialog( SwingUtilities.getWindowAncestor( this ),
                 new JScrollPane( textArea ), "Auto Topic Association",
-                JOptionPane.INFORMATION_MESSAGE ) ;
+                report.failed() ? JOptionPane.ERROR_MESSAGE
+                                : JOptionPane.INFORMATION_MESSAGE ) ;
     }
 }
