@@ -157,12 +157,7 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
         boolean ret = false ;
         int index = getMouseOverTabIndex() ;
         if ( index != -1 ) {
-            Rectangle rect = parent.getBoundsAt( index ) ;
-            int dx = rect.x + rect.width - BUTTON_SIZE - SPACING ;
-            int dy = ( rect.y + ( rect.height / 2 ) )  - 6 ;
-            Rectangle imgRect = new Rectangle( dx, dy,
-                    BUTTON_SIZE, BUTTON_SIZE ) ;
-            ret =  imgRect.contains( mX, mY ) ;
+            ret = getCloseImageBounds( index ).contains( mX, mY ) ;
         }
         return ret ;
     }
@@ -177,10 +172,27 @@ class TabCloseImageUI implements MouseListener, MouseMotionListener {
      */
     private void drawCloseImage( Graphics g, int index, boolean red ) {
         if ( index != -1 && index < parent.getTabCount() ) {
-            Rectangle rect = parent.getBoundsAt( index ) ;
-            int dx = rect.x + rect.width - BUTTON_SIZE - SPACING ;
-            int dy = ( rect.y + ( rect.height / 2 ) )  - 6 ;
-            g.drawImage( red ? redClose : greyClose, dx, dy, null ) ;
+            Rectangle imgRect = getCloseImageBounds( index ) ;
+            g.drawImage( red ? redClose : greyClose, imgRect.x, imgRect.y, null ) ;
         }
+    }
+    
+    /**
+     * Returns the bounds of the close image for the given tab. The image
+     * sits at the right end of horizontal tabs and at the bottom end of
+     * vertical (LEFT/RIGHT placed) tabs.
+     */
+    private Rectangle getCloseImageBounds( int index ) {
+        Rectangle rect = parent.getBoundsAt( index ) ;
+        int dx, dy ;
+        if( CloseableTabbedPane.isVertical( parent.getTabPlacement() ) ) {
+            dx = rect.x + ( rect.width - BUTTON_SIZE ) / 2 ;
+            dy = rect.y + rect.height - BUTTON_SIZE - SPACING ;
+        }
+        else {
+            dx = rect.x + rect.width - BUTTON_SIZE - SPACING ;
+            dy = ( rect.y + ( rect.height / 2 ) )  - 6 ;
+        }
+        return new Rectangle( dx, dy, BUTTON_SIZE, BUTTON_SIZE ) ;
     }
 }

@@ -84,6 +84,7 @@ public class ImageScraperUI extends JPanel
     private void setUpUI() {
         setLayout( new BorderLayout() ) ;
         
+        tabPane.setTabPlacement( JTabbedPane.RIGHT ) ;
         tabPane.addChangeListener( e -> tabSelectionChanged() ) ;
         tabPane.addTabCloseListener( (tabIndex, component ) -> tabClosing( component ) ) ;
         

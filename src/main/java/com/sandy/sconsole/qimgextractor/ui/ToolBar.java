@@ -47,6 +47,7 @@ public class ToolBar extends JToolBar {
     private boolean groupHasButtons = false ;
 
     ToolBar( MenuBar menuBar ) {
+        setOrientation( JToolBar.VERTICAL ) ;
         setFloatable( false ) ;
         setRollover( true ) ;
 
