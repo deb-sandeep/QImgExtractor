@@ -27,6 +27,7 @@ public class ImgCanvas extends JLabel {
     private final ImgExtractorPanel parent ;
     private final ImgCanvasListener listener ;
     private final RegionSelector regionSelector;
+    private final WhiteBrush whiteBrush ;
     
     private BufferedImage originalImage = null ;
     private BufferedImage scaledImg = null ;
@@ -45,6 +46,10 @@ public class ImgCanvas extends JLabel {
         regionSelector = new RegionSelector( this, listener ) ;
         addMouseListener( regionSelector ) ;
         addMouseMotionListener( regionSelector ) ;
+        
+        whiteBrush = new WhiteBrush( this ) ;
+        addMouseListener( whiteBrush ) ;
+        addMouseMotionListener( whiteBrush ) ;
         addEventListeners() ;
     }
     
@@ -66,9 +71,25 @@ public class ImgCanvas extends JLabel {
                 else if( opMode == OpMode.COMMAND ) {
                     switch ( keyCode ) {
                         case KeyEvent.VK_ESCAPE -> setOpMode( OpMode.EDITOR ) ;
-                        case KeyEvent.VK_ENTER -> regionSelector.enterFreshGuideEditMode() ;
-                        case KeyEvent.VK_B -> regionSelector.toggleVMarkSelectionMode() ;
+                        case KeyEvent.VK_ENTER -> {
+                            whiteBrush.setActive( false ) ;
+                            regionSelector.enterFreshGuideEditMode() ;
+                        }
+                        case KeyEvent.VK_B -> {
+                            whiteBrush.setActive( false ) ;
+                            regionSelector.toggleVMarkSelectionMode() ;
+                        }
                         case KeyEvent.VK_C -> regionSelector.clearVerticalMarkers() ;
+                        case KeyEvent.VK_W -> toggleWhiteBrush() ;
+                        // '/' shrinks the brush, Shift+'/' grows it.
+                        case KeyEvent.VK_SLASH -> {
+                            if( whiteBrush.isActive() ) {
+                                whiteBrush.changeSize( e.isShiftDown() ? 1 : -1 ) ;
+                            }
+                            else {
+                                listener.processImgCanvasCommandKey( keyCode ) ;
+                            }
+                        }
                         default -> listener.processImgCanvasCommandKey( keyCode ) ;
                     }
                 }
@@ -80,6 +101,7 @@ public class ImgCanvas extends JLabel {
         this.opMode = opMode ;
         if( opMode == OpMode.EDITOR ) {
             regionSelector.exitGuideEditMode() ;
+            whiteBrush.setActive( false ) ;
         }
         parent.setModeStatus( opMode.toString() + " MODE" ) ;
         regionSelector.clearActiveSelection() ;
@@ -89,6 +111,71 @@ public class ImgCanvas extends JLabel {
 
     void setGuideModeStatus( boolean active ) {
         parent.setGuideModeStatus( active ) ;
+    }
+    
+    private void toggleWhiteBrush() {
+        boolean activate = !whiteBrush.isActive() ;
+        if( activate ) {
+            regionSelector.clearActiveSelection() ;
+            regionSelector.exitGuideEditMode() ;
+        }
+        whiteBrush.setActive( activate ) ;
+    }
+    
+    public boolean isBrushActive() {
+        return whiteBrush.isActive() ;
+    }
+    
+    void brushStatusChanged() {
+        parent.setBrushModeStatus( whiteBrush.isActive(), whiteBrush.getSize() ) ;
+    }
+    
+    // Paints a white line of the given (view pixel) width between two view
+    // points on both the original and the displayed image. Returns the area
+    // affected in original image coordinates, or null if nothing was painted.
+    Rectangle paintWhite( Point from, Point to, int viewWidth ) {
+        if( originalImage == null ) return null ;
+        
+        float modelWidth = (float)( viewWidth / scaleFactor ) ;
+        int mx1 = (int)( from.x / scaleFactor ), my1 = (int)( from.y / scaleFactor ) ;
+        int mx2 = (int)( to.x / scaleFactor ),   my2 = (int)( to.y / scaleFactor ) ;
+        
+        drawWhiteLine( originalImage, mx1, my1, mx2, my2, modelWidth ) ;
+        if( scaledImg != originalImage ) {
+            drawWhiteLine( scaledImg, from.x, from.y, to.x, to.y, viewWidth ) ;
+        }
+        
+        Rectangle viewRect = new Rectangle( from ) ;
+        viewRect.add( to ) ;
+        viewRect.grow( viewWidth/2 + 2, viewWidth/2 + 2 ) ;
+        repaint( viewRect ) ;
+        
+        Rectangle modelRect = new Rectangle( mx1, my1, 0, 0 ) ;
+        modelRect.add( mx2, my2 ) ;
+        int pad = (int)Math.ceil( modelWidth/2 ) + 2 ;
+        modelRect.grow( pad, pad ) ;
+        modelRect = modelRect.intersection( new Rectangle( 0, 0, originalImage.getWidth(),
+                                                           originalImage.getHeight() ) ) ;
+        return modelRect.isEmpty() ? null : modelRect ;
+    }
+    
+    private static void drawWhiteLine( BufferedImage img, int x1, int y1, int x2, int y2, float width ) {
+        Graphics2D g = img.createGraphics() ;
+        try {
+            g.setColor( Color.WHITE ) ;
+            g.setStroke( new BasicStroke( width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND ) ) ;
+            g.drawLine( x1, y1, x2, y2 ) ;
+        }
+        finally {
+            g.dispose() ;
+        }
+    }
+    
+    // Called once a brush stroke is complete. The bounds are in original
+    // image coordinates.
+    void brushStrokeEnded( Rectangle modelBounds ) {
+        parent.pageImageBrushed( originalImage,
+                                 regionSelector.getRegionsIntersecting( modelBounds ) ) ;
     }
     
     public void setOriginalImage( BufferedImage img,
@@ -125,6 +212,7 @@ public class ImgCanvas extends JLabel {
         super.paintComponent( g ) ;
         g.drawImage( this.scaledImg, 0, 0, null ) ;
         regionSelector.paintSelectedRegions( (Graphics2D)g ) ;
+        whiteBrush.paintCursor( (Graphics2D)g ) ;
     }
     
     String subImageSelected( Rectangle viewRect, int selectionEndAction ) {

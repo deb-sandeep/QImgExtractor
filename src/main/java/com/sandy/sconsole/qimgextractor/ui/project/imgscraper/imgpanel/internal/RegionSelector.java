@@ -10,7 +10,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 class RegionSelector extends MouseAdapter implements MouseMotionListener {
@@ -73,7 +75,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
                     }
                 }
             }
-            else if( event.getButton() == MouseEvent.BUTTON1 ) {
+            else if( event.getButton() == MouseEvent.BUTTON1 && !canvas.isBrushActive() ) {
                 beginResize( event.getPoint() ) ;
             }
         }
@@ -147,6 +149,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
     }
     
     private void updateResizeCursor( Point p ) {
+        if( canvas.isBrushActive() ) return ;
         int edges = 0 ;
         if( canvas.isInCommandMode() && !inVMarkSelectionMode ) {
             for( int i=oldRegions.size()-1; i>=0 && edges == 0; i-- ) {
@@ -365,6 +368,19 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
             }
         }
         return null ;
+    }
+    
+    // Returns the original image coordinate bounds of all regions which
+    // intersect the given bounds (also in original image coordinates).
+    public Map<String, Rectangle> getRegionsIntersecting( Rectangle modelBounds ) {
+        Map<String, Rectangle> result = new LinkedHashMap<>() ;
+        for( SelectedRegion region : oldRegions ) {
+            Rectangle bounds = region.getModelRegionBounds() ;
+            if( bounds.intersects( modelBounds ) ) {
+                result.put( region.getTag(), bounds ) ;
+            }
+        }
+        return result ;
     }
     
     public void toggleVMarkSelectionMode() {

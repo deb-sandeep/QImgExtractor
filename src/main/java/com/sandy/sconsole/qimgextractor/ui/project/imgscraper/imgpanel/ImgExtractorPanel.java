@@ -18,7 +18,13 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Map;
+
+import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
 
 @Slf4j
 public class ImgExtractorPanel extends JPanel
@@ -39,6 +45,7 @@ public class ImgExtractorPanel extends JPanel
     private MessageStatusComponent curSelTagNameStatus = null ;
     private MessageStatusComponent partModeSBComponent = null ;
     private MessageStatusComponent guideModeSBComponent = null ;
+    private MessageStatusComponent brushModeSBComponent = null ;
     
     private final ImgCanvasListener listener ;
     
@@ -112,6 +119,8 @@ public class ImgExtractorPanel extends JPanel
         partModeSBComponent = new MessageStatusComponent() ;
 
         guideModeSBComponent = new MessageStatusComponent() ;
+        
+        brushModeSBComponent = new MessageStatusComponent() ;
 
         fileNameStatus = new MessageStatusComponent() ;
         fileNameStatus.setForeground( Color.GRAY ) ;
@@ -129,6 +138,7 @@ public class ImgExtractorPanel extends JPanel
         statusBar.addStatusBarComponent( modeStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( partModeSBComponent, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( guideModeSBComponent, StatusBar.Direction.WEST ) ;
+        statusBar.addStatusBarComponent( brushModeSBComponent, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( fileNameStatus, StatusBar.Direction.WEST ) ;
         statusBar.addStatusBarComponent( curSelTagNameStatus, StatusBar.Direction.EAST ) ;
         statusBar.addStatusBarComponent( mousePosStatus, StatusBar.Direction.EAST ) ;
@@ -273,6 +283,49 @@ public class ImgExtractorPanel extends JPanel
         return false ;
     }
     
+    // Called after a white brush stroke has been painted on the page image.
+    // Saves the modified page image (backing up the pristine original the
+    // first time) and re-cuts the question images overlapping the stroke.
+    public void pageImageBrushed( BufferedImage pageImage, Map<String, Rectangle> affectedRegions ) {
+        File imgFile = pageImg.getImgFile() ;
+        try {
+            backupOriginalPageImage( imgFile ) ;
+            File tmpFile = new File( imgFile.getParentFile(), imgFile.getName() + ".tmp" ) ;
+            try {
+                ImageIO.write( pageImage, "png", tmpFile ) ;
+                Files.move( tmpFile.toPath(), imgFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING,
+                            StandardCopyOption.ATOMIC_MOVE ) ;
+            }
+            finally {
+                Files.deleteIfExists( tmpFile.toPath() ) ;
+            }
+        }
+        catch( IOException e ) {
+            log.error( "Error saving brushed page image {}.", imgFile.getName(), e ) ;
+            JOptionPane.showMessageDialog( this,
+                    "Could not save page image " + imgFile.getName() + "\n" + e.getMessage(),
+                    "Save error", JOptionPane.ERROR_MESSAGE ) ;
+            return ;
+        }
+        
+        affectedRegions.forEach( ( tag, bounds ) -> {
+            BufferedImage subImg = pageImage.getSubimage( bounds.x, bounds.y,
+                                                          bounds.width, bounds.height ) ;
+            subImageResized( tag, subImg, bounds ) ;
+        } ) ;
+    }
+    
+    private void backupOriginalPageImage( File imgFile ) throws IOException {
+        File backupDir = new File( getProjectModel().getWorkDir(), "original-pages" ) ;
+        File backupFile = new File( backupDir, imgFile.getName() ) ;
+        if( !backupFile.exists() ) {
+            Files.createDirectories( backupDir.toPath() ) ;
+            Files.copy( imgFile.toPath(), backupFile.toPath() ) ;
+            log.info( "Backed up original page image to {}", backupFile.getAbsolutePath() ) ;
+        }
+    }
+    
     public void selectedRegionAdded( SelectedRegionMetadata newRegionInfo ) {
         listener.selectedRegionAdded( pageImg, newRegionInfo ) ;
     }
@@ -328,6 +381,15 @@ public class ImgExtractorPanel extends JPanel
         }
         else {
             partModeSBComponent.clear() ;
+        }
+    }
+
+    public void setBrushModeStatus( boolean active, int size ) {
+        if( active ) {
+            brushModeSBComponent.log( "BRUSH " + size + "px" ) ;
+        }
+        else {
+            brushModeSBComponent.clear() ;
         }
     }
 
