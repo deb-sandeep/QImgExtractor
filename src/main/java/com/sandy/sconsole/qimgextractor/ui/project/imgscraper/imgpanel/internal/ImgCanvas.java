@@ -80,6 +80,13 @@ public class ImgCanvas extends JLabel {
                             regionSelector.toggleVMarkSelectionMode() ;
                         }
                         case KeyEvent.VK_C -> regionSelector.clearVerticalMarkers() ;
+                        // Right arrow closes the active tab (alias of Cmd+W),
+                        // left arrow reopens the last closed one. Consumed so
+                        // the enclosing scroll pane doesn't also scroll.
+                        case KeyEvent.VK_RIGHT, KeyEvent.VK_LEFT -> {
+                            e.consume() ;
+                            listener.processImgCanvasCommandKey( keyCode ) ;
+                        }
                         case KeyEvent.VK_W -> toggleWhiteBrush() ;
                         // '/' shrinks the brush, Shift+'/' grows it.
                         case KeyEvent.VK_SLASH -> {

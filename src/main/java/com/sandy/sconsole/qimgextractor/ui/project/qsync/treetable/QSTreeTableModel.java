@@ -87,6 +87,18 @@ class SyllabusNode extends TreeNode {
     void addQuestionNode( QuestionNode qNode ) {
         children.add( qNode ) ;
     }
+    
+    // True if any question in this syllabus is either not synced or has
+    // been modified since it was last synced.
+    boolean hasUnsyncedQuestions() {
+        for( TreeNode child : children ) {
+            Question q = ((QuestionNode)child).question ;
+            if( !q.isSynced() || q.isModifiedAfterSync() ) {
+                return true ;
+            }
+        }
+        return false ;
+    }
 }
 
 class RootNode extends TreeNode {

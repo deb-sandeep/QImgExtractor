@@ -133,17 +133,36 @@ public class QSyncTreeTable extends JXTreeTable implements QSyncTableSyncButtonE
         }
     }
     
+    // Expands syllabus sections which still have unsynced questions and
+    // collapses the fully synced ones, so pending questions stay in view.
     public void expandSyllabus() {
         int row = 0 ;
         while( row < getRowCount() ) {
             Object node = getPathForRow( row ).getLastPathComponent() ;
-            if( node instanceof SyllabusNode ) {
-                expandRow( row ) ;
+            if( node instanceof SyllabusNode syllabus ) {
+                if( syllabus.hasUnsyncedQuestions() ) {
+                    expandRow( row ) ;
+                }
+                else {
+                    collapseRow( row ) ;
+                }
             }
             else if( node instanceof QuestionNode ) {
                 collapseRow( row ) ;
             }
             row++ ;
+        }
+    }
+    
+    // Collapses syllabus sections which have become fully synced, leaving
+    // the expansion state of all other rows untouched.
+    public void collapseSyncedSyllabi() {
+        for( int row = getRowCount()-1; row >= 0; row-- ) {
+            Object node = getPathForRow( row ).getLastPathComponent() ;
+            if( node instanceof SyllabusNode syllabus &&
+                isExpanded( row ) && !syllabus.hasUnsyncedQuestions() ) {
+                collapseRow( row ) ;
+            }
         }
     }
     

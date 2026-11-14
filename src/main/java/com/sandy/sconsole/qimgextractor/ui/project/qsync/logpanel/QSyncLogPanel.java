@@ -11,6 +11,7 @@ import java.awt.*;
 public class QSyncLogPanel extends JPanel {
     
     private final JTextArea logTextArea ;
+    private JPanel buttonPanel ;
 
     public QSyncLogPanel() {
         setPreferredSize( new java.awt.Dimension( 800, 200 ) ) ;
@@ -28,16 +29,23 @@ public class QSyncLogPanel extends JPanel {
     }
     
     private JPanel getButtonPanel() {
-        JPanel buttonPanel = new JPanel() ;
-        buttonPanel.setLayout( new FlowLayout( FlowLayout.LEFT ) ) ;
+        buttonPanel = new JPanel( new BorderLayout( 8, 0 ) ) ;
+        buttonPanel.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) ) ;
         
         JButton btnClear = new JButton( "Clear" ) ;
         btnClear.setIcon( SwingUtils.getIcon( "bin" ) ) ;
         btnClear.setToolTipText( "Clear Log" ) ;
         btnClear.addActionListener( e -> logTextArea.setText( "" ) ) ;
-        buttonPanel.add( btnClear ) ;
+        buttonPanel.add( btnClear, BorderLayout.WEST ) ;
         
         return buttonPanel ;
+    }
+    
+    // Places the given component in the otherwise empty space to the right
+    // of the Clear button, stretched to fill the remaining width.
+    public void setHeaderComponent( JComponent component ) {
+        buttonPanel.add( component, BorderLayout.CENTER ) ;
+        buttonPanel.revalidate() ;
     }
     
     private void setUpTextArea() {

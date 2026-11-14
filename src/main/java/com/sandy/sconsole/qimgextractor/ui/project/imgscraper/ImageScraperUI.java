@@ -24,11 +24,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.*;
 import static com.sandy.sconsole.qimgextractor.util.AppUtil.getFQFileName;
@@ -51,7 +55,12 @@ public class ImageScraperUI extends JPanel
     private final PageQuestionTreePanel treePanel ;
     
     private final Map<PageImage, ImgExtractorPanel> panelMap = new HashMap<>() ;
-    private final ExecutorService executor = Executors.newFixedThreadPool( 1 ) ;
+    // Pages closed in this session, most recent first. Left arrow in
+    // command mode reopens them in reverse order of closing.
+    private final Deque<PageImage> closedPages = new ArrayDeque<>() ;
+    // Page images are decoded and scaled in parallel on this pool.
+    private final ExecutorService executor =
+            Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() ) ;
     
     // Navigation requests (from remote commands) which arrive while the page
     // images are still being loaded are parked here and served once the
@@ -93,19 +102,55 @@ public class ImageScraperUI extends JPanel
     }
     
     public void loadPageImages() {
+        if( !SwingUtilities.isEventDispatchThread() ) {
+            invokeLater( this::loadPageImages ) ;
+            return ;
+        }
+        
+        List<PageImage> visiblePages = new ArrayList<>() ;
+        for( PageImage pageImg : projectModel.getPageImages() ) {
+            if( pageImg.getState().isVisible() ) {
+                visiblePages.add( pageImg ) ;
+            }
+        }
+        
+        // Modal, so the user can't interact with half loaded pages. Shown
+        // in a later EDT task since showing a modal dialog blocks the caller.
+        PageLoadProgressDialog progressDialog = new PageLoadProgressDialog(
+                mainFrame, projectModel.getProjectName(), visiblePages.size() ) ;
+        if( !visiblePages.isEmpty() ) {
+            invokeLater( progressDialog::showDialog ) ;
+        }
+        
         new SwingWorker<Void, PageImage>() {
             @Override
             protected Void doInBackground() {
-                List<PageImage> pageImages = projectModel.getPageImages() ;
+                projectModel.getContext().setPauseSavePageState( true ) ;
                 
-                for( int i=0; i<pageImages.size(); i++ ) {
-                    PageImage pageImg = pageImages.get( i ) ;
-                    File file = pageImg.getImgFile() ;
-                    mainFrame.logStausMsg( "Loading (" + i + "/" + pageImages.size() + ") " + file.getName() + "..." ) ;
-                    
-                    projectModel.getContext().setPauseSavePageState( true ) ;
-                    if( pageImg.getState().isVisible() ) {
-                        loadPageImg( pageImg ) ;
+                // Decode and scale all pages in parallel...
+                List<Future<ImgExtractorPanel>> futures = new ArrayList<>() ;
+                for( PageImage pageImg : visiblePages ) {
+                    futures.add( executor.submit( () -> {
+                        try {
+                            return createPagePanel( pageImg ) ;
+                        }
+                        finally {
+                            String fileName = pageImg.getImgFile().getName() ;
+                            invokeLater( () -> progressDialog.pageLoaded( fileName ) ) ;
+                        }
+                    } ) ) ;
+                }
+                
+                // ...and register them in page order as they become ready.
+                for( int i=0; i<visiblePages.size(); i++ ) {
+                    PageImage pageImg = visiblePages.get( i ) ;
+                    try {
+                        addPagePanel( pageImg, futures.get( i ).get() ) ;
+                        mainFrame.logStausMsg( "Loaded (" + (i+1) + "/" + visiblePages.size() + ") " +
+                                               pageImg.getImgFile().getName() ) ;
+                    }
+                    catch( Exception e ) {
+                        log.error( "Error loading page image {}.", pageImg.getImgFile().getName(), e ) ;
                     }
                 }
                 return null ;
@@ -113,6 +158,9 @@ public class ImageScraperUI extends JPanel
             
             @Override
             protected void done() {
+                // Closed before activating the page so that it gets focus.
+                progressDialog.finish() ;
+                
                 QuestionImage lastSavedQImg = projectModel.getContext().getLastSavedImg() ;
                 PageImage lastSelectedPageImg = projectModel.getSelectedPageImg() ;
                 
@@ -121,6 +169,10 @@ public class ImageScraperUI extends JPanel
                 }
                 else if ( lastSavedQImg != null ) {
                     activatePageImg( lastSavedQImg.getPageImg() ) ;
+                }
+                else {
+                    // Tabs are added in queued EDT tasks, so focus after them.
+                    invokeLater( () -> focusSelectedPanel() ) ;
                 }
                 mainFrame.logStausMsg( "Page images loaded." ) ;
                 projectModel.getContext().setPauseSavePageState( false ) ;
@@ -148,15 +200,28 @@ public class ImageScraperUI extends JPanel
         executor.shutdown() ;
     }
     
-    private synchronized void loadPageImg( PageImage pageImg ) {
+    private void loadPageImg( PageImage pageImg ) {
+        addPagePanel( pageImg, createPagePanel( pageImg ) ) ;
+    }
+    
+    // The expensive part of loading a page (reading, decoding and scaling
+    // the image). Touches no shared state, so pages can be created in
+    // parallel.
+    private ImgExtractorPanel createPagePanel( PageImage pageImg ) {
         
-        log.debug( "Loading page image {}.", pageImg.getImgFile().getName() ) ;
-        
-        File file = pageImg.getImgFile() ;
+        //log.debug( "Loading page image {}.", pageImg.getImgFile().getName() ) ;
         
         int initialDisplayWidth = 1100 ;
         ImgExtractorPanel imgPanel = new ImgExtractorPanel( this ) ;
         imgPanel.setImage( pageImg, initialDisplayWidth ) ;
+        return imgPanel ;
+    }
+    
+    // Registers a created page panel and adds its tab (in page sequence).
+    // Updates shared state, hence serialized.
+    private synchronized void addPagePanel( PageImage pageImg, ImgExtractorPanel imgPanel ) {
+        
+        File file = pageImg.getImgFile() ;
         
         panelMap.put( pageImg, imgPanel ) ;
         projectModel.addListener( imgPanel ) ;
@@ -165,7 +230,8 @@ public class ImageScraperUI extends JPanel
         projectModel.savePageState() ;
         
         invokeLater( () -> {
-            tabPane.addTab( file.getName(), imgPanel ) ;
+            tabPane.insertTab( file.getName(), null, imgPanel, null,
+                               getTabInsertIndex( pageImg ) ) ;
             if( pageImg.getState().isHasAnswerKeys() ) {
                 tabPane.raiseAlert( imgPanel ) ;
             }
@@ -173,6 +239,21 @@ public class ImageScraperUI extends JPanel
                 imgPanel.setFitPageMode( true ) ;
             }
         } ) ;
+    }
+    
+    // Tabs are kept in page sequence, so a page (re)opened later is placed
+    // after all the open pages which precede it in the project.
+    private int getTabInsertIndex( PageImage pageImg ) {
+        List<PageImage> allPages = projectModel.getPageImages() ;
+        int pageSeq = allPages.indexOf( pageImg ) ;
+        int index = 0 ;
+        for( int i=0; i<tabPane.getTabCount(); i++ ) {
+            ImgExtractorPanel panel = ( ImgExtractorPanel )tabPane.getComponentAt( i ) ;
+            if( allPages.indexOf( panel.getPageImg() ) < pageSeq ) {
+                index = i+1 ;
+            }
+        }
+        return index ;
     }
     
     private void tabSelectionChanged() {
@@ -185,11 +266,14 @@ public class ImageScraperUI extends JPanel
     }
     
     private void tabClosing( Component component ) {
-        log.debug( "Tab closing event detected." ) ;
         ImgExtractorPanel panel = ( ImgExtractorPanel )component ;
         panelMap.remove( panel.getPageImg() ) ;
         projectModel.removeListener( panel ) ;
         projectModel.setPageImgClosed( panel.getPageImg() ) ;
+        
+        // Most recently closed page on top, each page at most once.
+        closedPages.remove( panel.getPageImg() ) ;
+        closedPages.push( panel.getPageImg() ) ;
         
         // Closing the last open page with question images ends the page
         // review. Pages without question images (e.g. the answer key) may
@@ -359,7 +443,8 @@ public class ImageScraperUI extends JPanel
     public void processImgCanvasCommandKey( int keyCode ) {
         switch( keyCode ) {
             case KeyEvent.VK_N -> showNextTab() ;
-            case KeyEvent.VK_X -> closeCurrentTab() ;
+            case KeyEvent.VK_X, KeyEvent.VK_RIGHT -> closeCurrentTab() ;
+            case KeyEvent.VK_LEFT -> reopenLastClosedTab() ;
         }
     }
     
@@ -408,10 +493,14 @@ public class ImageScraperUI extends JPanel
                 if( selPanel.getPageImg() != pageImg ) {
                     tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ;
                 }
+                focusSelectedPanel() ;
             }
             else {
                 loadPageImg( pageImg ) ;
-                invokeLater( () -> tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ) ;
+                invokeLater( () -> {
+                    tabPane.setSelectedComponent( panelMap.get( pageImg ) ) ;
+                    focusSelectedPanel() ;
+                } ) ;
             }
         }) ;
     }
@@ -470,6 +559,19 @@ public class ImageScraperUI extends JPanel
         if( curTabIndex < tabPane.getTabCount()-1 ) {
             tabPane.setSelectedIndex( curTabIndex + 1 ) ;
         }
+    }
+    
+    // Reopens the most recently closed page which is not already open
+    // (it may have been reopened from the tree) and makes it the active tab.
+    public void reopenLastClosedTab() {
+        while( !closedPages.isEmpty() ) {
+            PageImage pageImg = closedPages.pop() ;
+            if( !panelMap.containsKey( pageImg ) ) {
+                activatePageImg( pageImg ) ;
+                return ;
+            }
+        }
+        mainFrame.logStausMsg( "No closed page to reopen." ) ;
     }
     
     public void closeCurrentTab() {
@@ -549,5 +651,17 @@ public class ImageScraperUI extends JPanel
     // to update the UI state based on any changes that have happened through
     // other project modules.
     public void handlePreActivation() {
+        invokeLater( this::focusSelectedPanel ) ;
+    }
+    
+    // Gives keyboard focus to the canvas of the selected page so that
+    // command mode keys work without first clicking on the page. Selecting
+    // a tab only focuses it when the selection changes, which misses the
+    // initial tab at startup and re-activation of this view.
+    private void focusSelectedPanel() {
+        ImgExtractorPanel selPanel = ( ImgExtractorPanel )tabPane.getSelectedComponent() ;
+        if( selPanel != null ) {
+            selPanel.requestFocus() ;
+        }
     }
 }

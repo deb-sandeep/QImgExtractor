@@ -22,9 +22,12 @@ public class HighlightableTabbedPane extends JTabbedPane implements ChangeListen
         super.setFocusable( false ) ;
     }
 
+    // All addTab variants funnel into insertTab, so tabs inserted at a
+    // specific index are tracked as well.
     @Override
-    public void addTab( String title, Component component ) {
-        super.addTab( title, component ) ;
+    public void insertTab( String title, Icon icon, Component component,
+                           String tip, int index ) {
+        super.insertTab( title, icon, component, tip, index ) ;
         alertMap.put( component, false ) ;
     }
 

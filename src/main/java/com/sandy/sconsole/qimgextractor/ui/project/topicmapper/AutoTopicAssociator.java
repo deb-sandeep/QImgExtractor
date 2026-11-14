@@ -3,7 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.topicmapper;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.TopicAssociator;
-import com.sandy.sconsole.topicresolver.TopicResolver;
+import com.sandy.sconsole.qimgextractor.util.TopicResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

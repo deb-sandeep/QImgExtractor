@@ -13,6 +13,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 @Slf4j
 public class QSyncUI extends JPanel {
@@ -33,6 +34,7 @@ public class QSyncUI extends JPanel {
     private final QSyncTreeTable treeTable ;
     private final QSyncLogPanel logPanel ;
     private final QSyncAPIClient apiClient ;
+    private final JProgressBar syncProgressBar ;
     
     private boolean syncAllRunning = false ;
     
@@ -44,6 +46,7 @@ public class QSyncUI extends JPanel {
         this.treeTable = new QSyncTreeTable( this.treeTableModel, this ) ;
         this.logPanel = new QSyncLogPanel() ;
         this.apiClient = new QSyncAPIClient( this.logPanel ) ;
+        this.syncProgressBar = new JProgressBar() ;
         
         setUpUI() ;
     }
@@ -54,8 +57,36 @@ public class QSyncUI extends JPanel {
         this.treeTable.setRootVisible( false ) ;
         this.treeTable.expandSyllabus() ;
         
+        syncProgressBar.setStringPainted( true ) ;
+        syncProgressBar.setFont( syncProgressBar.getFont().deriveFont( Font.BOLD, 14f ) ) ;
+        
+        // Sits in the log panel's header, right of its Clear button.
+        JPanel progressPanel = new JPanel( new BorderLayout( 8, 0 ) ) ;
+        progressPanel.add( new JLabel( "Synced" ), BorderLayout.WEST ) ;
+        progressPanel.add( syncProgressBar, BorderLayout.CENTER ) ;
+        logPanel.setHeaderComponent( progressPanel ) ;
+        
         add( new JScrollPane( treeTable ), BorderLayout.CENTER ) ;
         add( logPanel, BorderLayout.EAST ) ;
+        updateSyncProgress() ;
+    }
+    
+    // Shows how many of the project's questions are synced (with no changes
+    // since the last sync) to the server of the active profile, as "x / Y".
+    // Safe to call from any thread.
+    private void updateSyncProgress() {
+        if( !SwingUtilities.isEventDispatchThread() ) {
+            SwingUtilities.invokeLater( this::updateSyncProgress ) ;
+            return ;
+        }
+        List<Question> questions = projectModel.getQuestionRepo().getQuestionList() ;
+        int total = questions.size() ;
+        int synced = (int)questions.stream()
+                                   .filter( q -> q.isSynced() && !q.isModifiedAfterSync() )
+                                   .count() ;
+        syncProgressBar.setMaximum( Math.max( total, 1 ) ) ;
+        syncProgressBar.setValue( synced ) ;
+        syncProgressBar.setString( synced + " / " + total ) ;
     }
     
     // This method is called just before the panel is made visible. Can be used
@@ -64,6 +95,7 @@ public class QSyncUI extends JPanel {
     public void handlePreActivation() {
         treeTableModel.refreshModel() ;
         treeTable.expandSyllabus() ;
+        updateSyncProgress() ;
     }
     
     public void handleMenuAction( String actionCommand ) {
@@ -129,5 +161,7 @@ public class QSyncUI extends JPanel {
             logPanel.log( ExceptionUtils.getStackTrace( e ) );
             logPanel.log( "\n" ) ;
         }
+        updateSyncProgress() ;
+        SwingUtilities.invokeLater( treeTable::collapseSyncedSyllabi ) ;
     }
 }

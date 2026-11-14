@@ -1,4 +1,4 @@
-package com.sandy.sconsole.topicresolver;
+package com.sandy.sconsole.qimgextractor.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

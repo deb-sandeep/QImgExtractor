@@ -16,7 +16,11 @@ import java.util.Map;
 
 @Slf4j
 class RegionSelector extends MouseAdapter implements MouseMotionListener {
-    
+
+    // Distance (in view pixels) within which a manual selection snaps its x
+    // coordinate to the left/right edge of a previously selected region.
+    private static final int REGION_EDGE_SNAP_DISTANCE = 10 ;
+
     private final ImgCanvas canvas ;
     
     // Region select mode is when the canvas is in the process of drawing a bounding
@@ -59,7 +63,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         if( canvas.isInEditMode() ) {
             if( !inRegionSelectMode ) {
                 inRegionSelectMode = true ;
-                activeRegion = new SelectedRegion( verticalGuides.getStartSnapPoint( event ) ) ;
+                activeRegion = new SelectedRegion( getStartPoint( event ) ) ;
                 listener.selectionStarted() ;
             }
             else {
@@ -183,7 +187,7 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         updateResizeCursor( event.getPoint() ) ;
         
         if( inRegionSelectMode ) {
-            Rectangle paintArea = activeRegion.updateRegion( verticalGuides.getEndSnapPoint( event ) ) ;
+            Rectangle paintArea = activeRegion.updateRegion( getEndPoint( event ) ) ;
             this.canvas.repaint( paintArea ) ;
             canvas.logActiveRegionSize( activeRegion.getRegionBounds() ) ;
         }
@@ -201,6 +205,35 @@ class RegionSelector extends MouseAdapter implements MouseMotionListener {
         canvas.logMousePosition( event.getPoint() ) ;
     }
     
+    private Point getStartPoint( MouseEvent event ) {
+        Point p = verticalGuides.getStartSnapPoint( event ) ;
+        return verticalGuides.isManualSelection( event ) ? snapToRegionEdges( p ) : p ;
+    }
+
+    private Point getEndPoint( MouseEvent event ) {
+        Point p = verticalGuides.getEndSnapPoint( event ) ;
+        return verticalGuides.isManualSelection( event ) ? snapToRegionEdges( p ) : p ;
+    }
+
+    // During a manual selection, snaps the x coordinate to the nearest left
+    // or right edge of a previously selected region on this page, if one is
+    // within REGION_EDGE_SNAP_DISTANCE view pixels.
+    private Point snapToRegionEdges( Point p ) {
+        int bestX = p.x ;
+        int bestDist = REGION_EDGE_SNAP_DISTANCE + 1 ;
+        for( SelectedRegion region : oldRegions ) {
+            Rectangle r = region.getRegionBounds() ;
+            for( int edgeX : new int[]{ r.x, r.x + r.width } ) {
+                int dist = Math.abs( p.x - edgeX ) ;
+                if( dist < bestDist ) {
+                    bestDist = dist ;
+                    bestX = edgeX ;
+                }
+            }
+        }
+        return new Point( bestX, p.y ) ;
+    }
+
     private void redrawHMarkerOnMouseMove( int mouseY ) {
         if( canvas.isInEditMode() ) {
             if( curHMarkPos != mouseY ) {

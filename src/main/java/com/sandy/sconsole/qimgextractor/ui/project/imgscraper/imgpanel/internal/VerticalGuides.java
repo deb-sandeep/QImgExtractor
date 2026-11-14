@@ -85,6 +85,12 @@ public class VerticalGuides {
         return closestPos ;
     }
     
+    // True if the snap points for this event are the raw mouse position,
+    // i.e. there are no guides to snap to, or Ctrl overrides them.
+    public boolean isManualSelection( MouseEvent event ) {
+        return appState.getVerticalMarkers().isEmpty() || event.isControlDown() ;
+    }
+
     public Point getStartSnapPoint( MouseEvent event ) {
         List<Integer> positions = getGuidePositions() ;
         if( getGuidePositions().isEmpty() || event.isControlDown() ) {

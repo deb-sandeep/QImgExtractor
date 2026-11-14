@@ -8,7 +8,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestion
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AITopicSuggestionRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.AutoTopicAssociator;
 import com.sandy.sconsole.qimgextractor.ui.project.topicmapper.TopicMapperUI;
-import com.sandy.sconsole.topicresolver.TopicResolver;
+import com.sandy.sconsole.qimgextractor.util.TopicResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
