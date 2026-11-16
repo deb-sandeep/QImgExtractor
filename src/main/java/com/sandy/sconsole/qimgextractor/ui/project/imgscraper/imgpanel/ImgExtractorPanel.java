@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static com.sandy.sconsole.qimgextractor.QImgExtractor.getProjectModel;
@@ -309,11 +311,31 @@ public class ImgExtractorPanel extends JPanel
             return ;
         }
         
+        // Each region is re-cut independently, so that one failure doesn't
+        // leave the remaining overlapped question images stale.
+        List<String> failedTags = new ArrayList<>() ;
         affectedRegions.forEach( ( tag, bounds ) -> {
-            BufferedImage subImg = pageImage.getSubimage( bounds.x, bounds.y,
-                                                          bounds.width, bounds.height ) ;
-            subImageResized( tag, subImg, bounds ) ;
+            try {
+                Rectangle clipped = bounds.intersection(
+                        new Rectangle( 0, 0, pageImage.getWidth(), pageImage.getHeight() ) ) ;
+                BufferedImage subImg = pageImage.getSubimage( clipped.x, clipped.y,
+                                                              clipped.width, clipped.height ) ;
+                if( !subImageResized( tag, subImg, clipped ) ) {
+                    failedTags.add( tag ) ;
+                }
+            }
+            catch( RuntimeException e ) {
+                log.error( "Error re-cutting question image {} after brushing.", tag, e ) ;
+                failedTags.add( tag ) ;
+            }
         } ) ;
+
+        if( !failedTags.isEmpty() ) {
+            JOptionPane.showMessageDialog( this,
+                    "Page image saved, but these question images could not be re-cut:\n" +
+                    String.join( "\n", failedTags ),
+                    "Re-cut error", JOptionPane.ERROR_MESSAGE ) ;
+        }
     }
     
     private void backupOriginalPageImage( File imgFile ) throws IOException {

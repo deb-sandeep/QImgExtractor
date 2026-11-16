@@ -359,7 +359,25 @@ public class Question extends QuestionImageCluster
 
     public boolean isModifiedAfterSync() {
         SyncInfo syncInfo = getSyncInfo() ;
-        return isSynced() && !syncInfo.syncToken.equals( getHashCode() ) ;
+        if( !isSynced() ) {
+            return false ;
+        }
+        return !syncInfo.syncToken.equals( getHashCode() ) ||
+               isImgModifiedAfter( syncInfo.syncTime ) ;
+    }
+
+    // The sync token covers image file names, not contents. Question images
+    // are re-cut in place (white brush on the page, region resize), so a
+    // newer image file is how such content changes are detected. Not folded
+    // into the token, as that would flag every previously synced question.
+    private boolean isImgModifiedAfter( Date syncTime ) {
+        long syncMillis = syncTime.getTime() ;
+        for( QuestionImage qImg : getQImgList() ) {
+            if( qImg.getImgFile().lastModified() > syncMillis ) {
+                return true ;
+            }
+        }
+        return false ;
     }
     
     private SyncInfo getSyncInfo() {
