@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSyncTreeTable.*;
 
@@ -290,7 +292,12 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
         refreshModel() ;
     }
 
-    public void syncAllSyncPendingQuestions() {
+    // Queues all the questions pending sync and waits till they are synced.
+    // Must not be called on the EDT.
+    public void syncAllSyncPendingQuestions() throws InterruptedException {
+        List<Future<?>> futures = new ArrayList<>() ;
+        List<TreeNode> nodes = new ArrayList<>() ;
+        
         for( TreeNode syllabusNode : rootNode.getChildren() ) {
             for( TreeNode questionNode : syllabusNode.getChildren() ) {
                 Question q = ((QuestionNode)questionNode).question ;
@@ -306,10 +313,25 @@ public class QSTreeTableModel extends AbstractTreeTableModel {
                     }
                 }
                 if( syncQuestion ) {
-                    qSyncUI.syncQuestion( q ) ;
-                    SwingUtilities.invokeLater( () -> super.modelSupport.firePathChanged( new TreePath( questionNode ) ) ) ;
+                    Future<?> future = qSyncUI.syncQuestion( q ) ;
+                    if( future != null ) {
+                        futures.add( future ) ;
+                        nodes.add( questionNode ) ;
+                    }
                 }
             }
+        }
+        
+        for( int i=0; i<futures.size(); i++ ) {
+            try {
+                futures.get( i ).get() ;
+            }
+            catch( ExecutionException e ) {
+                // The sync task logs its own failures. This is unexpected.
+                log.error( "Question sync task failed.", e.getCause() ) ;
+            }
+            TreeNode questionNode = nodes.get( i ) ;
+            SwingUtilities.invokeLater( () -> super.modelSupport.firePathChanged( new TreePath( questionNode ) ) ) ;
         }
     }
 }

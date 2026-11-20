@@ -66,38 +66,73 @@ public class QSyncLogPanel extends JPanel {
         append( msg ) ;
     }
     
-    public void logQuestion( QuestionVO vo ) {
-        logNVP( "ID", vo.getId() ) ;
-        logNVP( "QID", vo.getQuestionId() ) ;
-        logNVP( "Source", vo.getSourceId() ) ;
-        logNVP( "Syllabus", vo.getSyllabusName() ) ;
-        logNVP( "Topic", vo.getTopicId() ) ;
-        logNVP( "Q Type", vo.getProblemType() ) ;
-        logNVP( "LCT Seq", vo.getLctSequence() ) ;
-        logNVP( "Q No", vo.getQuestionNumber() ) ;
-        logNVP( "Answer", vo.getAnswer() ) ;
-        logNVP( "Assoc Actor", vo.getTopicAssocActor() ) ;
-        logNVP( "Assoc Model", vo.getTopicAssocAiModel() ) ;
-        logNVP( "Assoc Conf", vo.getTopicAssocConfidence() ) ;
+    /**
+     * A new log buffer for one question sync. Syncs run in parallel, so
+     * each one collects its lines in a buffer, which is appended to the log
+     * as one block when flushed. This keeps the lines of a sync together.
+     */
+    public Buffer newBuffer() {
+        return new Buffer() ;
+    }
+    
+    public class Buffer {
         
-        for( QuestionImageVO imageVO : vo.getQuestionImages() ) {
-            append( "................" ) ;
-            logNVP( "  Img", imageVO.getFileName() ) ;
-            logNVP( "  Sequence", imageVO.getSequence() ) ;
-            logNVP( "  Page No", imageVO.getPageNumber() ) ;
-            logNVP( "  Is LCT Ctx?", imageVO.getLctCtxImage() ) ;
-            logNVP( "  Part No", imageVO.getPartNumber() ) ;
-            logNVP( "  Img width", imageVO.getImgWidth() ) ;
-            logNVP( "  Img height", imageVO.getImgHeight() ) ;
-            logNVP( "  Img data", getCompressedImgData( imageVO ) ) ;
+        private final StringBuilder sb = new StringBuilder() ;
+        
+        private Buffer() {}
+        
+        public synchronized void log( String msg ) {
+            sb.append( msg ).append( "\n" ) ;
+        }
+        
+        public void logSeparator() {
+            log( "\n-------------------------------------------------------------------" ) ;
+        }
+        
+        public void logQuestion( QuestionVO vo ) {
+            logNVP( "ID", vo.getId() ) ;
+            logNVP( "QID", vo.getQuestionId() ) ;
+            logNVP( "Source", vo.getSourceId() ) ;
+            logNVP( "Syllabus", vo.getSyllabusName() ) ;
+            logNVP( "Topic", vo.getTopicId() ) ;
+            logNVP( "Q Type", vo.getProblemType() ) ;
+            logNVP( "LCT Seq", vo.getLctSequence() ) ;
+            logNVP( "Q No", vo.getQuestionNumber() ) ;
+            logNVP( "Answer", vo.getAnswer() ) ;
+            logNVP( "Assoc Actor", vo.getTopicAssocActor() ) ;
+            logNVP( "Assoc Model", vo.getTopicAssocAiModel() ) ;
+            logNVP( "Assoc Conf", vo.getTopicAssocConfidence() ) ;
+            
+            for( QuestionImageVO imageVO : vo.getQuestionImages() ) {
+                log( "................" ) ;
+                logNVP( "  Img", imageVO.getFileName() ) ;
+                logNVP( "  Sequence", imageVO.getSequence() ) ;
+                logNVP( "  Page No", imageVO.getPageNumber() ) ;
+                logNVP( "  Is LCT Ctx?", imageVO.getLctCtxImage() ) ;
+                logNVP( "  Part No", imageVO.getPartNumber() ) ;
+                logNVP( "  Img width", imageVO.getImgWidth() ) ;
+                logNVP( "  Img height", imageVO.getImgHeight() ) ;
+                logNVP( "  Img data", getCompressedImgData( imageVO ) ) ;
+            }
+        }
+        
+        private void logNVP( String name, Object value ) {
+            log( StringUtils.rightPad( name, 15 ) + " = " + value ) ;
+        }
+        
+        // Appends the buffered lines to the log as one block and clears
+        // the buffer.
+        public synchronized void flush() {
+            if( sb.isEmpty() ) {
+                return ;
+            }
+            String block = sb.toString() ;
+            sb.setLength( 0 ) ;
+            SwingUtilities.invokeLater( () -> logTextArea.append( block ) ) ;
         }
     }
     
-    private void logNVP( String name, Object value ) {
-        append( StringUtils.rightPad( name, 15 ) + " = " + value ) ;
-    }
-    
-    private String getCompressedImgData( QuestionImageVO imgVO ) {
+    private static String getCompressedImgData( QuestionImageVO imgVO ) {
         String imgData = imgVO.getImgData() ;
         return imgData.substring( 0, Math.min( 10, imgData.length() ) ) + "... " +
                 (int)(( imgData.length() - 10 )/1024) + " KB" ;

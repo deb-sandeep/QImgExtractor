@@ -1,19 +1,24 @@
 package com.sandy.sconsole.qimgextractor.ui.project.qsync;
 
+import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.ProjectPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
+import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionRepo;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.apiclient.QSyncAPIClient;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.logpanel.QSyncLogPanel;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSTreeTableModel;
 import com.sandy.sconsole.qimgextractor.ui.project.qsync.treetable.QSyncTreeTable;
+import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Future;
 
 @Slf4j
 public class QSyncUI extends JPanel {
@@ -34,6 +39,7 @@ public class QSyncUI extends JPanel {
     private final QSyncTreeTable treeTable ;
     private final QSyncLogPanel logPanel ;
     private final QSyncAPIClient apiClient ;
+    private final QSyncExecutor syncExecutor ;
     private final JProgressBar syncProgressBar ;
     
     private boolean syncAllRunning = false ;
@@ -45,7 +51,8 @@ public class QSyncUI extends JPanel {
         this.treeTableModel = new QSTreeTableModel( this, this.projectModel, false ) ;
         this.treeTable = new QSyncTreeTable( this.treeTableModel, this ) ;
         this.logPanel = new QSyncLogPanel() ;
-        this.apiClient = new QSyncAPIClient( this.logPanel ) ;
+        this.apiClient = new QSyncAPIClient() ;
+        this.syncExecutor = new QSyncExecutor( QImgExtractor.getBean( AppConfig.class ).getQSyncThreads() ) ;
         this.syncProgressBar = new JProgressBar() ;
         
         setUpUI() ;
@@ -124,7 +131,7 @@ public class QSyncUI extends JPanel {
         syncAllRunning = true ;
         new SwingWorker<Void, Void>() {
             @Override
-            protected Void doInBackground() {
+            protected Void doInBackground() throws Exception {
                 treeTableModel.syncAllSyncPendingQuestions() ;
                 return null ;
             }
@@ -146,22 +153,53 @@ public class QSyncUI extends JPanel {
         }.execute() ;
     }
     
-    public void syncQuestion( Question question ) {
-        logPanel.logSeparator() ;
-        logPanel.log( "Syncing question " + question.getQID().toString() + "\n" ) ;
+    /**
+     * Queues the question for sync and returns without waiting. Can be
+     * called from any thread. See QSyncExecutor for how syncs are run in
+     * parallel.
+     *
+     * @return the sync's future, or null if the question is already queued
+     *         or being synced.
+     */
+    public Future<?> syncQuestion( Question question ) {
+        Future<?> future = syncExecutor.submit( question, () -> runSync( question ) ) ;
+        if( future == null ) {
+            logPanel.log( "Question " + question.getQID() + " is already being synced. Skipped." ) ;
+        }
+        return future ;
+    }
+    
+    // Runs on a sync executor thread.
+    private void runSync( Question question ) {
+        QSyncLogPanel.Buffer log = logPanel.newBuffer() ;
+        log.logSeparator() ;
+        log.log( "Syncing question " + question.getQID().toString() + "\n" ) ;
         
         try {
-            boolean saved = apiClient.syncQuestion( question ) ;
-            if( saved ) {
-                projectModel.getQuestionRepo().save() ;
+            QSyncAPIClient.SyncResult result = apiClient.syncQuestion( question, log ) ;
+            if( result != null ) {
+                // Locked with the repo's save(), which serializes the sync
+                // info of all the questions, and may run on another sync
+                // thread right now.
+                QuestionRepo repo = projectModel.getQuestionRepo() ;
+                synchronized( repo ) {
+                    question.setSyncInfo( result.questionId(), new Date(), result.syncToken() ) ;
+                }
+                repo.save() ;
             }
         }
         catch( Exception e ) {
-            logPanel.log( "Error syncing question " ) ;
-            logPanel.log( ExceptionUtils.getStackTrace( e ) );
-            logPanel.log( "\n" ) ;
+            log.log( "Error syncing question " ) ;
+            log.log( ExceptionUtils.getStackTrace( e ) );
+            log.log( "\n" ) ;
+        }
+        finally {
+            log.flush() ;
         }
         updateSyncProgress() ;
-        SwingUtilities.invokeLater( treeTable::collapseSyncedSyllabi ) ;
+        SwingUtilities.invokeLater( () -> {
+            treeTable.repaint() ;
+            treeTable.collapseSyncedSyllabi() ;
+        } ) ;
     }
 }

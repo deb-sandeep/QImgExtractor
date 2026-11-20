@@ -28,6 +28,11 @@ public class AppConfig {
     @Value( "${qSyncAPIEndpoint}" )
     private String qSyncAPIEndpoint ;
     
+    // Number of threads which sync non LCT questions in parallel. LCT
+    // questions are always synced one after the other on a thread of their own.
+    @Value( "${qSyncThreads:4}" )
+    private int qSyncThreads = 4 ;
+    
     @Value( "true" )
     private boolean hideSyncedSrcFolders = true ;
 

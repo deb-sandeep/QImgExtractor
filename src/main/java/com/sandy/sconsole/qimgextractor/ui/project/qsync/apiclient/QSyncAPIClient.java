@@ -15,50 +15,63 @@ import org.apache.commons.io.FileUtils;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.util.Date;
 import java.util.List;
 
 public class QSyncAPIClient {
 
-    private final QSyncLogPanel logPanel ;
+    /**
+     * A successful sync: the server's id of the question and the hash of
+     * the question content which was sent.
+     */
+    public record SyncResult( int questionId, String syncToken ) {}
+    
     private final APIClient apiClient ;
     private final AppConfig appConfig ;
     
-    public QSyncAPIClient( QSyncLogPanel logPanel ) {
-        this.logPanel = logPanel ;
+    public QSyncAPIClient() {
         this.apiClient = QImgExtractor.getBean( APIClient.class ) ;
         this.appConfig = QImgExtractor.getBean( AppConfig.class ) ;
     }
     
-    public boolean syncQuestion( Question question ) throws Exception {
+    /**
+     * Posts the question to the server. Safe to call from several threads
+     * at once, for different questions. The question is not changed - the
+     * caller records the sync info.
+     *
+     * @return the sync result, or null if the server did not save the question.
+     */
+    public SyncResult syncQuestion( Question question, QSyncLogPanel.Buffer log )
+        throws Exception {
         
+        // The hash is taken before the content is read, so a change made
+        // during the sync shows the question as modified after sync.
+        String syncToken = question.getHashCode() ;
         QuestionVO vo = populateQuestionVO( question ) ;
-        logPanel.logQuestion( vo ) ;
+        log.logQuestion( vo ) ;
         
-        logPanel.log( "\nPosting question to server..." ) ;
-        APIResponse response = this.apiClient.post( appConfig.getQSyncAPIEndpoint(), vo, logPanel::log ) ;
-        logPanel.log( "Response : " + response ) ;
-        logPanel.log( "Done." ) ;
+        log.log( "\nPosting question to server..." ) ;
+        APIResponse response = this.apiClient.post( appConfig.getQSyncAPIEndpoint(), vo, log::log ) ;
+        log.log( "Response : " + response ) ;
+        log.log( "Done." ) ;
         
         // Process the API response
         if( response.code() == 200 ) {
             JsonNode jsonNode = response.json().get( "data" ) ;
             boolean questionSaved = jsonNode.get( "questionSaved" ).asBoolean() ;
             if( questionSaved ) {
-                logPanel.log( "Question saved successfully." ) ;
+                log.log( "Question saved successfully." ) ;
                 int questionId = jsonNode.get( "questionId" ).asInt() ;
-                question.setSyncInfo( questionId, new Date(), question.getHashCode() ) ;
-                return true ;
+                return new SyncResult( questionId, syncToken ) ;
             }
             else {
                 String msg = jsonNode.get( "errorMessage" ).asText() ;
-                logPanel.log( "Error saving question. " + msg ) ;
+                log.log( "Error saving question. " + msg ) ;
             }
         }
         else {
-            logPanel.log( "Error syncing question. Server returned status code " + response.code() ) ;
+            log.log( "Error syncing question. Server returned status code " + response.code() ) ;
         }
-        return false ;
+        return null ;
     }
     
     private QuestionVO populateQuestionVO( Question question )
