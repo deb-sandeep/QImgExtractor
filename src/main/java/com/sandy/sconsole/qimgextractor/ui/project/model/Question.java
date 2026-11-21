@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.model;
 
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
+import com.sandy.sconsole.qimgextractor.qsrc.manual.MN_QID;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.util.AppConfig;
 import com.sandy.sconsole.qimgextractor.util.AppUtil;
@@ -94,6 +95,15 @@ public class Question extends QuestionImageCluster
     @Override
     public int compareTo( Question q ) {
         if( getSubjectTypeIndex() == q.getSubjectTypeIndex() ) {
+            // In a scanned paper the question number is the paper's order,
+            // across question types. Manual projects can restart numbering
+            // per type, so they stay grouped by type.
+            if( !( qID instanceof MN_QID ) && !( q.qID instanceof MN_QID ) ) {
+                int numDiff = qID.getQuestionNumber() - q.qID.getQuestionNumber() ;
+                if( numDiff != 0 ) {
+                    return numDiff ;
+                }
+            }
             if( getQTypeIndex() == q.getQTypeIndex() ) {
                 return qID.compareTo( q.qID ) ;
             }
