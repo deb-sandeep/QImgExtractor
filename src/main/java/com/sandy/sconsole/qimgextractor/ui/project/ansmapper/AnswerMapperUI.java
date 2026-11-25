@@ -146,6 +146,27 @@ public class AnswerMapperUI extends JPanel {
         answerTable.refreshTable() ;
     }
 
+    public void changeQuestionType( List<Question> questions, String questionType ) {
+
+        if( questions == null || questions.isEmpty() ) {
+            return ;
+        }
+
+        try {
+            List<String> skipped = projectModel.changeQuestionTypeOfQuestions( questions, questionType ) ;
+            if( !skipped.isEmpty() ) {
+                AppUtil.showErrorMsg( this, "LCT question types can't be changed. Skipped: " +
+                                            String.join( ", ", skipped ) ) ;
+            }
+        }
+        catch( IllegalArgumentException | IllegalStateException e ) {
+            log.error( "Failed to change question type to {}", questionType, e ) ;
+            AppUtil.showErrorMsg( this, e.getMessage() ) ;
+        }
+        questionTreePanel.refreshTree() ;
+        answerTable.refreshTable() ;
+    }
+
     private String toQIdList( List<Question> questions ) {
         return questions.stream()
                         .map( q -> q.getQID().toString() )

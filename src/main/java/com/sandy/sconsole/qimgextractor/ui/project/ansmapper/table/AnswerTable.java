@@ -2,6 +2,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.table;
 
 import com.sandy.sconsole.qimgextractor.QImgExtractor;
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree.PageQuestionTree;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
@@ -84,6 +85,12 @@ public class AnswerTable extends JTable {
         popup.add( pullAnswersUpMI ) ;
         popup.addSeparator() ;
         popup.add( renameQuestion ) ;
+        popup.add( PageQuestionTree.createChangeQuestionTypeMenu( qType -> {
+            if( popupQuestion != null ) {
+                stopEditing() ;
+                parent.changeQuestionType( List.of( popupQuestion ), qType ) ;
+            }
+        } ) ) ;
         popup.add( deleteQuestion ) ;
         return popup ;
     }

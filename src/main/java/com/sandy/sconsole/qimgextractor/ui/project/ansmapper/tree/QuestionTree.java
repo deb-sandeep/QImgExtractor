@@ -1,6 +1,7 @@
 package com.sandy.sconsole.qimgextractor.ui.project.ansmapper.tree;
 
 import com.sandy.sconsole.qimgextractor.ui.project.ansmapper.AnswerMapperUI;
+import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree.PageQuestionTree;
 import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import lombok.Getter;
 
@@ -52,6 +53,8 @@ public class QuestionTree extends JTree {
         JPopupMenu popup = new JPopupMenu() ;
         JMenuItem deleteQuestions = new JMenuItem( "Delete Question(s)" ) ;
         deleteQuestions.addActionListener( e -> parentPanel.deleteQuestions( getSelectedQuestions() ) ) ;
+        popup.add( PageQuestionTree.createChangeQuestionTypeMenu(
+                qType -> parentPanel.changeQuestionType( getSelectedQuestions(), qType ) ) ) ;
         popup.add( deleteQuestions ) ;
         return popup ;
     }

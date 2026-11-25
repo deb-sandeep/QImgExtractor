@@ -8,6 +8,7 @@ import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.ImgExtrac
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.imgpanel.SelectedRegionMetadata;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.ProjectModel;
+import com.sandy.sconsole.qimgextractor.ui.project.model.Question;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.state.ProjectContext;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.savedialog.ImgSaveDialog;
@@ -27,9 +28,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -477,6 +480,36 @@ public class ImageScraperUI extends JPanel
         }
         catch( IllegalStateException e ) {
             log.error( "Failed to change subject to {}", subjectCode, e ) ;
+            showErrorMsg( this, e.getMessage() ) ;
+        }
+    }
+
+    // Changes the type of the questions owning the given images. All the
+    // images of an owning question (all parts, across pages) are renamed,
+    // not just the selected ones, so that a question isn't split.
+    public void changeQuestionType( List<QuestionImage> qImgs, String questionType ) {
+        Set<Question> questions = new LinkedHashSet<>() ;
+        boolean hasLCTCtxImgs = false ;
+        for( QuestionImage qImg : qImgs ) {
+            Question q = projectModel.findQuestion( qImg ) ;
+            if( q != null ) {
+                questions.add( q ) ;
+            }
+            else {
+                hasLCTCtxImgs = true ;
+            }
+        }
+
+        try {
+            List<String> skipped = projectModel.changeQuestionTypeOfQuestions( questions, questionType ) ;
+            projectModel.getState().setImgCuttingWip( true ) ;
+            if( !skipped.isEmpty() || hasLCTCtxImgs ) {
+                showErrorMsg( this, "LCT question types can't be changed. Skipped" +
+                                    ( skipped.isEmpty() ? " LCT context images." : ": " + String.join( ", ", skipped ) ) ) ;
+            }
+        }
+        catch( IllegalArgumentException | IllegalStateException e ) {
+            log.error( "Failed to change question type to {}", questionType, e ) ;
             showErrorMsg( this, e.getMessage() ) ;
         }
     }

@@ -379,10 +379,59 @@ public class ProjectModel {
         List<QuestionImage> targets = qImgs.stream()
                 .filter( qImg -> !qImg.getQId().getQuestionType().equals( questionType ) )
                 .toList() ;
+
+        // The file clash check in renameQuestionImages is per page, so it
+        // misses an existing question with the new QID on another page.
+        Set<String> newQIds = new HashSet<>() ;
+        for( QuestionImage qImg : targets ) {
+            QuestionImage probe = qImg.getClone() ;
+            probe.setQuestionType( questionType ) ;
+            newQIds.add( probe.getQId().toString() ) ;
+        }
+        List<String> existing = questionRepo.getQuestionList().stream()
+                .map( q -> q.getQID().toString() )
+                .filter( newQIds::contains )
+                .toList() ;
+        if( !existing.isEmpty() ) {
+            throw new IllegalStateException( "Questions already exist: " + String.join( ", ", existing ) ) ;
+        }
+
         int count = renameQuestionImages( targets, qImg -> qImg.setQuestionType( questionType ), true ) ;
         if( count > 0 ) {
             log.info( "Changed type of {} question images to {}", count, questionType ) ;
         }
+    }
+
+    // Changes the question type of the given questions, renaming all their
+    // own images (all parts, across pages). LCT questions are skipped since
+    // their type can't change. Returns the QIDs of the skipped questions.
+    public List<String> changeQuestionTypeOfQuestions( Collection<Question> questions, String questionType ) {
+
+        List<String> skipped = new ArrayList<>() ;
+        List<QuestionImage> qImgs = new ArrayList<>() ;
+        for( Question q : questions ) {
+            if( q.isLCT() ) {
+                skipped.add( q.getQID().toString() ) ;
+            }
+            else {
+                qImgs.addAll( q.getOwnQImgList() ) ;
+            }
+        }
+        changeQuestionType( qImgs, questionType ) ;
+        return skipped ;
+    }
+
+    // Returns the question owning the given image, or null for an image
+    // which isn't owned by any question, e.g. an LCT context image.
+    public Question findQuestion( QuestionImage qImg ) {
+        for( Question q : questionRepo.getQuestionList() ) {
+            for( QuestionImage img : q.getOwnQImgList() ) {
+                if( img == qImg ) {
+                    return q ;
+                }
+            }
+        }
+        return null ;
     }
 
     // Renames a question to the given tag name (<subjectCode>_<QID parts>,

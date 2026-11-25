@@ -3,6 +3,7 @@ package com.sandy.sconsole.qimgextractor.ui.project.imgscraper.tree;
 import com.sandy.sconsole.qimgextractor.ui.core.SwingUtils;
 import com.sandy.sconsole.qimgextractor.ui.project.model.PageImage;
 import com.sandy.sconsole.qimgextractor.ui.project.model.QuestionImage;
+import com.sandy.sconsole.qimgextractor.ui.project.model.qid.QID;
 import com.sandy.sconsole.qimgextractor.ui.project.imgscraper.ImageScraperUI;
 import lombok.Getter;
 
@@ -162,6 +163,7 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         delete.addActionListener( e -> deleteSelectedQuestionImg() ) ;
         
         popup.add( createChangeSubjectMenu( this::changeSubjectOfSelectedImg ) ) ;
+        popup.add( createChangeQuestionTypeMenu( this::changeQuestionTypeOfSelectedImgs ) ) ;
         popup.add( delete ) ;
         return popup ;
     }
@@ -173,6 +175,7 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
         multiDeleteMenuItem.addActionListener( e -> deleteSelectedQuestionImgs() ) ;
         
         popup.add( createChangeSubjectMenu( this::changeSubjectOfSelectedImgs ) ) ;
+        popup.add( createChangeQuestionTypeMenu( this::changeQuestionTypeOfSelectedImgs ) ) ;
         popup.add( multiDeleteMenuItem ) ;
         return popup ;
     }
@@ -212,6 +215,28 @@ public class PageQuestionTree extends JTree implements ActionListener, TreeSelec
             menu.add( item ) ;
         } ) ;
         return menu ;
+    }
+    
+    // LCT is not offered since LCT question types can't be changed.
+    public static JMenu createChangeQuestionTypeMenu( Consumer<String> typeChangeHandler ) {
+        JMenu menu = new JMenu( "Change Question Type" ) ;
+        for( String qType : QID.Q_TYPE_SEQ ) {
+            if( !qType.equals( QID.LCT ) ) {
+                JMenuItem item = new JMenuItem( qType ) ;
+                item.addActionListener( e -> typeChangeHandler.accept( qType ) ) ;
+                menu.add( item ) ;
+            }
+        }
+        return menu ;
+    }
+    
+    // Works for both single and multi selection, since a right-click on a
+    // single node makes it the selection.
+    private void changeQuestionTypeOfSelectedImgs( String questionType ) {
+        List<QuestionImage> qImgs = getSelectedQuestionImgs() ;
+        if( !qImgs.isEmpty() ) {
+            parentPanel.changeQuestionType( qImgs, questionType ) ;
+        }
     }
     
     private void changeSubjectOfAllImages( String subjectCode ) {
